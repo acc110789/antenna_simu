@@ -2,6 +2,7 @@ package me.zhangxl.antenna;
 
 import me.zhangxl.antenna.application.App;
 import me.zhangxl.antenna.application.ExpApp;
+import me.zhangxl.antenna.infrastructure.ClockController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,9 @@ public class Main {
         for(App app : appList){
             app.loop();
         }
+
+        //时间片开始流动
+        ClockController.getInstance().loop();
     }
 
     private static void checkConfig() {
