@@ -5,10 +5,8 @@ import me.zhangxl.antenna.Config;
 import me.zhangxl.antenna.Logger;
 import me.zhangxl.antenna.request.DataFrame;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * 该类代表一个站点的状态
@@ -21,7 +19,7 @@ public class Station {
 
     private static final Logger logger = new Logger(Station.class);
     //wait list
-    private List<DataFrame> mDataRequests = new ArrayList<>();
+    private Queue<DataFrame> mDataRequests = new ConcurrentLinkedDeque<>();
 
     private final int id;
 

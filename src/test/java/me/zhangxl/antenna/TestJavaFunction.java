@@ -12,6 +12,7 @@ import java.nio.charset.Charset;
 import java.util.Random;
 
 /**
+ * 测试java一些函数的功能
  * Created by zhangxiaolong on 16/3/26.
  */
 public class TestJavaFunction {
@@ -75,6 +76,12 @@ public class TestJavaFunction {
         } finally {
             IOUtils.closeQuietly(rs);
         }
+    }
+
+    @Test
+    public void concatNullString(){
+        String aa = "1"+null;
+        System.out.println(aa.length());
     }
 
 

@@ -13,7 +13,16 @@ public class Logger {
 
     // TODO: 16/3/25 declare a method which can print exception
 
+    public void log(Throwable e){
+        System.out.println(e);
+    }
+
     public void log(String info){
         System.out.println(TAG + "      " + info);
+    }
+
+    public void log(Throwable e,String info){
+        log(e);
+        log(info);
     }
 }
