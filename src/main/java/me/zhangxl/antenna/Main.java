@@ -20,17 +20,17 @@ public class Main {
         checkConfig();
 
         //新建站点
-
         for (int i = 0; i < Config.UserNum; i++) {
             App app = new ExpApp(i);
             appList.add(app);
         }
-        //启动所有的站点
+
+        //激活所有的站点
         for(App app : appList){
             app.activate();
         }
 
-        //时间片开始流动
+        //时间片在主线程中开始流动
         ClockController.getInstance().loop();
     }
 

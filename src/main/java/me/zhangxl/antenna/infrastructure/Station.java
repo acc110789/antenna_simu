@@ -1,47 +1,31 @@
 package me.zhangxl.antenna.infrastructure;
 
 import com.sun.tools.javac.util.Pair;
-import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Logger;
 import me.zhangxl.antenna.request.DataFrame;
+import me.zhangxl.antenna.util.Logger;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * 该类代表一个站点的状态
- *
- * tips
- * (1):发生碰撞应该是Station自己意识到的
  * Created by zhangxiaolong on 16/3/24.
  */
-public class Station {
-
-    private Random random = new Random(System.currentTimeMillis());
+public class Station implements MediumObserver {
 
     private static final Logger logger = new Logger(Station.class);
     //wait list
-    private Queue<DataFrame> mDataRequests = new ConcurrentLinkedDeque<>();
+    private List<DataFrame> mDataFramesToSend = Collections.synchronizedList(new ArrayList<DataFrame>());
+
+    private List<DataFrame> mDataFrameReceived = Collections.synchronizedList(new ArrayList<DataFrame>());
 
     private final int id;
 
     private final Pair<Double,Double> mLocation; //定向天线时需要保证
 
-    private boolean isBusy = false;
-
-    private boolean isSending = false;
-
-    private DataFrame currentDataRequest;
-
-    private final Object tifLock = new Object();
-
-    //表明station是否是在tif中,在tif中什么事情也不能做,就等待,这个变量的修改必须是在同步中
-    private boolean isTifing = false;
-    private List<Runnable> tifRunnables = new ArrayList<>();
-
     public Station(int id){
         this.id = id;
         mLocation = null;
+        MediumObservers.getInstance().register(this);
     }
 
     public Station(int id,Double xAxis,Double yAxis){
@@ -49,78 +33,61 @@ public class Station {
         this.mLocation = new Pair<>(xAxis,yAxis);
     }
 
-    private void putRequest(final DataFrame dataRequest){
-        // TODO: 16/3/24 有可能是直接处理这个dataRequest,也有可能是把这个request放到list中
-        if(isBusy) {
-            mDataRequests.add(dataRequest);
-        } else {
-            //当前可能正在Tif中
-            synchronized (tifLock){
-                if(isTifing){
-                    tifRunnables.add(new Runnable() {
-                        @Override
-                        public void run() {
-                            startTransmit(dataRequest);
-                        }
-                    });
-                } else {
-                    startTransmit(dataRequest);
-                }
-            }
-        }
+    @Override
+    public void onRtsCollision() {
+
     }
 
-    /**
-     * 初始化一个tif
-     */
-    public void initTif() {
-        synchronized (tifLock) {
-            if (isTifing) {
-                // TODO: 16/3/25 是否应该直接退出
-                logger.log("already init a tif");
-            } else {
-                isTifing = true;
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        synchronized (tifLock) {
-                            isTifing = false;
-                            for(Runnable toRun : tifRunnables){
-                                toRun.run();
-                            }
-                        }
-                    }
-                }, Config.tifDuration);
-            }
-        }
+    @Override
+    public void onNewSLot() {
+
     }
 
     private void startTransmit(DataFrame dataRequest){
         // TODO: 16/3/25 这里没有reset dataRequest 的碰撞次数
         dataRequest.setStartTimeNow();
-        setBusy();
-        setCurrentDataRequest(dataRequest);
         Medium.getInstance().putRequest(dataRequest);
     }
 
+    /**提供给 {@link me.zhangxl.antenna.application.App} 调用*/
     public void sendRequest(int targetId,long length){
-        putRequest(new DataFrame(this.id,targetId,length));
+        mDataFramesToSend.add(new DataFrame(this.id,targetId,length));
     }
 
-    private void setBusy(){
-        this.isBusy = true;
+    //作为发送端发送的数据
+    public void sendRts(){
+
     }
 
-    private void setIdle(){
-        this.isBusy = false;
+    public void sendData(){
+
     }
 
-    private void setCurrentDataRequest(DataFrame dataRequest){
-        this.currentDataRequest = dataRequest;
+    //作为发送端的接受数据
+    public void receiveCts(){
+
     }
 
-    private void unSetDataRequest(){
-        this.currentDataRequest = null;
+    public void receiveAck(){
+
+    }
+
+    //作为接受端发送的数据
+    public void sendCts(){
+
+    }
+
+    public void sendAck(){
+
+    }
+
+    //作为接收端接受的数据
+    public void receiveRts(){
+
+    }
+
+    public void receiveData(){
+
     }
 
 }
