@@ -14,7 +14,7 @@ public class ExpApp extends App {
      * @return 安排下一个发送请求的时间点
      */
     @Override
-    protected long getNextSlotNum() {
+    protected long getNextFrameTime() {
         // TODO: 16/3/24
         return 0;
     }

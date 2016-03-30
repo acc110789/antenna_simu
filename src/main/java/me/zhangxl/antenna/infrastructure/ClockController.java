@@ -1,24 +1,19 @@
 package me.zhangxl.antenna.infrastructure;
 
-import me.zhangxl.antenna.Config;
 import me.zhangxl.antenna.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
- * 控制着时间槽的移动.
+ * 负责时间槽的移动.
  * 所有需要用到时间的地方,比如Station或者Medium都要监听这个时间槽
- * 等所有的监听者把这个时间点该做的事情做完了,需要通知controller要做的事情完了.
  * Created by zhangxiaolong on 16/3/29.
  */
 public class ClockController {
 
     private Logger logger = new Logger(ClockController.class);
 
-    private List<ClockObserver> observers = new ArrayList<>();
-
-    private long currentTime = 0;
+    private PriorityBlockingQueue<ClockTask> tasks = new PriorityBlockingQueue<>();
 
     private ClockController(){}
 
@@ -28,28 +23,41 @@ public class ClockController {
         return sInstance;
     }
 
-    public synchronized void register(ClockObserver observer){
-        observers.add(observer);
+    /**同步的目的是保证不会被乱添加,
+     * 只能在一开始活着loop循环调用的函数中添加.
+     * 防止刚刚被添加进来时间就被剪掉
+     */
+    public synchronized void register(ClockTask task){
+        if(Logger.LOG_CLOCK){
+            logger.log("register clockTask at %f",task.getTaskTime());
+        }
+        tasks.put(task);
     }
 
-    public synchronized void unregister(ClockObserver observer){
-        observers.remove(observer);
-    }
-
-    private synchronized ClockObserver[] getObservers(){
-        return observers.toArray(new ClockObserver[observers.size()]);
-    }
-
-    public void loop(){
-        while (observers.size() > 0) {
-            currentTime += Config.SLOT_LENGTH;
-            if(Logger.LOG_CLOCK){
-                logger.log("new clock begin,current time :%d",currentTime);
-            }
-            for (ClockObserver observer : getObservers()) {
-                if(observer != null) {
-                    observer.onNewSlot();
+    public synchronized void loop() throws InterruptedException {
+        ClockTask task = tasks.take();
+        //减去时间
+        float time = task.getTaskTime();
+        task.reduceTime(time);
+        for(ClockTask task1 : tasks){
+            task1.reduceTime(time);
+        }
+        //下面开始执行任务
+        if(Logger.LOG_CLOCK){
+            logger.log("do a task...");
+        }
+        task.doTask();
+        while (true){
+            //搜索可能还需要执行的任务
+            ClockTask temp = tasks.peek();
+            if(temp != null && Math.abs(temp.getTaskTime()) < 1e-10 ){ //浮点数比较,当绝对值小于一定值,可以认为是0
+                if(Logger.LOG_CLOCK){
+                    logger.log("do a task...");
                 }
+                temp.doTask();
+            } else {
+                //说明没有task了 或者需要等到下一个时间点运行
+                break;
             }
         }
     }

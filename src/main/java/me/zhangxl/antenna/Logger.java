@@ -1,14 +1,13 @@
 package me.zhangxl.antenna;
 
 import java.io.PrintWriter;
-import java.util.Arrays;
 
 /**
  * Created by zhangxiaolong on 16/3/25.
  */
 public class Logger {
 
-    public static boolean LOG_CLOCK = false;
+    public static boolean LOG_CLOCK = true;
 
     private final String TAG;
 
@@ -36,7 +35,7 @@ public class Logger {
     }
 
     private void logInner(String formater,Object... objects){
-        printer.format("%s:  " + formater,TAG, Arrays.toString(objects));
+        printer.format(TAG + "  " + formater, objects);
     }
 
 }

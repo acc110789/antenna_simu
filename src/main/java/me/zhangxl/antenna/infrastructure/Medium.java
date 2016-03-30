@@ -4,8 +4,6 @@ import me.zhangxl.antenna.request.Frame;
 
 /**
  * 代表传输的介质(信道)
- * 碰撞是Station自己意识到的,Medium仅仅负责传输数据
- * 主要作用是可以对Request进行一些控制
  * Created by zhangxiaolong on 16/3/24.
  */
 public class Medium {

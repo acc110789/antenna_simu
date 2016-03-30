@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * (1):发生碰撞应该是Station自己意识到的
  * Created by zhangxiaolong on 16/3/24.
  */
-public class Station implements ClockObserver {
+public class Station {
 
     private Random random = new Random(System.currentTimeMillis());
 
@@ -42,7 +42,6 @@ public class Station implements ClockObserver {
     public Station(int id){
         this.id = id;
         mLocation = null;
-        ClockController.getInstance().register(this);
     }
 
     public Station(int id,Double xAxis,Double yAxis){
@@ -124,9 +123,4 @@ public class Station implements ClockObserver {
         this.currentDataRequest = null;
     }
 
-    @Override
-    public void onNewSlot() {
-        // TODO: 16/3/29
-
-    }
 }

@@ -1,11 +1,12 @@
 package me.zhangxl.antenna.application;
 
 import me.zhangxl.antenna.infrastructure.ClockController;
-import me.zhangxl.antenna.infrastructure.ClockObserver;
+import me.zhangxl.antenna.infrastructure.ClockTask;
 import me.zhangxl.antenna.infrastructure.Station;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * App可以理解为一个用户或者可以理解为上层的应用程序,
@@ -13,18 +14,17 @@ import java.util.List;
  * User可以每隔一段时间以一定的规律发送给另外一个User request
  * Created by zhangxiaolong on 16/3/24.
  */
-public abstract class App implements ClockObserver {
+public abstract class App  {
 
     private final Station mStation;
 
-    private Boolean active;
+    private AtomicBoolean active = new AtomicBoolean(false);
 
     private static final List<Integer> stationIds = new ArrayList<>();
 
     App(int id){
         mStation = new Station(id);
         stationIds.add(id);
-        ClockController.getInstance().register(this);
     }
 
     private Station getStation(){
@@ -32,18 +32,17 @@ public abstract class App implements ClockObserver {
     }
 
     public void activate(){
-        synchronized (active) {
-            active = true;
+        if(!active.get()) {
+            active.set(true);
+            ClockController.getInstance().register(new ClockTask(getNextFrameTime(), getRunnable()));
         }
     }
 
     public void deActivate(){
-        synchronized (active) {
-            active = false;
-        }
+        active.set(false);
     }
 
-    protected abstract long getNextSlotNum();
+    protected abstract long getNextFrameTime();
 
     protected abstract long getNextFrameLength();
 
@@ -53,13 +52,15 @@ public abstract class App implements ClockObserver {
         return new ArrayList<>(stationIds);
     }
 
-    @Override
-    public void onNewSlot() {
-        synchronized (active) {
-            if(active) {
-                // TODO: 16/3/29 计算每一个slot产生一个frame的概率
-                getStation().sendRequest(getNextDesId(), getNextFrameLength());
+    private Runnable getRunnable(){
+        return new Runnable() {
+            @Override
+            public void run() {
+                if(active.get()){
+                    getStation().sendRequest(getNextDesId(), getNextFrameLength());
+                    ClockController.getInstance().register(new ClockTask(getNextFrameTime(), getRunnable()));
+                }
             }
-        }
+        };
     }
 }
