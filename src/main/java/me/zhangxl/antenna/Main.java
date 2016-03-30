@@ -26,7 +26,7 @@ public class Main {
         }
         //启动所有的站点
         for(App app : appList){
-            app.loop();
+            app.activate();
         }
 
         //时间片开始流动

@@ -84,5 +84,16 @@ public class TestJavaFunction {
         System.out.println(aa.length());
     }
 
+    @Test
+    public void pppLength(){
+        Object[] objects = new Object[10];
+        printLength(objects);
+        printLength(objects,new Object(),new Object[20]);
+    }
+
+    private void printLength(Object... objects){
+        System.out.println(objects.length);
+    }
+
 
 }

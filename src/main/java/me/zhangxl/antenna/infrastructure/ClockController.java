@@ -10,7 +10,6 @@ import java.util.List;
  * 控制着时间槽的移动.
  * 所有需要用到时间的地方,比如Station或者Medium都要监听这个时间槽
  * 等所有的监听者把这个时间点该做的事情做完了,需要通知controller要做的事情完了.
- *
  * Created by zhangxiaolong on 16/3/29.
  */
 public class ClockController {
@@ -20,6 +19,8 @@ public class ClockController {
     private List<ClockObserver> observers = new ArrayList<>();
 
     private long currentTime = 0;
+
+    private ClockController(){}
 
     private static final ClockController sInstance = new ClockController();
 

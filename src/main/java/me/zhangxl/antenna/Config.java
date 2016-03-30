@@ -11,8 +11,10 @@ public class Config {
     public static final long tifDuration = 200;
 
     /**
-     * 过程如下
-     *  DIFS  -> ContentionWindow ->RTS -> SIFS -> CTS -> SIFS -> DATA -> SIFS -> ACK -> DIFS -> ContentionWindow .........
+     * 正常的流程如下:
+     *  DIFS  -> ContentionWindow -> RTS -> SIFS -> CTS -> SIFS -> DATA -> SIFS -> ACK -> DIFS -> ContentionWindow .........
+     *  只考虑一种碰撞的情况如下:
+     *  DIFS  -> ContentionWindow -> RTS(碰撞) -> DIFS -> ContentionWindow -> ............
      * */
 
     public static  long DIFS = 0;
@@ -32,6 +34,14 @@ public class Config {
     public static final int vertionG = 3;
 
     public static final int currentVertion = vertionB;
+
+    //bits 物理层的长度
+    private static final int PHY_HEADER = 192;
+
+    //ACK,CTS
+    private static final int MAC_HEADER = 112;
+
+    private static final int MAC_RTS_HEADER = 190;
 
     static {
         //time unit μs

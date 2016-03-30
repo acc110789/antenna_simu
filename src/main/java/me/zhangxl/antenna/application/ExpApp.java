@@ -11,28 +11,28 @@ public class ExpApp extends App {
     }
 
     /**
-     * 安排下一个发送请求的时间点
+     * @return 安排下一个发送请求的时间点
      */
     @Override
-    protected long getNextTimePoint() {
+    protected long getNextSlotNum() {
         // TODO: 16/3/24
         return 0;
     }
 
     /**
-     * 下一个请求的长度
+     * @return 下一个请求的长度
      */
     @Override
-    protected long getNextDataRequestLength() {
+    protected long getNextFrameLength() {
         // TODO: 16/3/24
         return 0;
     }
 
     /**
-     * 下一个请求的发送目标
+     * @return 下一个请求的发送目标
      */
     @Override
-    protected int getNextTargetId() {
+    protected int getNextDesId() {
         return 0;
     }
 
