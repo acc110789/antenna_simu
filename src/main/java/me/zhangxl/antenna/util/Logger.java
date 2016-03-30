@@ -1,4 +1,4 @@
-package me.zhangxl.antenna;
+package me.zhangxl.antenna.util;
 
 import java.io.PrintWriter;
 
@@ -9,13 +9,12 @@ public class Logger {
 
     public static boolean LOG_CLOCK = true;
 
-    private final String TAG;
+    private static final PrintWriter printer = new PrintWriter(System.out,true);
 
-    private PrintWriter printer;
+    private final String TAG;
 
     public Logger(Class clazz){
         TAG = clazz.getSimpleName();
-        this.printer = new PrintWriter(System.out);
     }
 
     public void log(Throwable e){
@@ -35,7 +34,7 @@ public class Logger {
     }
 
     private void logInner(String formater,Object... objects){
-        printer.format(TAG + "  " + formater, objects);
+        printer.format(TAG + "  " + formater + "\n", objects);
     }
 
 }

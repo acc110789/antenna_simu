@@ -3,6 +3,7 @@ package me.zhangxl.antenna;
 import me.zhangxl.antenna.application.App;
 import me.zhangxl.antenna.application.ExpApp;
 import me.zhangxl.antenna.infrastructure.ClockController;
+import me.zhangxl.antenna.util.Config;
 
 import java.util.ArrayList;
 import java.util.List;

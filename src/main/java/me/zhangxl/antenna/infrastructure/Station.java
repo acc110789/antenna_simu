@@ -1,8 +1,8 @@
 package me.zhangxl.antenna.infrastructure;
 
 import com.sun.tools.javac.util.Pair;
-import me.zhangxl.antenna.Config;
-import me.zhangxl.antenna.Logger;
+import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.Logger;
 import me.zhangxl.antenna.request.DataFrame;
 
 import java.util.*;
