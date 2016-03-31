@@ -1,5 +1,7 @@
 package me.zhangxl.antenna.infrastructure;
 
+import me.zhangxl.antenna.request.RtsFrame;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,10 +38,9 @@ class MediumObservers implements MediumObserver {
     }
 
     @Override
-    @Deprecated
-    public void onRtsCollision() {
+    public void onRtsCollision(List<RtsFrame> collisionFrames) {
         for(MediumObserver observer : getObservers()){
-            observer.onRtsCollision();
+            observer.onRtsCollision(collisionFrames);
         }
     }
 

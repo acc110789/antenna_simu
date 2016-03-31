@@ -1,5 +1,9 @@
 package me.zhangxl.antenna.infrastructure;
 
+import me.zhangxl.antenna.request.RtsFrame;
+
+import java.util.List;
+
 /**
  * Created by zhangxiaolong on 16/3/30.
  */
@@ -7,9 +11,9 @@ interface MediumObserver {
 
     /**
      * 有多个Station正在发送RTS,碰撞
+     * @param collisionFrames
      */
-    @Deprecated
-    void onRtsCollision();
+    void onRtsCollision(List<RtsFrame> collisionFrames);
 
     /**
      * 这个方法必须在Medium空闲DIFS之后才能回调

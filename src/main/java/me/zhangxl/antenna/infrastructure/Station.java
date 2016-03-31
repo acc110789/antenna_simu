@@ -37,9 +37,17 @@ public class Station implements MediumObserver {
     }
 
     @Override
-    @Deprecated
-    public void onRtsCollision() {
-
+    public void onRtsCollision(List<RtsFrame> collisionFrames) {
+        int count = 0; //
+        for(RtsFrame frame : collisionFrames){
+            if(frame.getSrcId() == this.id){
+                count ++;
+                mCurrentSendingFrame.addCollitionTimes();
+            }
+        }
+        if(count > 1){
+            throw new IllegalStateException("too many frames sent by station id:"+this.id);
+        }
     }
 
     @Override
@@ -54,8 +62,10 @@ public class Station implements MediumObserver {
     public void onPostDifs() {
         if(mCurrentSendingFrame == null){
             getDataFrameToSend();
-            sendDataIfNeed();
+        } else if(mCurrentSendingFrame.isConflicting()){
+            mCurrentSendingFrame.unsetConflict();
         }
+        sendDataIfNeed();
     }
 
     private void sendDataIfNeed(){

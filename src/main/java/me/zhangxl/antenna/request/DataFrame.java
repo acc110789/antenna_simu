@@ -17,12 +17,24 @@ public class DataFrame extends Frame {
 
     private int backOff;
 
+    private boolean conflicting = false;
+
     public DataFrame(int srcId, int targetId, long length){
         super(srcId,targetId,length);
     }
 
     public void addCollitionTimes(){
         collisionTimes ++;
+        conflicting = true;
+    }
+
+    public boolean isConflicting(){
+        return conflicting;
+    }
+
+    public void unsetConflict(){
+        conflicting = false;
+        updateBackOff();
     }
 
     /**
@@ -35,6 +47,10 @@ public class DataFrame extends Frame {
         if(this.collisionTimes == InfraConstant.DEFAULT_DATA_FRAME_COLLISION_TIME){
             this.collisionTimes = 0;
         }
+        updateBackOff();
+    }
+
+    private void updateBackOff(){
         int window = (int) Math.pow(2,4+this.collisionTimes);
         Random random = new Random(System.currentTimeMillis());
         backOff = random.nextInt(window);

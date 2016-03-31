@@ -53,6 +53,11 @@ public class Medium {
                             +frame.getClass().getSimpleName());
                 }
             }
+            List<RtsFrame> frames = new ArrayList<>();
+            for(Frame frame : frameToSend){
+                frames.add((RtsFrame) frame);
+            }
+            MediumObservers.getInstance().onRtsCollision(frames);
             ClockController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {

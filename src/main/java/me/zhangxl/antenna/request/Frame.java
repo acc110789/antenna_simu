@@ -33,6 +33,10 @@ public abstract class Frame {
         return targetId;
     }
 
+    public int getSrcId(){
+        return srcId;
+    }
+
     public RtsFrame generateRtsFrame(){
         return new RtsFrame(this.srcId,this.targetId);
     }
