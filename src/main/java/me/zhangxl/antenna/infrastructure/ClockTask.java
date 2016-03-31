@@ -1,9 +1,10 @@
 package me.zhangxl.antenna.infrastructure;
 
 /**
+ *  {@link ClockController} 持有的ClockTask
  * Created by zhangxiaolong on 16/3/30.
  */
-public class ClockTask implements Comparable<ClockTask> {
+class ClockTask implements Comparable<ClockTask> {
 
     private float mTimeToRun;
     private final Runnable mToRun;
@@ -16,7 +17,7 @@ public class ClockTask implements Comparable<ClockTask> {
         return (mTimeToRun - o.mTimeToRun) > 0 ? 1 : -1;
     }
 
-    public ClockTask(float timeToRun, Runnable toRun) {
+    ClockTask(float timeToRun, Runnable toRun) {
         this.mTimeToRun = timeToRun;
         if(toRun == null){
             throw new NullPointerException();

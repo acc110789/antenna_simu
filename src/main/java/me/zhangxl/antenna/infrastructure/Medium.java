@@ -30,9 +30,7 @@ public class Medium {
         return sMedium;
     }
 
-    // TODO: 16/3/30 Medium要负责在恰当的时间回调MediumObservers的两个方法
-    private Medium() {
-    }
+    private Medium() {}
 
     /**
      * @param frame 不能直接ClockController.getInstance().post(),因为可能有Rts冲突

@@ -7,7 +7,7 @@ import me.zhangxl.antenna.util.Config;
  */
 public class CtsFrame extends Frame {
 
-    public CtsFrame(int srcId, int targetId) {
+    CtsFrame(int srcId, int targetId) {
         super(srcId, targetId, Config.CTS_LENGTH);
     }
 

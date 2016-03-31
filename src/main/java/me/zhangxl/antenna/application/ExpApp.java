@@ -14,7 +14,7 @@ public class ExpApp extends App {
      * @return 安排下一个发送请求的时间点
      */
     @Override
-    protected long getNextFrameTime() {
+    protected long getNextFrameInterval() {
         // TODO: 16/3/24
         return 0;
     }
@@ -33,6 +33,7 @@ public class ExpApp extends App {
      */
     @Override
     protected int getNextDesId() {
+        // TODO: 16/3/31
         return 0;
     }
 

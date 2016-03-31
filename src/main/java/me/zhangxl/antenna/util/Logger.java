@@ -3,6 +3,7 @@ package me.zhangxl.antenna.util;
 import java.io.PrintWriter;
 
 /**
+ * 打印一些log信息
  * Created by zhangxiaolong on 16/3/25.
  */
 public class Logger {

@@ -24,16 +24,14 @@ public class Config {
     public static float SLOT_LENGTH = 0;
 
     //contentionWindow,竞争窗口
-    public static int CW = 0;
-
-    public static final long EIFS = 0;
+    private static int CW = 0;
 
     //不同的802.11版本有的参数可能不一样
-    public static final int vertionB = 1;
-    public static final int vertionA = 2;
-    public static final int vertionG = 3;
+    private static final int vertionB = 1;
+    private static final int vertionA = 2;
+    private static final int vertionG = 3;
 
-    public static final int currentVertion = vertionB;
+    private static final int currentVertion = vertionB;
 
     //bits 物理层的长度
     private static final int PHY_HEADER = 192;
