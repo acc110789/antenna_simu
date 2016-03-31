@@ -48,4 +48,11 @@ class MediumObservers implements MediumObserver {
             observer.onNewSLot();
         }
     }
+
+    @Override
+    public void onPostDifs() {
+        for(MediumObserver observer : getObservers()){
+            observer.onPostDifs();
+        }
+    }
 }

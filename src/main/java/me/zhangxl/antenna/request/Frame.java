@@ -5,11 +5,11 @@ package me.zhangxl.antenna.request;
  * Created by zhangxiaolong on 16/3/24.
  */
 public abstract class Frame {
-    private final long length;
+    protected final long length;
 
-    private final int srcId;
+    protected final int srcId;
 
-    private final int targetId;
+    protected final int targetId;
 
     public Frame(int srcId, int targetId, long length){
         this.srcId = srcId;
@@ -18,4 +18,16 @@ public abstract class Frame {
     }
 
     abstract public long getTransmitDuration();
+
+    public RtsFrame generateRtsFrame(){
+        return new RtsFrame(this.srcId,this.targetId);
+    }
+
+    public CtsFrame generateCtsFrame(){
+        return new CtsFrame(this.srcId,this.targetId);
+    }
+
+    public AckFrame generateAckFrame(){
+        return new AckFrame(this.srcId,this.targetId);
+    }
 }

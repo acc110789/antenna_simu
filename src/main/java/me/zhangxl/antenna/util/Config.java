@@ -43,6 +43,12 @@ public class Config {
 
     private static final int MAC_RTS_HEADER = 190;
 
+    public static final int RTS_LENGTH = PHY_HEADER + MAC_RTS_HEADER;
+
+    public static final int CTS_LENGTH = PHY_HEADER + MAC_HEADER;
+
+    public static final int ACK_LENGTH = PHY_HEADER + MAC_HEADER;
+
     static {
         //time unit μs
         if(currentVertion == vertionB){

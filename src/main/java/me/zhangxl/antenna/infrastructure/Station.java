@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure;
 
 import com.sun.tools.javac.util.Pair;
-import me.zhangxl.antenna.request.DataFrame;
+import me.zhangxl.antenna.request.*;
 import me.zhangxl.antenna.util.Logger;
 
 import java.util.*;
@@ -22,6 +22,10 @@ public class Station implements MediumObserver {
 
     private final Pair<Double,Double> mLocation; //定向天线时需要保证
 
+    private DataFrame mCurrentSendingFrame;
+
+    private Frame mCurrentReceivingFrame;
+
     public Station(int id){
         this.id = id;
         mLocation = null;
@@ -40,35 +44,65 @@ public class Station implements MediumObserver {
 
     @Override
     public void onNewSLot() {
-
+        if(mCurrentSendingFrame != null){
+            mCurrentSendingFrame.countDownBackOff();
+            sendDataIfNeed();
+        }
     }
 
-    private void startTransmit(DataFrame dataRequest){
-        // TODO: 16/3/25 这里没有reset dataRequest 的碰撞次数
-        dataRequest.setStartTimeNow();
-        Medium.getInstance().putRequest(dataRequest);
+    @Override
+    public void onPostDifs() {
+        if(mCurrentSendingFrame == null){
+            getDataFrameToSend();
+            sendDataIfNeed();
+        }
     }
 
-    /**提供给 {@link me.zhangxl.antenna.application.App} 调用*/
+    private void sendDataIfNeed(){
+        if(mCurrentSendingFrame != null && mCurrentSendingFrame.canBeSent()){
+            //开始进入流程
+            sendRts(mCurrentSendingFrame.generateRtsFrame());
+        }
+    }
+
+    /**
+     * 如果存在待发送的Frame,则取出一个
+     * Frame,设置为当前要发送的Frame,
+     * 并为这个Frame进行初始化
+     */
+    private void getDataFrameToSend(){
+        if(mDataFramesToSend.size() > 0) {
+            mCurrentSendingFrame = mDataFramesToSend.remove(0);
+            mCurrentSendingFrame.init();
+        }
+    }
+
+
+    /**提供给
+     * {@link me.zhangxl.antenna.application.App}
+     * 调用*/
     public void sendRequest(int targetId,long length){
         mDataFramesToSend.add(new DataFrame(this.id,targetId,length));
     }
 
     //作为发送端发送的数据
-    public void sendRts(){
-
+    public void sendRts(RtsFrame frame){
+        Medium.getInstance().putRequest(frame);
     }
 
     public void sendData(){
-
+        if(mCurrentSendingFrame == null){
+            throw new IllegalStateException("current Frame of Station is null");
+        }
+        Medium.getInstance().putRequest(mCurrentSendingFrame);
     }
 
     //作为发送端的接受数据
-    public void receiveCts(){
+    public void receiveCts(CtsFrame frame){
 
     }
 
-    public void receiveAck(){
+    public void receiveAck(AckFrame frame){
 
     }
 
@@ -83,7 +117,7 @@ public class Station implements MediumObserver {
 
     //作为接收端接受的数据
     public void receiveRts(){
-
+        //需要等待一个SIFS再进行
     }
 
     public void receiveData(){
