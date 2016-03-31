@@ -1,6 +1,6 @@
 package me.zhangxl.antenna.request;
 
-import me.zhangxl.antenna.infrastructure.InfraConstant;
+import me.zhangxl.antenna.util.Config;
 
 import java.util.Random;
 
@@ -11,28 +11,28 @@ import java.util.Random;
  */
 public class DataFrame extends Frame {
 
-    private long startTime = InfraConstant.DEFAULT_DATA_FRAME_START_TIME;
+    private long startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
 
-    private int collisionTimes = InfraConstant.DEFAULT_DATA_FRAME_COLLISION_TIME;
+    private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
 
     private int backOff;
 
     private boolean conflicting = false;
 
-    public DataFrame(int srcId, int targetId, long length){
-        super(srcId,targetId,length);
+    public DataFrame(int srcId, int targetId, long length) {
+        super(srcId, targetId, length);
     }
 
-    public void addCollitionTimes(){
-        collisionTimes ++;
+    public void addCollitionTimes() {
+        collisionTimes++;
         conflicting = true;
     }
 
-    public boolean isConflicting(){
+    public boolean isConflicting() {
         return conflicting;
     }
 
-    public void unsetConflict(){
+    public void unsetConflict() {
         conflicting = false;
         updateBackOff();
     }
@@ -40,34 +40,34 @@ public class DataFrame extends Frame {
     /**
      * 初始化Frame
      */
-    public void init(){
-        if(this.startTime == InfraConstant.DEFAULT_DATA_FRAME_START_TIME) {
+    public void init() {
+        if (this.startTime == Config.DEFAULT_DATA_FRAME_START_TIME) {
             this.startTime = System.currentTimeMillis();
         }
-        if(this.collisionTimes == InfraConstant.DEFAULT_DATA_FRAME_COLLISION_TIME){
+        if (this.collisionTimes == Config.DEFAULT_DATA_FRAME_COLLISION_TIME) {
             this.collisionTimes = 0;
         }
         updateBackOff();
     }
 
-    private void updateBackOff(){
-        int window = (int) Math.pow(2,4+this.collisionTimes);
+    private void updateBackOff() {
+        int window = (int) Math.pow(2, 2 + this.collisionTimes);
         Random random = new Random(System.currentTimeMillis());
         backOff = random.nextInt(window);
     }
 
-    public void countDownBackOff(){
+    public void countDownBackOff() {
         backOff--;
         checkBackOff();
     }
 
-    public boolean canBeSent(){
+    public boolean canBeSent() {
         checkBackOff();
         return backOff == 0;
     }
 
-    private void checkBackOff(){
-        if(backOff < 0){
+    private void checkBackOff() {
+        if (backOff < 0) {
             throw new IllegalStateException("backOff is less than 0");
         }
     }

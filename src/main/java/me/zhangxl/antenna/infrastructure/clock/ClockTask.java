@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.infrastructure;
+package me.zhangxl.antenna.infrastructure.clock;
 
 /**
  *  {@link ClockController} 持有的ClockTask

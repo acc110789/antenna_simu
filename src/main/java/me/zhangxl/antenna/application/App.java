@@ -1,6 +1,6 @@
 package me.zhangxl.antenna.application;
 
-import me.zhangxl.antenna.infrastructure.ClockController;
+import me.zhangxl.antenna.infrastructure.clock.ClockController;
 import me.zhangxl.antenna.infrastructure.Station;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public abstract class App  {
         stationIds.add(id);
     }
 
-    public Station getStation(){
+    private Station getStation(){
         return mStation;
     }
 

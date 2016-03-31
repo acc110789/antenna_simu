@@ -1,6 +1,7 @@
-package me.zhangxl.antenna.infrastructure;
+package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.request.RtsFrame;
+import me.zhangxl.antenna.util.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,16 +19,19 @@ import java.util.List;
  *  {@link Medium}
  * Created by zhangxiaolong on 16/3/30.
  */
-class MediumObservers implements MediumObserver {
+public class MediumObservers implements MediumObserver {
+
+    private static Logger logger = new Logger(MediumObservers.class);
+
     private static MediumObservers ourInstance = new MediumObservers();
 
     private List<MediumObserver> observers = new ArrayList<>();
 
-    static MediumObservers getInstance() {
+    public static MediumObservers getInstance() {
         return ourInstance;
     }
 
-    synchronized void register(MediumObserver observer){
+    public synchronized void register(MediumObserver observer){
         if(!observers.contains(observer)) {
             observers.add(observer);
         }
@@ -46,9 +50,13 @@ class MediumObservers implements MediumObserver {
 
     @Override
     public void onNewSLot() {
+        if(Logger.DEBUG_STATION){
+            logger.log("onNewSlot...");
+        }
         for(MediumObserver observer : getObservers()){
             observer.onNewSLot();
         }
+        Medium.getInstance().checkCollisionAndSend();
     }
 
     @Override
@@ -56,5 +64,6 @@ class MediumObservers implements MediumObserver {
         for(MediumObserver observer : getObservers()){
             observer.onPostDifs();
         }
+        Medium.getInstance().checkCollisionAndSend();
     }
 }

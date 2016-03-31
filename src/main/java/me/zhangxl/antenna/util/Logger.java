@@ -8,14 +8,23 @@ import java.io.PrintWriter;
  */
 public class Logger {
 
-    public static boolean LOG_CLOCK = true;
+    private boolean LOG = true;
+
+    public static boolean DEBUG_CLOCK = true;
+
+    public static boolean DEBUG_STATION = true;
 
     private static final PrintWriter printer = new PrintWriter(System.out,true);
 
     private final String TAG;
 
     public Logger(Class clazz){
+        this(clazz,true);
+    }
+
+    public Logger(Class clazz,boolean needLog){
         TAG = clazz.getSimpleName();
+        LOG = needLog;
     }
 
     public void log(Throwable e){
@@ -35,7 +44,9 @@ public class Logger {
     }
 
     private void logInner(String formater,Object... objects){
-        printer.format(TAG + "  " + formater + "\n", objects);
+        if(LOG) {
+            printer.format(TAG + "  " + formater + "\n", objects);
+        }
     }
 
 }

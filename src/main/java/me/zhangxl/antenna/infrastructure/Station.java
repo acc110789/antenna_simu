@@ -1,6 +1,10 @@
 package me.zhangxl.antenna.infrastructure;
 
 import com.sun.tools.javac.util.Pair;
+import me.zhangxl.antenna.infrastructure.clock.ClockController;
+import me.zhangxl.antenna.infrastructure.medium.Medium;
+import me.zhangxl.antenna.infrastructure.medium.MediumObserver;
+import me.zhangxl.antenna.infrastructure.medium.MediumObservers;
 import me.zhangxl.antenna.request.*;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
@@ -28,12 +32,15 @@ public class Station implements MediumObserver {
     public Station(int id){
         this.id = id;
         mLocation = null;
+        Medium.stationList.add(this);
         MediumObservers.getInstance().register(this);
     }
 
     public Station(int id,Double xAxis,Double yAxis){
         this.id = id;
         this.mLocation = new Pair<>(xAxis,yAxis);
+        Medium.stationList.add(this);
+        MediumObservers.getInstance().register(this);
     }
 
     @Override
@@ -54,8 +61,11 @@ public class Station implements MediumObserver {
     public void onNewSLot() {
         if(mCurrentSendingFrame != null){
             mCurrentSendingFrame.countDownBackOff();
-            sendDataIfNeed();
+        } else {
+            //mCurrentSendingFrame == null
+            getDataFrameToSend();
         }
+        sendDataIfNeed();
     }
 
     @Override
@@ -97,10 +107,16 @@ public class Station implements MediumObserver {
 
     //作为发送端发送的数据
     private void sendRts(RtsFrame frame){
-        Medium.getInstance().putFrame(frame);
+        if(Logger.DEBUG_STATION){
+            logger.log(this.id+"    sendRts...");
+        }
+        Medium.getInstance().putRts(frame);
     }
 
     private void sendData(){
+        if(Logger.DEBUG_STATION){
+            logger.log(this.id+"    sendData...");
+        }
         if(mCurrentSendingFrame == null){
             throw new IllegalStateException("current Frame of Station is null");
         }
@@ -110,6 +126,9 @@ public class Station implements MediumObserver {
     //作为发送端的接受数据
     private void receiveCts(CtsFrame frame){
         //需要等待一个SIFS之后再 sendData
+        if(Logger.DEBUG_STATION){
+            logger.log(this.id+"    receiveCts...");
+        }
         ClockController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -119,6 +138,11 @@ public class Station implements MediumObserver {
     }
 
     private void receiveAck(AckFrame frame){
+        if(Logger.DEBUG_STATION){
+            logger.log(this.id+"    receiveAck...");
+        }
+        //已经发送完毕
+        mCurrentSendingFrame = null;
         ClockController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -129,16 +153,25 @@ public class Station implements MediumObserver {
 
     //作为接受端发送的数据
     private void sendCts(CtsFrame frame){
+        if(Logger.DEBUG_STATION){
+            logger.log(this.id+"    sendCts...");
+        }
         Medium.getInstance().putFrame(frame);
     }
 
     private void sendAck(AckFrame frame){
+        if(Logger.DEBUG_STATION){
+            logger.log(this.id+"    sendAck...");
+        }
         Medium.getInstance().putFrame(frame);
     }
 
     //作为接收端接受的数据
     private void receiveRts(final RtsFrame frame){
         //需要等待一个SIFS回传一个Cts
+        if(Logger.DEBUG_STATION){
+            logger.log(this.id+"    receiveRts...");
+        }
         ClockController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -149,6 +182,9 @@ public class Station implements MediumObserver {
 
     private void receiveData(final DataFrame frame){
         //等待一个SIFS之后 回复一个AckFrame
+        if(Logger.DEBUG_STATION){
+            logger.log(this.id+"    receiveData...");
+        }
         mDataFrameReceived.add(frame);
         ClockController.getInstance().post(new Runnable() {
             @Override
@@ -158,7 +194,7 @@ public class Station implements MediumObserver {
         },Config.SIFS);
     }
 
-    void receiveFrame(Frame frame){
+    public void receiveFrame(Frame frame){
         //如果frame的目标地址不是自己,则丢弃这个frame
         if(frame.getTargetId() != this.id){
             return;

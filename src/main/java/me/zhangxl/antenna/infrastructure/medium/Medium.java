@@ -1,6 +1,7 @@
-package me.zhangxl.antenna.infrastructure;
+package me.zhangxl.antenna.infrastructure.medium;
 
-import me.zhangxl.antenna.application.App;
+import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.clock.ClockController;
 import me.zhangxl.antenna.request.Frame;
 import me.zhangxl.antenna.request.RtsFrame;
 import me.zhangxl.antenna.util.Config;
@@ -18,32 +19,57 @@ public class Medium {
 
     private static final Logger logger = new Logger(Medium.class);
 
-    public static final List<App> appList = new ArrayList<>();
+    public static final List<Station> stationList = new ArrayList<>();
 
     private static final Medium sMedium = new Medium();
 
-    private AtomicBoolean busy = new AtomicBoolean(false);
+    private AtomicBoolean free = new AtomicBoolean(false);
 
     private List<Frame> frameToSend = new ArrayList<>();
 
-    static Medium getInstance() {
+    public static Medium getInstance() {
         return sMedium;
     }
 
-    private Medium() {}
+    private Medium() {
+        ClockController.getInstance().setLoopCallBack(new Runnable() {
+            @Override
+            public void run() {
+                //初始化为free
+                //这里也是任务串的入口点
+                setFree();
+            }
+        });
+    }
+
 
     /**
-     * @param frame 不能直接ClockController.getInstance().post(),因为可能有Rts冲突
+     * @param frame 对于一般的frame,可以直接post出去
      */
-    void putFrame(final Frame frame) {
+    public void putFrame(final Frame frame) {
+        ClockController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                for (Station station : stationList) {
+                    station.receiveFrame(frame);
+                }
+            }
+        }, frame.getTransmitDuration());
+    }
+
+    /**
+     * @param frame 对于RtsFrame来说 不能直接ClockController.
+     *              getInstance().post(),因为可能有Rts冲突
+     */
+    public void putRts(RtsFrame frame){
         frameToSend.add(frame);
         setBusyIfNeed();
     }
 
     /**
-     * 真正发送frame的地方
+     * 检查碰撞,如果没有发生碰撞,则真正开始发送frame
      */
-    void onPostTask() {
+    void checkCollisionAndSend() {
         if (frameToSend.size() > 1) {
             logger.log("conflict occur");
             for (Frame frame : frameToSend) {
@@ -72,8 +98,8 @@ public class Medium {
             ClockController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    for (App app : appList) {
-                        app.getStation().receiveFrame(frame);
+                    for (Station station : stationList) {
+                        station.receiveFrame(frame);
                     }
                 }
             }, frame.getTransmitDuration());//计算要将frame全部全部传输到目标节点所需要的时间
@@ -84,28 +110,28 @@ public class Medium {
     /**
      * 这个方法标志着Medium刚好空闲了DIFS
      */
-    void setFree() {
-        busy.set(false);
+    public void setFree() {
+        free.set(true);
         MediumObservers.getInstance().onPostDifs();//有可能信道在postDifs的过程中又被占用了
-        notifyNewSlot();
+        scheduleNewSlot();
     }
 
-    private void notifyNewSlot(){
-        if(!busy.get()){
-            //如果信道并没有被占有,则每当有slot的时候需要进行通知
+    //如果信道并没有被占有,则当下一个slot出现的时候予以通知
+    private void scheduleNewSlot(){
+        if(free.get()){
             ClockController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     MediumObservers.getInstance().onNewSLot();
-                    notifyNewSlot();
+                    scheduleNewSlot();
                 }
             },Config.SLOT_LENGTH);
         }
     }
 
     private void setBusyIfNeed(){
-        if(!busy.get()) {
-            busy.set(true);
+        if(free.get()) {
+            free.set(false);
         }
     }
 }

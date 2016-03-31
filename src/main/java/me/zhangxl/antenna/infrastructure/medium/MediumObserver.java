@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.infrastructure;
+package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.request.RtsFrame;
 
@@ -7,11 +7,11 @@ import java.util.List;
 /**
  * Created by zhangxiaolong on 16/3/30.
  */
-interface MediumObserver {
+public interface MediumObserver {
 
     /**
      * 有多个Station正在发送RTS,碰撞
-     * @param collisionFrames
+     * @param collisionFrames 碰撞的RtsFrame列表
      */
     void onRtsCollision(List<RtsFrame> collisionFrames);
 
@@ -23,7 +23,7 @@ interface MediumObserver {
     void onNewSLot();
 
     /**
-     * 用于通知一个DIFS已经完了,相关Station可以开始准备新的DataFrame了
+     * 用于通知一个DIFS刚好已经完了,相关Station可以开始准备新的DataFrame了
      */
     void onPostDifs();
 }

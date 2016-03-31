@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.infrastructure;
+package me.zhangxl.antenna.infrastructure.clock;
 
 import me.zhangxl.antenna.util.Logger;
 
@@ -12,11 +12,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ClockController {
 
-    private  Logger logger = new Logger(ClockController.class);
+    private  Logger logger = new Logger(ClockController.class,false);
 
     private PriorityBlockingQueue<ClockTask> tasks = new PriorityBlockingQueue<>();
 
     private AtomicBoolean active = new AtomicBoolean(true);
+
+    private Runnable loopCallBack;
 
     private ClockController(){}
 
@@ -31,7 +33,7 @@ public class ClockController {
      * 防止刚刚被添加进来时间就被剪掉
      */
     public synchronized void post(Runnable toRun,float timeToRun){
-        if(Logger.LOG_CLOCK){
+        if(Logger.DEBUG_CLOCK){
             logger.log("post a runnable at %f",timeToRun);
         }
         tasks.put(new ClockTask(timeToRun,toRun));
@@ -42,11 +44,12 @@ public class ClockController {
     }
 
     public synchronized void loop() throws InterruptedException {
+        onLoop();
         while (active.get()) {
             ClockTask task = tasks.take();
             //减去时间
             float time = task.getTaskTime();
-            if (Logger.LOG_CLOCK) {
+            if (Logger.DEBUG_CLOCK) {
                 logger.log("time has passed : %f", time);
             }
             task.reduceTime(time);
@@ -54,7 +57,7 @@ public class ClockController {
                 task1.reduceTime(time);
             }
             //下面开始执行任务
-            if (Logger.LOG_CLOCK) {
+            if (Logger.DEBUG_CLOCK) {
                 logger.log("do a task...");
             }
             doTask(task);
@@ -62,8 +65,8 @@ public class ClockController {
                 //搜索可能还需要执行的任务
                 ClockTask temp = tasks.peek();
                 if (temp != null && Math.abs(temp.getTaskTime()) < 1e-10) { //浮点数比较,当绝对值小于一定值,可以认为是0
-                    if (Logger.LOG_CLOCK) {
-                        logger.log("do a task...");
+                    if (Logger.DEBUG_CLOCK) {
+                        logger.log("do a same time task...");
                     }
                     doTask(temp);
                 } else {
@@ -75,17 +78,16 @@ public class ClockController {
     }
 
     private void doTask(ClockTask task){
-        onPreTask();
         task.doTask();
-        onPostTask();
     }
 
-    private void onPreTask(){
-
+    private void onLoop(){
+        if(loopCallBack != null){
+            loopCallBack.run();
+        }
     }
 
-    private void onPostTask(){
-        Medium.getInstance().onPostTask();
+    public void setLoopCallBack(Runnable callBack){
+        this.loopCallBack = callBack;
     }
-
 }

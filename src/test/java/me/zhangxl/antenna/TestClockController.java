@@ -1,6 +1,6 @@
 package me.zhangxl.antenna;
 
-import me.zhangxl.antenna.infrastructure.ClockController;
+import me.zhangxl.antenna.infrastructure.clock.ClockController;
 import org.junit.Test;
 
 import java.util.Random;

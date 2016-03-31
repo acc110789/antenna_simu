@@ -41,11 +41,17 @@ public abstract class Frame {
         return new RtsFrame(this.srcId,this.targetId);
     }
 
+    /**
+     * @return CTSFrame是回复,src和target应该反过来
+     */
     public CtsFrame generateCtsFrame(){
-        return new CtsFrame(this.srcId,this.targetId);
+        return new CtsFrame(this.targetId,this.srcId);
     }
 
+    /**
+     * @return AckFrame,src和target应该反过来
+     */
     public AckFrame generateAckFrame(){
-        return new AckFrame(this.srcId,this.targetId);
+        return new AckFrame(this.targetId,this.srcId);
     }
 }

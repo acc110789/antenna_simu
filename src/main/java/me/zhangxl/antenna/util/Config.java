@@ -10,16 +10,19 @@ public class Config {
 
     public static final long tifDuration = 200;
 
+    public static final int DEFAULT_DATA_FRAME_START_TIME = -1;
+    public static final int DEFAULT_DATA_FRAME_COLLISION_TIME = -1;
+
     /**
      * 正常的流程如下:
-     *  DIFS  -> ContentionWindow -> RTS -> SIFS -> CTS -> SIFS -> DATA -> SIFS -> ACK -> DIFS -> ContentionWindow .........
-     *  只考虑一种碰撞的情况如下:
-     *  DIFS  -> ContentionWindow -> RTS(碰撞) -> DIFS -> ContentionWindow -> ............
-     * */
+     * DIFS  -> ContentionWindow -> RTS -> SIFS -> CTS -> SIFS -> DATA -> SIFS -> ACK -> DIFS -> ContentionWindow .........
+     * 只考虑一种碰撞的情况如下:
+     * DIFS  -> ContentionWindow -> RTS(碰撞) -> DIFS -> ContentionWindow -> ............
+     */
 
-    public static  float DIFS = 0;
+    public static float DIFS = 0;
 
-    public static  float SIFS = 0;
+    public static float SIFS = 0;
 
     public static float SLOT_LENGTH = 0;
 
@@ -47,21 +50,21 @@ public class Config {
 
     public static final int ACK_LENGTH = PHY_HEADER + MAC_HEADER;
 
-    public static final float BAND_WIDTH = 1024*1024; //   rate:1Mb/s
+    public static final float BAND_WIDTH = 1024 * 1024; //   rate:1Mb/s
 
     static {
         //time unit μs
-        if(currentVertion == vertionB){
-            SLOT_LENGTH = 20;
-            SIFS = 10;
+        if (currentVertion == vertionB) {
+            SLOT_LENGTH = (float) 20e-6;
+            SIFS = (float) 10e-6;
             CW = 31;
-        } else if(currentVertion == vertionA){
-            SLOT_LENGTH = 9;
-            SIFS = 16;
+        } else if (currentVertion == vertionA) {
+            SLOT_LENGTH = (float)9e-6;
+            SIFS = (float)16e-6;
             CW = 15;
-        } else if(currentVertion == vertionG){
-            SLOT_LENGTH = 9;
-            SIFS = 16;
+        } else if (currentVertion == vertionG) {
+            SLOT_LENGTH = (float)9e-6;
+            SIFS = (float)16e-6;
             CW = 15;
         } else {
             throw new IllegalArgumentException("no proper 802.11 vertion");
