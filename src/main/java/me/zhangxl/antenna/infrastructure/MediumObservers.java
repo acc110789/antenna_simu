@@ -36,6 +36,7 @@ class MediumObservers implements MediumObserver {
     }
 
     @Override
+    @Deprecated
     public void onRtsCollision() {
         for(MediumObserver observer : getObservers()){
             observer.onRtsCollision();

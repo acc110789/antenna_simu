@@ -8,6 +8,7 @@ interface MediumObserver {
     /**
      * 有多个Station正在发送RTS,碰撞
      */
+    @Deprecated
     void onRtsCollision();
 
     /**

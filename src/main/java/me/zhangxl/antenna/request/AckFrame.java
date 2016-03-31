@@ -11,8 +11,4 @@ public class AckFrame extends Frame {
         super(srcId, targetId, Config.ACK_LENGTH);
     }
 
-    @Override
-    public long getTransmitDuration() {
-        return 0;
-    }
 }

@@ -11,8 +11,4 @@ public class RtsFrame extends me.zhangxl.antenna.request.Frame {
         super(srcId, targetId, Config.RTS_LENGTH);
     }
 
-    @Override
-    public long getTransmitDuration() {
-        return 0;
-    }
 }

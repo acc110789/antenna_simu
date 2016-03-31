@@ -17,11 +17,11 @@ public class Config {
      *  DIFS  -> ContentionWindow -> RTS(碰撞) -> DIFS -> ContentionWindow -> ............
      * */
 
-    public static  long DIFS = 0;
+    public static  float DIFS = 0;
 
-    public static  long SIFS = 0;
+    public static  float SIFS = 0;
 
-    public static long SLOT_LENGTH = 0;
+    public static float SLOT_LENGTH = 0;
 
     //contentionWindow,竞争窗口
     public static int CW = 0;
@@ -48,6 +48,8 @@ public class Config {
     public static final int CTS_LENGTH = PHY_HEADER + MAC_HEADER;
 
     public static final int ACK_LENGTH = PHY_HEADER + MAC_HEADER;
+
+    public static final float BAND_WIDTH = 1024*1024; //   rate:1Mb/s
 
     static {
         //time unit μs

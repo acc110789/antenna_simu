@@ -2,6 +2,7 @@ package me.zhangxl.antenna.infrastructure;
 
 import com.sun.tools.javac.util.Pair;
 import me.zhangxl.antenna.request.*;
+import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
 import java.util.*;
@@ -24,8 +25,6 @@ public class Station implements MediumObserver {
 
     private DataFrame mCurrentSendingFrame;
 
-    private Frame mCurrentReceivingFrame;
-
     public Station(int id){
         this.id = id;
         mLocation = null;
@@ -38,6 +37,7 @@ public class Station implements MediumObserver {
     }
 
     @Override
+    @Deprecated
     public void onRtsCollision() {
 
     }
@@ -86,42 +86,85 @@ public class Station implements MediumObserver {
     }
 
     //作为发送端发送的数据
-    public void sendRts(RtsFrame frame){
-        Medium.getInstance().putRequest(frame);
+    private void sendRts(RtsFrame frame){
+        Medium.getInstance().putFrame(frame);
     }
 
-    public void sendData(){
+    private void sendData(){
         if(mCurrentSendingFrame == null){
             throw new IllegalStateException("current Frame of Station is null");
         }
-        Medium.getInstance().putRequest(mCurrentSendingFrame);
+        Medium.getInstance().putFrame(mCurrentSendingFrame);
     }
 
     //作为发送端的接受数据
-    public void receiveCts(CtsFrame frame){
-
+    private void receiveCts(CtsFrame frame){
+        //需要等待一个SIFS之后再 sendData
+        ClockController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                sendData();
+            }
+        },Config.SIFS);
     }
 
-    public void receiveAck(AckFrame frame){
-
+    private void receiveAck(AckFrame frame){
+        ClockController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                Medium.getInstance().setFree();
+            }
+        },Config.DIFS);
     }
 
     //作为接受端发送的数据
-    public void sendCts(){
-
+    private void sendCts(CtsFrame frame){
+        Medium.getInstance().putFrame(frame);
     }
 
-    public void sendAck(){
-
+    private void sendAck(AckFrame frame){
+        Medium.getInstance().putFrame(frame);
     }
 
     //作为接收端接受的数据
-    public void receiveRts(){
-        //需要等待一个SIFS再进行
+    private void receiveRts(final RtsFrame frame){
+        //需要等待一个SIFS回传一个Cts
+        ClockController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                sendCts(frame.generateCtsFrame());
+            }
+        },Config.SIFS);
     }
 
-    public void receiveData(){
+    private void receiveData(final DataFrame frame){
+        //等待一个SIFS之后 回复一个AckFrame
+        mDataFrameReceived.add(frame);
+        ClockController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                sendAck(frame.generateAckFrame());
+            }
+        },Config.SIFS);
+    }
 
+    void receiveFrame(Frame frame){
+        //如果frame的目标地址不是自己,则丢弃这个frame
+        if(frame.getTargetId() != this.id){
+            return;
+        }
+
+        if(frame instanceof RtsFrame){
+            receiveRts((RtsFrame) frame);
+        } else if(frame instanceof CtsFrame){
+            receiveCts((CtsFrame) frame);
+        } else if(frame instanceof DataFrame){
+            receiveData((DataFrame) frame);
+        } else if(frame instanceof AckFrame){
+            receiveAck((AckFrame) frame);
+        } else {
+            throw new IllegalArgumentException("unspecified frame type");
+        }
     }
 
 }

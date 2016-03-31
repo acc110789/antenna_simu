@@ -30,11 +30,11 @@ public class ClockController {
      * 只能在一开始活着loop循环调用的函数中添加.
      * 防止刚刚被添加进来时间就被剪掉
      */
-    public synchronized void register(ClockTask task){
+    public synchronized void post(Runnable toRun,float timeToRun){
         if(Logger.LOG_CLOCK){
-            logger.log("register clockTask at %f",task.getTaskTime());
+            logger.log("post a runnable at %f",timeToRun);
         }
-        tasks.put(task);
+        tasks.put(new ClockTask(timeToRun,toRun));
     }
 
     public void deActive(){
@@ -57,7 +57,7 @@ public class ClockController {
             if (Logger.LOG_CLOCK) {
                 logger.log("do a task...");
             }
-            task.doTask();
+            doTask(task);
             while (true) {
                 //搜索可能还需要执行的任务
                 ClockTask temp = tasks.peek();
@@ -65,13 +65,27 @@ public class ClockController {
                     if (Logger.LOG_CLOCK) {
                         logger.log("do a task...");
                     }
-                    temp.doTask();
+                    doTask(temp);
                 } else {
                     //说明没有task了 或者需要等到下一个时间点运行
                     break;
                 }
             }
         }
+    }
+
+    private void doTask(ClockTask task){
+        onPreTask();
+        task.doTask();
+        onPostTask();
+    }
+
+    private void onPreTask(){
+
+    }
+
+    private void onPostTask(){
+        Medium.getInstance().onPostTask();
     }
 
 }

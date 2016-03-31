@@ -21,12 +21,6 @@ public class DataFrame extends Frame {
         super(srcId,targetId,length);
     }
 
-    @Override
-    public long getTransmitDuration(){
-        // TODO: 16/3/24  根据数据桢的长度计算出传输需要消耗的时间
-        return 100;
-    }
-
     public void addCollitionTimes(){
         collisionTimes ++;
     }
@@ -48,13 +42,18 @@ public class DataFrame extends Frame {
 
     public void countDownBackOff(){
         backOff--;
-        if(backOff < 0){
-            throw new IllegalStateException("backOff is less than 0");
-        }
+        checkBackOff();
     }
 
     public boolean canBeSent(){
+        checkBackOff();
         return backOff == 0;
+    }
+
+    private void checkBackOff(){
+        if(backOff < 0){
+            throw new IllegalStateException("backOff is less than 0");
+        }
     }
 
 }

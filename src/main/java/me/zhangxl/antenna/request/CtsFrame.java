@@ -11,8 +11,4 @@ public class CtsFrame extends Frame {
         super(srcId, targetId, Config.CTS_LENGTH);
     }
 
-    @Override
-    public long getTransmitDuration() {
-        return 0;
-    }
 }
