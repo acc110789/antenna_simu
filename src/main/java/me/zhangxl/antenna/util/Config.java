@@ -27,14 +27,16 @@ public class Config {
     public static float SLOT_LENGTH = 0;
 
     //contentionWindow,竞争窗口
-    private static int CW = 0;
+    public static int DEFAULT_CW = 0;
+
+    public static int MAX_CW = 10;
 
     //不同的802.11版本有的参数可能不一样
     private static final int vertionB = 1;
     private static final int vertionA = 2;
     private static final int vertionG = 3;
 
-    private static final int currentVertion = vertionB;
+    private static final int currentVertion = 1;
 
     //bits 物理层的长度
     private static final int PHY_HEADER = 192;
@@ -57,19 +59,21 @@ public class Config {
         if (currentVertion == vertionB) {
             SLOT_LENGTH = (float) 20e-6;
             SIFS = (float) 10e-6;
-            CW = 31;
+            DEFAULT_CW = 5;
         } else if (currentVertion == vertionA) {
             SLOT_LENGTH = (float)9e-6;
             SIFS = (float)16e-6;
-            CW = 15;
+            DEFAULT_CW = 4;
         } else if (currentVertion == vertionG) {
             SLOT_LENGTH = (float)9e-6;
             SIFS = (float)16e-6;
-            CW = 15;
+            DEFAULT_CW = 4;
         } else {
             throw new IllegalArgumentException("no proper 802.11 vertion");
         }
         DIFS = SIFS + 2 * SLOT_LENGTH;
+
+        DEFAULT_CW = 1;
     }
 
 }

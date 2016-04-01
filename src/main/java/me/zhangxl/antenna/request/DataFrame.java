@@ -80,7 +80,8 @@ public class DataFrame extends Frame {
     }
 
     private void updateBackOff() {
-        int window = (int) Math.pow(2, 1 + this.collisionTimes);
+        int contentionWindow = Math.min(Config.DEFAULT_CW + this.collisionTimes,Config.MAX_CW);
+        int window = (int) Math.pow(2, contentionWindow);
         backOff = random.nextInt(window);
         if(Logger.DEBUG_FRAME){
             logger.log("station :%d  new DataFrame callBack window:%d   frame id:%d",srcId,backOff,getSerialNum());
