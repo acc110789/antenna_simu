@@ -74,6 +74,9 @@ public class Main {
         if(Config.getInstance().getBandWidth() <= 0){
             errInfo += "    bandwidth is less than or equal 0";
         }
+        if(Config.getInstance().getSimulationDuration() <= 0){
+            errInfo += "    simulationDuration less than or equal 0";
+        }
         if(!errInfo.isEmpty()){
             throw new IllegalArgumentException(errInfo);
         }

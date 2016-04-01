@@ -1,6 +1,7 @@
 package me.zhangxl.antenna;
 
 import me.zhangxl.antenna.infrastructure.clock.ClockController;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Random;
@@ -27,13 +28,13 @@ public class TestClockController {
             public void run() {
                 try {
                     ClockController.getInstance().loop();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Assert.fail("program can not exit from here");
+                } catch (InterruptedException ignored) {
                 }
             }
         });
         thread.start();
-        Thread.sleep(2000);
+        Thread.sleep(500);
         ClockController.getInstance().deActive();
         if(thread.isAlive()){
             thread.interrupt();

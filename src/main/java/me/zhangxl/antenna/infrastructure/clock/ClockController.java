@@ -1,5 +1,6 @@
 package me.zhangxl.antenna.infrastructure.clock;
 
+import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
 import java.util.concurrent.PriorityBlockingQueue;
@@ -17,6 +18,7 @@ public class ClockController {
     private PriorityBlockingQueue<ClockTask> tasks = new PriorityBlockingQueue<>();
     private AtomicBoolean active = new AtomicBoolean(true);
     private Runnable loopCallBack;
+    private float accumulateTime = 0;
 
     private ClockController(){}
 
@@ -41,7 +43,7 @@ public class ClockController {
 
     public synchronized void loop() throws InterruptedException {
         onLoop();
-        while (active.get()) {
+        while (active.get() && this.accumulateTime < Config.getInstance().getSimulationDuration()) {
             ClockTask task = tasks.take();
             //减去时间
             float time = task.getTaskTime();
@@ -52,11 +54,13 @@ public class ClockController {
             for (ClockTask task1 : tasks) {
                 task1.reduceTime(time);
             }
+            //仿真过程积累相应的时间
+            accumulateTime += time;
             //下面开始执行任务
             if (Logger.DEBUG_CLOCK) {
                 logger.log("do a task...");
             }
-            doTask(task);
+            task.doTask();
             while (true) {
                 //搜索可能还需要执行的任务
                 ClockTask temp = tasks.peek();
@@ -64,17 +68,13 @@ public class ClockController {
                     if (Logger.DEBUG_CLOCK) {
                         logger.log("do a same time task...");
                     }
-                    doTask(temp);
+                    temp.doTask();
                 } else {
                     //说明没有task了 或者需要等到下一个时间点运行
                     break;
                 }
             }
         }
-    }
-
-    private void doTask(ClockTask task){
-        task.doTask();
     }
 
     private void onLoop(){

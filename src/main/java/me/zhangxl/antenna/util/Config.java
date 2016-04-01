@@ -1,5 +1,7 @@
 package me.zhangxl.antenna.util;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,6 +41,7 @@ public class Config {
     private int ctsLength = -1;
     private int ackLength = -1;
     private float bandWidth = -1;
+    private float simulationDuration = -1;
 
     private Config() {
         try {
@@ -54,27 +57,34 @@ public class Config {
 
     private void loadConfig() throws IOException {
         Properties properties = new Properties();
-        Reader reader = new BufferedReader(new InputStreamReader(Config.class.
-                getClassLoader().getResourceAsStream("antenna_config.properties")));
-        properties.load(reader);
+        Reader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(Config.class.
+                    getClassLoader().getResourceAsStream("antenna_config.properties")));
+            properties.load(reader);
 
-        this.userNum = Integer.valueOf(properties.getProperty("UserNum"));
-        this.maxCW = Integer.valueOf(properties.getProperty("MAX_CW"));
+            this.userNum = Integer.valueOf(properties.getProperty("UserNum"));
+            this.maxCW = Integer.valueOf(properties.getProperty("MAX_CW"));
 
-        String currentVersion = properties.getProperty("currentVersion");
-        this.slotLength = Float.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH"));
-        this.sifs = Float.valueOf(properties.getProperty(currentVersion + "_SIFS"));
-        this.defaultCW = Integer.valueOf(properties.getProperty(currentVersion + "_DEFAULT_CW"));
+            String currentVersion = properties.getProperty("currentVersion");
+            this.slotLength = Float.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH"));
+            this.sifs = Float.valueOf(properties.getProperty(currentVersion + "_SIFS"));
+            this.defaultCW = Integer.valueOf(properties.getProperty(currentVersion + "_DEFAULT_CW"));
 
-        this.bandWidth = Float.valueOf(properties.getProperty("BAND_WIDTH"));
-        this.phyHeader = Integer.valueOf(properties.getProperty("PHY_HEADER"));
-        this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
-        this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
+            this.bandWidth = Float.valueOf(properties.getProperty("BAND_WIDTH"));
+            this.phyHeader = Integer.valueOf(properties.getProperty("PHY_HEADER"));
+            this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
+            this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
 
-        difs = sifs + 2 * slotLength;
-        rtsLength = phyHeader + macRtsHeader;
-        ctsLength = phyHeader + macHeader;
-        ackLength = phyHeader + macHeader;
+            this.simulationDuration = Float.valueOf(properties.getProperty("simulationDuration"));
+
+            difs = sifs + 2 * slotLength;
+            rtsLength = phyHeader + macRtsHeader;
+            ctsLength = phyHeader + macHeader;
+            ackLength = phyHeader + macHeader;
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
 
     }
 
@@ -128,6 +138,10 @@ public class Config {
 
     public float getBandWidth() {
         return bandWidth;
+    }
+
+    public float getSimulationDuration(){
+        return simulationDuration;
     }
 
 }
