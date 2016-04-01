@@ -14,6 +14,10 @@ public class Logger {
 
     public static boolean DEBUG_STATION = true;
 
+    public static boolean DEBUG_COLLISION = true;
+
+    public static boolean DEBUG_FRAME = true;
+
     private static final PrintWriter printer = new PrintWriter(System.out,true);
 
     private final String TAG;

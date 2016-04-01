@@ -9,7 +9,7 @@ import me.zhangxl.antenna.util.Config;
 public abstract class Frame {
     private final long length;
 
-    private final int srcId;
+    protected final int srcId;
 
     private final int targetId;
 

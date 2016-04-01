@@ -71,11 +71,13 @@ public class Medium {
      */
     void checkCollisionAndSend() {
         if (frameToSend.size() > 1) {
-            logger.log("conflict occur");
+            if(Logger.DEBUG_COLLISION) {
+                logger.log("collision occur");
+            }
             for (Frame frame : frameToSend) {
                 if(!(frame instanceof RtsFrame)){
                     //发生冲突的frame只能是RtsFrame,如果不是,则抛出错误
-                    throw new IllegalStateException("conflict frame type is not RtsFrame,but "
+                    throw new IllegalStateException("collision frame type is not RtsFrame,but "
                             +frame.getClass().getSimpleName());
                 }
             }

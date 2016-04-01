@@ -1,6 +1,7 @@
 package me.zhangxl.antenna.request;
 
 import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.Logger;
 
 import java.util.Random;
 
@@ -11,13 +12,20 @@ import java.util.Random;
  */
 public class DataFrame extends Frame {
 
+    private static Logger logger = new Logger(DataFrame.class);
+
+    private static Random random = new Random(System.currentTimeMillis());
+
     private long startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
 
     private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
 
     private int backOff;
 
-    private boolean conflicting = false;
+    /**
+     * 表明当前正在发生碰撞
+     */
+    private boolean collision = false;
 
     public DataFrame(int srcId, int targetId, long length) {
         super(srcId, targetId, length);
@@ -25,15 +33,18 @@ public class DataFrame extends Frame {
 
     public void addCollitionTimes() {
         collisionTimes++;
-        conflicting = true;
+        collision = true;
     }
 
-    public boolean isConflicting() {
-        return conflicting;
+    public boolean isCollision() {
+        return collision;
     }
 
-    public void unsetConflict() {
-        conflicting = false;
+    public void unsetCollision() {
+        collision = false;
+        if(Logger.DEBUG_COLLISION){
+            logger.log("resolve collision data frame srcid:%d",srcId);
+        }
         updateBackOff();
     }
 
@@ -51,9 +62,11 @@ public class DataFrame extends Frame {
     }
 
     private void updateBackOff() {
-        int window = (int) Math.pow(2, 2 + this.collisionTimes);
-        Random random = new Random(System.currentTimeMillis());
+        int window = (int) Math.pow(2, 1 + this.collisionTimes);
         backOff = random.nextInt(window);
+        if(Logger.DEBUG_FRAME){
+            logger.log("station :%d  new DataFrame callBack window:%d",srcId,backOff);
+        }
     }
 
     public void countDownBackOff() {

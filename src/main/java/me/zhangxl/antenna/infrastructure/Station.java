@@ -72,8 +72,8 @@ public class Station implements MediumObserver {
     public void onPostDifs() {
         if(mCurrentSendingFrame == null){
             getDataFrameToSend();
-        } else if(mCurrentSendingFrame.isConflicting()){
-            mCurrentSendingFrame.unsetConflict();
+        } else if(mCurrentSendingFrame.isCollision()){
+            mCurrentSendingFrame.unsetCollision();
         }
         sendDataIfNeed();
     }
