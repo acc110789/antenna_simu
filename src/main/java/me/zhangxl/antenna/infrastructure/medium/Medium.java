@@ -2,8 +2,8 @@ package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.clock.ClockController;
-import me.zhangxl.antenna.request.Frame;
-import me.zhangxl.antenna.request.RtsFrame;
+import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 

@@ -1,6 +1,6 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
-import me.zhangxl.antenna.request.RtsFrame;
+import me.zhangxl.antenna.frame.RtsFrame;
 
 import java.util.List;
 
