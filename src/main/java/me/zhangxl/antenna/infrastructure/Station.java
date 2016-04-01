@@ -18,15 +18,11 @@ import java.util.*;
 public class Station implements MediumObserver {
 
     private static final Logger logger = new Logger(Station.class);
+    private final int id;
+    private final Pair<Double,Double> mLocation; //定向天线时需要保证
     //wait list
     private List<DataFrame> mDataFramesToSend = Collections.synchronizedList(new ArrayList<DataFrame>());
-
     private List<DataFrame> mDataFrameReceived = Collections.synchronizedList(new ArrayList<DataFrame>());
-
-    private final int id;
-
-    private final Pair<Double,Double> mLocation; //定向天线时需要保证
-
     private DataFrame mCurrentSendingFrame;
 
     public Station(int id){
@@ -141,7 +137,7 @@ public class Station implements MediumObserver {
             public void run() {
                 sendData();
             }
-        },Config.SIFS);
+        },Config.getInstance().getSifs());
     }
 
     private void receiveAck(AckFrame frame){
@@ -155,7 +151,7 @@ public class Station implements MediumObserver {
             public void run() {
                 Medium.getInstance().setFree();
             }
-        },Config.DIFS);
+        },Config.getInstance().getDifs());
     }
 
     //作为接受端发送的数据
@@ -184,7 +180,7 @@ public class Station implements MediumObserver {
             public void run() {
                 sendCts(frame.generateCtsFrame());
             }
-        },Config.SIFS);
+        },Config.getInstance().getSifs());
     }
 
     private void receiveData(final DataFrame frame){
@@ -198,7 +194,7 @@ public class Station implements MediumObserver {
             public void run() {
                 sendAck(frame.generateAckFrame());
             }
-        },Config.SIFS);
+        },Config.getInstance().getSifs());
     }
 
     public void receiveFrame(Frame frame){

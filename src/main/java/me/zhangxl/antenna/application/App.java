@@ -15,11 +15,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class App  {
 
-    private final Station mStation;
-
-    private AtomicBoolean active = new AtomicBoolean(false);
-
     private static final List<Integer> stationIds = new ArrayList<>();
+    private final Station mStation;
+    private AtomicBoolean active = new AtomicBoolean(false);
 
     App(int id){
         mStation = new Station(id);

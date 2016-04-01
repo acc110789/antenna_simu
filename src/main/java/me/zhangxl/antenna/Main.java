@@ -18,14 +18,14 @@ public class Main {
 
         //新建站点
         List<App> appList = new ArrayList<>();
-        for (int i = 0; i < Config.UserNum; i++) {
+        for (int i = 0; i < Config.getInstance().getUserNum(); i++) {
             App app = new ExpApp(i);
 
             appList.add(app);
         }
 
         //激活所有的站点
-        for(App app : appList){
+        for (App app : appList) {
             app.activate();
         }
 
@@ -34,8 +34,48 @@ public class Main {
     }
 
     private static void checkConfig() {
-        if (Config.UserNum <= 0) {
-            throw new IllegalArgumentException("user num is negative");
+        String errInfo = "";
+        if (Config.getInstance().getUserNum() <= 0) {
+            errInfo += "    userNum is negative";
+        }
+        if(Config.getInstance().getDifs() <= Config.getInstance().getSifs()){
+            errInfo += "    difs is less than or equal sifs";
+        }
+        if(Config.getInstance().getSifs() <= 0){
+            errInfo += "    sifs is less than or equal 0";
+        }
+        if(Config.getInstance().getSlotLength() <= 0){
+            errInfo += "    slotlength is less than or equal 0";
+        }
+        if(Config.getInstance().getMaxCW() <= Config.getInstance().getDefaultCW()){
+            errInfo += "    maxCW is less than or equal defaultCW";
+        }
+        if(Config.getInstance().getDefaultCW() < 0){
+            errInfo += "    defaultCW is less than 0";
+        }
+        if(Config.getInstance().getPhyHeader() <= 0){
+            errInfo += "    phyHeader is less than or equal 0";
+        }
+        if(Config.getInstance().getMacHeader() <= 0){
+            errInfo += "    macHeader is less than or equal 0";
+        }
+        if(Config.getInstance().getMacRtsHeader() <= 0){
+            errInfo += "    macRtsHeader is less than or equal 0";
+        }
+        if(Config.getInstance().getRtsLength() <= 0){
+            errInfo += "    rtsLength is less than or equal 0";
+        }
+        if(Config.getInstance().getCtsLength() <= 0){
+            errInfo += "    ctsLength is less than or equal 0";
+        }
+        if(Config.getInstance().getAckLength() <= 0){
+            errInfo += "    ackLength is less than or equal 0";
+        }
+        if(Config.getInstance().getBandWidth() <= 0){
+            errInfo += "    bandwidth is less than or equal 0";
+        }
+        if(!errInfo.isEmpty()){
+            throw new IllegalArgumentException(errInfo);
         }
     }
 }

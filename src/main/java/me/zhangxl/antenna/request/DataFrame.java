@@ -15,22 +15,11 @@ public class DataFrame extends Frame {
     private static Logger logger = new Logger(DataFrame.class);
 
     private static Random random = new Random(System.currentTimeMillis());
-
-
-    private long startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
-
-    private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
-
-    private int backOff;
-
-    private int id;
-
     private static int serialNum = 0;
-
-    private static int nextSerialNum(){
-        return ++serialNum;
-    }
-
+    private long startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
+    private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
+    private int backOff;
+    private int id;
     /**
      * 表明当前正在发生碰撞
      */
@@ -40,13 +29,17 @@ public class DataFrame extends Frame {
         this(srcId,targetId,length,nextSerialNum());
     }
 
-    public int getSerialNum(){
-        return id;
-    }
-
     public DataFrame(int srcId, int targetId, long length,int id) {
         super(srcId, targetId, length);
         this.id = id;
+    }
+
+    private static int nextSerialNum(){
+        return ++serialNum;
+    }
+
+    public int getSerialNum(){
+        return id;
     }
 
     public void addCollitionTimes() {
@@ -80,7 +73,7 @@ public class DataFrame extends Frame {
     }
 
     private void updateBackOff() {
-        int contentionWindow = Math.min(Config.DEFAULT_CW + this.collisionTimes,Config.MAX_CW);
+        int contentionWindow = Math.min(Config.getInstance().getDefaultCW() + this.collisionTimes,Config.getInstance().getMaxCW());
         int window = (int) Math.pow(2, contentionWindow);
         backOff = random.nextInt(window);
         if(Logger.DEBUG_FRAME){

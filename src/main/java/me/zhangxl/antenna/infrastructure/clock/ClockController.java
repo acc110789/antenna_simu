@@ -12,17 +12,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ClockController {
 
+    private static final ClockController sInstance = new ClockController();
     private  Logger logger = new Logger(ClockController.class,false);
-
     private PriorityBlockingQueue<ClockTask> tasks = new PriorityBlockingQueue<>();
-
     private AtomicBoolean active = new AtomicBoolean(true);
-
     private Runnable loopCallBack;
 
     private ClockController(){}
-
-    private static final ClockController sInstance = new ClockController();
 
     public static ClockController getInstance(){
         return sInstance;

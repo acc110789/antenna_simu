@@ -95,5 +95,12 @@ public class TestJavaFunction {
         System.out.println(objects.length);
     }
 
+    @Test
+    public void stringToNum(){
+        String num = "2e-6";
+        float deNum = Float.valueOf(num);
+        System.out.format("%f",deNum);
+    }
+
 
 }

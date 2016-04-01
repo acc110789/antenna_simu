@@ -19,9 +19,7 @@ class ClockTask implements Comparable<ClockTask> {
 
     ClockTask(float timeToRun, Runnable toRun) {
         this.mTimeToRun = timeToRun;
-        if(toRun == null){
-            throw new NullPointerException();
-        }
+        if(toRun == null) throw new NullPointerException();
         this.mToRun = toRun;
     }
 

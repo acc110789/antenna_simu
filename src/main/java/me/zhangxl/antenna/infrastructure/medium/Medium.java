@@ -17,19 +17,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Medium {
 
-    private static final Logger logger = new Logger(Medium.class);
-
     public static final List<Station> stationList = new ArrayList<>();
-
+    private static final Logger logger = new Logger(Medium.class);
     private static final Medium sMedium = new Medium();
 
     private AtomicBoolean free = new AtomicBoolean(false);
 
     private List<Frame> frameToSend = new ArrayList<>();
-
-    public static Medium getInstance() {
-        return sMedium;
-    }
 
     private Medium() {
         ClockController.getInstance().setLoopCallBack(new Runnable() {
@@ -42,6 +36,9 @@ public class Medium {
         });
     }
 
+    public static Medium getInstance() {
+        return sMedium;
+    }
 
     /**
      * @param frame 对于一般的frame,可以直接post出去
@@ -91,7 +88,7 @@ public class Medium {
                 public void run() {
                     setFree();
                 }
-            },frameToSend.get(0).getTransmitDuration() + Config.DIFS);
+            },frameToSend.get(0).getTransmitDuration() + Config.getInstance().getDifs());
             frameToSend.clear();
 
         } else if (frameToSend.size() == 1) {
@@ -127,7 +124,7 @@ public class Medium {
                     MediumObservers.getInstance().onNewSLot();
                     scheduleNewSlot();
                 }
-            },Config.SLOT_LENGTH);
+            },Config.getInstance().getSlotLength());
         }
     }
 

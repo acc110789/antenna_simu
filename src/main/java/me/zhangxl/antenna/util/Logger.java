@@ -8,8 +8,7 @@ import java.io.PrintWriter;
  */
 public class Logger {
 
-    private boolean LOG = true;
-
+    private static final PrintWriter printer = new PrintWriter(System.out,true);
     public static boolean DEBUG_CLOCK = true;
 
     public static boolean DEBUG_STATION = true;
@@ -17,10 +16,8 @@ public class Logger {
     public static boolean DEBUG_COLLISION = true;
 
     public static boolean DEBUG_FRAME = true;
-
-    private static final PrintWriter printer = new PrintWriter(System.out,true);
-
     private final String TAG;
+    private boolean LOG = true;
 
     public Logger(Class clazz){
         this(clazz,true);

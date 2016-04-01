@@ -7,10 +7,8 @@ import me.zhangxl.antenna.util.Config;
  * Created by zhangxiaolong on 16/3/24.
  */
 public abstract class Frame {
-    private final long length;
-
     protected final int srcId;
-
+    private final long length;
     private final int targetId;
 
     Frame(int srcId, int targetId, long length){
@@ -26,7 +24,7 @@ public abstract class Frame {
         if(length <= 0){
             throw new IllegalArgumentException("length is negative");
         }
-        return length / Config.BAND_WIDTH;
+        return length / Config.getInstance().getBandWidth();
     }
 
     public int getTargetId(){
