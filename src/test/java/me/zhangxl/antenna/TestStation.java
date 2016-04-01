@@ -27,9 +27,11 @@ public class TestStation {
                 }
             }
         }).start();
-        Thread.sleep(5);
-        station1.sendRequest(2,400);
-        station2.sendRequest(1,400);
+        Thread.sleep(10);
+        for(int i=0;i<3;i++){
+            station1.sendRequest(2,400);
+            station2.sendRequest(1,400);
+        }
 //        for(int i=0;i<10;i++){
 //            station1.sendRequest(2,800);
 //        }

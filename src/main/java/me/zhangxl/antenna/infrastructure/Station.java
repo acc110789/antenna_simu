@@ -81,6 +81,9 @@ public class Station implements MediumObserver {
     private void sendDataIfNeed(){
         if(mCurrentSendingFrame != null && mCurrentSendingFrame.canBeSent()){
             //开始进入流程
+            if(Logger.DEBUG_STATION){
+                logger.log("start transmit data frame:%d",mCurrentSendingFrame.getSerialNum());
+            }
             sendRts(mCurrentSendingFrame.generateRtsFrame());
         }
     }
@@ -103,6 +106,10 @@ public class Station implements MediumObserver {
      * 调用*/
     public void sendRequest(int targetId,long length){
         mDataFramesToSend.add(new DataFrame(this.id,targetId,length));
+    }
+
+    public void sendRequest(int targetId,long length,int dataFrameId){
+        mDataFramesToSend.add(new DataFrame(this.id,targetId,length,dataFrameId));
     }
 
     //作为发送端发送的数据

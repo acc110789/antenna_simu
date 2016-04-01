@@ -61,6 +61,9 @@ public class MediumObservers implements MediumObserver {
 
     @Override
     public void onPostDifs() {
+        if(Logger.DEBUG_STATION){
+            logger.log("onDIFS...");
+        }
         for(MediumObserver observer : getObservers()){
             observer.onPostDifs();
         }

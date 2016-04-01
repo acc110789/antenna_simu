@@ -7,7 +7,7 @@ import java.util.Random;
 
 /**
  * 代表一个数据桢,只需要关心数据桢的长度,因为数据桢的长度
- * 决定传输需要消耗的时间
+ * 决定传输需要消耗的时间.
  * Created by zhangxiaolong on 16/3/24.
  */
 public class DataFrame extends Frame {
@@ -16,11 +16,20 @@ public class DataFrame extends Frame {
 
     private static Random random = new Random(System.currentTimeMillis());
 
+
     private long startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
 
     private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
 
     private int backOff;
+
+    private int id;
+
+    private static int serialNum = 0;
+
+    private static int nextSerialNum(){
+        return ++serialNum;
+    }
 
     /**
      * 表明当前正在发生碰撞
@@ -28,7 +37,16 @@ public class DataFrame extends Frame {
     private boolean collision = false;
 
     public DataFrame(int srcId, int targetId, long length) {
+        this(srcId,targetId,length,nextSerialNum());
+    }
+
+    public int getSerialNum(){
+        return id;
+    }
+
+    public DataFrame(int srcId, int targetId, long length,int id) {
         super(srcId, targetId, length);
+        this.id = id;
     }
 
     public void addCollitionTimes() {
@@ -65,7 +83,7 @@ public class DataFrame extends Frame {
         int window = (int) Math.pow(2, 1 + this.collisionTimes);
         backOff = random.nextInt(window);
         if(Logger.DEBUG_FRAME){
-            logger.log("station :%d  new DataFrame callBack window:%d",srcId,backOff);
+            logger.log("station :%d  new DataFrame callBack window:%d   frame id:%d",srcId,backOff,getSerialNum());
         }
     }
 
