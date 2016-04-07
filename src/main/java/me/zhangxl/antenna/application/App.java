@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 的规律发送给随机的另一个Station发送随机长度的DataFrame
  * Created by zhangxiaolong on 16/3/24.
  */
+@Deprecated
 public abstract class App  {
 
     private static final List<Integer> stationIds = new ArrayList<>();

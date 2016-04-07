@@ -20,6 +20,7 @@ public class DataFrame extends Frame {
     private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
     private int backOff;
     private int id;
+    private long dataLength = -1;
     /**
      * 表明当前正在发生碰撞
      */
@@ -30,7 +31,8 @@ public class DataFrame extends Frame {
     }
 
     public DataFrame(int srcId, int targetId, long length,int id) {
-        super(srcId, targetId, length);
+        super(srcId, targetId, length + Config.getInstance().getPhyHeader() + Config.getInstance().getMacHeader());
+        this.dataLength = length;
         this.id = id;
     }
 
@@ -95,6 +97,10 @@ public class DataFrame extends Frame {
         if (backOff < 0) {
             throw new IllegalStateException("backOff is less than 0");
         }
+    }
+
+    public long getLength(){
+        return this.dataLength;
     }
 
 }

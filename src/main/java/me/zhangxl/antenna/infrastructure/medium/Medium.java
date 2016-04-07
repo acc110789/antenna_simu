@@ -23,7 +23,7 @@ public class Medium {
 
     private AtomicBoolean free = new AtomicBoolean(false);
 
-    private List<Frame> frameToSend = new ArrayList<>();
+    private List<RtsFrame> rtsToSend = new ArrayList<>();
 
     private Medium() {
         ClockController.getInstance().setLoopCallBack(new Runnable() {
@@ -59,7 +59,7 @@ public class Medium {
      *              getInstance().post(),因为可能有Rts冲突
      */
     public void putRts(RtsFrame frame){
-        frameToSend.add(frame);
+        rtsToSend.add(frame);
         setBusyIfNeed();
     }
 
@@ -67,33 +67,25 @@ public class Medium {
      * 检查碰撞,如果没有发生碰撞,则真正开始发送frame
      */
     void checkCollisionAndSend() {
-        if (frameToSend.size() > 1) {
+        if (rtsToSend.size() > 1) {
+            ClockController.getInstance().addSendTimes();
+            ClockController.getInstance().addCollitionTimes();
             if(Logger.DEBUG_COLLISION) {
                 logger.log("collision occur");
             }
-            for (Frame frame : frameToSend) {
-                if(!(frame instanceof RtsFrame)){
-                    //发生冲突的frame只能是RtsFrame,如果不是,则抛出错误
-                    throw new IllegalStateException("collision frame type is not RtsFrame,but "
-                            +frame.getClass().getSimpleName());
-                }
-            }
-            List<RtsFrame> frames = new ArrayList<>();
-            for(Frame frame : frameToSend){
-                frames.add((RtsFrame) frame);
-            }
-            MediumObservers.getInstance().onRtsCollision(frames);
+            MediumObservers.getInstance().onRtsCollision(new ArrayList<>(rtsToSend));
             ClockController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     setFree();
                 }
-            },frameToSend.get(0).getTransmitDuration() + Config.getInstance().getDifs());
-            frameToSend.clear();
+            }, rtsToSend.get(0).getTransmitDuration() + Config.getInstance().getDifs());
+            rtsToSend.clear();
 
-        } else if (frameToSend.size() == 1) {
+        } else if (rtsToSend.size() == 1) {
             //只有一个待发送的frame
-            final Frame frame = frameToSend.remove(0);
+            ClockController.getInstance().addSendTimes();
+            final Frame frame = rtsToSend.remove(0);
             ClockController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {

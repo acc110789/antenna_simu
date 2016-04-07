@@ -7,6 +7,10 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * 在仿真时间内要统计的东西:
+ * (1)总共的数据传输量,单位是bytes
+ * (2)碰撞概率   碰撞次数除以发送的次数
+ *
  * 负责时间槽的移动.
  * 所有需要用到时间的地方,比如Station或者Medium都要监听这个时间槽
  * Created by zhangxiaolong on 16/3/29.
@@ -19,6 +23,23 @@ public class ClockController {
     private AtomicBoolean active = new AtomicBoolean(true);
     private Runnable loopCallBack;
     private float accumulateTime = 0;
+
+    /**
+     * 统计的阀门,只有当持续时间过了warmUp时间之后,才真的开始统计
+     */
+    private boolean statValve = false;
+    /**
+     * 统计总的数据量(bytes)
+     */
+    private long totalDataAmount = 0;
+    /**
+     * 总的碰撞次数
+     */
+    private long totalCollitionTimes = 0;
+    /**
+     * 总的发送次数
+     */
+    private long totalSendTimes = 0;
 
     private ClockController(){}
 
@@ -41,8 +62,26 @@ public class ClockController {
         active.set(false);
     }
 
+    public void addCollitionTimes(){
+        if(statValve){
+            totalCollitionTimes ++;
+        }
+    }
+
+    public void addSendTimes(){
+        if(statValve){
+            totalSendTimes ++;
+        }
+    }
+
+    public void addDataAmount(long length){
+        if(statValve){
+            totalDataAmount += length;
+        }
+    }
+
     public synchronized void loop() throws InterruptedException {
-        onLoop();
+        preLoop();
         while (active.get() && this.accumulateTime < Config.getInstance().getSimulationDuration()) {
             ClockTask task = tasks.take();
             //减去时间
@@ -56,6 +95,10 @@ public class ClockController {
             }
             //仿真过程积累相应的时间
             accumulateTime += time;
+
+            if(!statValve && accumulateTime >= Config.getInstance().getWarmUp()){
+                statValve = true;
+            }
             //下面开始执行任务
             if (Logger.DEBUG_CLOCK) {
                 logger.log("do a task...");
@@ -75,14 +118,24 @@ public class ClockController {
                 }
             }
         }
-        printResult();
+        postLoop();
     }
 
-    private void printResult(){
-        // TODO: 16/4/7 将要统计的数据加上,并在这里打印出来
+    private void postLoop(){
+        System.out.println("*************************************************");
+        System.out.println("*************************************************");
+        System.out.format("总的数据传输量(bytes): %d", totalDataAmount);
+        System.out.println();
+        System.out.format("总的发送次数: %d",totalSendTimes);
+        System.out.println();
+        System.out.format("总的碰撞次数: %d",totalCollitionTimes);
+        System.out.println();
+        System.out.format("碰撞发生的概率: %f",(totalCollitionTimes+0.0)/totalSendTimes);
+        System.out.println();
+        System.out.println("*************************************************");
     }
 
-    private void onLoop(){
+    private void preLoop(){
         if(loopCallBack != null){
             loopCallBack.run();
         }

@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.infrastructure.medium;
+package me.zhangxl.antenna.util;
 
 /**
  * Created by zhangxiaolong on 16/4/7.
