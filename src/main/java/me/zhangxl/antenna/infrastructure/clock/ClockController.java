@@ -75,6 +75,11 @@ public class ClockController {
                 }
             }
         }
+        printResult();
+    }
+
+    private void printResult(){
+        // TODO: 16/4/7 将要统计的数据加上,并在这里打印出来
     }
 
     private void onLoop(){

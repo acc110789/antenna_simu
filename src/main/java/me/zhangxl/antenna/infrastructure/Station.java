@@ -1,15 +1,17 @@
 package me.zhangxl.antenna.infrastructure;
 
-import com.sun.tools.javac.util.Pair;
+import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.clock.ClockController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.infrastructure.medium.MediumObserver;
 import me.zhangxl.antenna.infrastructure.medium.MediumObservers;
-import me.zhangxl.antenna.frame.*;
+import me.zhangxl.antenna.infrastructure.medium.Pair;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 该类代表一个站点的状态
@@ -28,14 +30,14 @@ public class Station implements MediumObserver {
     public Station(int id){
         this.id = id;
         mLocation = null;
-        Medium.stationList.add(this);
+        StationUtil.stationList.add(this);
         MediumObservers.getInstance().register(this);
     }
 
     public Station(int id,Double xAxis,Double yAxis){
         this.id = id;
         this.mLocation = new Pair<>(xAxis,yAxis);
-        Medium.stationList.add(this);
+        StationUtil.stationList.add(this);
         MediumObservers.getInstance().register(this);
     }
 
@@ -92,6 +94,7 @@ public class Station implements MediumObserver {
     private void getDataFrameToSend(){
         if(mDataFramesToSend.size() > 0) {
             mCurrentSendingFrame = mDataFramesToSend.remove(0);
+            StationUtil.guaranteeEnoughFrame(this);
             mCurrentSendingFrame.init();
         }
     }
@@ -106,6 +109,14 @@ public class Station implements MediumObserver {
 
     public void sendRequest(int targetId,long length,int dataFrameId){
         mDataFramesToSend.add(new DataFrame(this.id,targetId,length,dataFrameId));
+    }
+
+    int getWaitingRequestNum(){
+        return mDataFramesToSend.size();
+    }
+
+    int getId(){
+        return this.id;
     }
 
     //作为发送端发送的数据

@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -101,6 +103,52 @@ public class TestJavaFunction {
         float deNum = Float.valueOf(num);
         System.out.format("%f",deNum);
     }
+
+    @Test
+    public void cloneFun() throws CloneNotSupportedException {
+        A aa = new A();
+        A aaclone = aa.clone();
+        System.out.println(aa == aaclone);
+        System.out.println(aa.b == aaclone.b);
+    }
+
+    class A implements Cloneable{
+
+        public B b;
+
+        public A(){
+            b = new B();
+        }
+
+        @Override
+        public A clone() throws CloneNotSupportedException {
+            return (A)super.clone();
+        }
+    }
+
+    class B implements  Cloneable{
+        @Override
+        public B clone() throws CloneNotSupportedException {
+            return (B)super.clone();
+        }
+    }
+
+    class C{
+
+    }
+
+    private <T> List<T> getType(){
+        List<T> list = new ArrayList<T>();
+        return list;
+    }
+
+    @Test
+    public void mapExtendClass(){
+        List<? super C> list = getType();
+        list.add(new C());
+    }
+
+
 
 
 }

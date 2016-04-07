@@ -18,7 +18,7 @@ public class Config {
     public static final int DEFAULT_DATA_FRAME_COLLISION_TIME = -1;
     private static final Config sInstance = new Config();
     //局域网中站点的数量
-    private int userNum = -1;
+    private int stationNum = -1;
     /**
      * 正常的流程如下:
      * difs  -> ContentionWindow -> RTS -> sifs -> CTS -> sifs -> DATA -> sifs -> ACK -> difs -> ContentionWindow .........
@@ -42,6 +42,8 @@ public class Config {
     private int ackLength = -1;
     private float bandWidth = -1;
     private float simulationDuration = -1;
+    private float warmUp = -1;
+    private long fixDataLength = -1;
 
     private Config() {
         try {
@@ -63,10 +65,10 @@ public class Config {
                     getClassLoader().getResourceAsStream("antenna_config.properties")));
             properties.load(reader);
 
-            this.userNum = Integer.valueOf(properties.getProperty("UserNum"));
+            this.stationNum = Integer.valueOf(properties.getProperty("STATION_NUM"));
             this.maxCW = Integer.valueOf(properties.getProperty("MAX_CW"));
 
-            String currentVersion = properties.getProperty("currentVersion");
+            String currentVersion = properties.getProperty("CURRENT_VERSION");
             this.slotLength = Float.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH"));
             this.sifs = Float.valueOf(properties.getProperty(currentVersion + "_SIFS"));
             this.defaultCW = Integer.valueOf(properties.getProperty(currentVersion + "_DEFAULT_CW"));
@@ -76,7 +78,9 @@ public class Config {
             this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
             this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
 
-            this.simulationDuration = Float.valueOf(properties.getProperty("simulationDuration"));
+            this.simulationDuration = Float.valueOf(properties.getProperty("SIMULATION_Duration"));
+            this.warmUp = Float.valueOf(properties.getProperty("WARM_UP"));
+            this.fixDataLength = Long.valueOf(properties.getProperty("FIX_DATA_LENGTH"));
 
             difs = sifs + 2 * slotLength;
             rtsLength = phyHeader + macRtsHeader;
@@ -88,8 +92,16 @@ public class Config {
 
     }
 
-    public int getUserNum() {
-        return userNum;
+    public long getFixDataLength() {
+        return this.fixDataLength;
+    }
+
+    public float getWarmUp() {
+        return this.warmUp;
+    }
+
+    public int getStationNum() {
+        return stationNum;
     }
 
     public float getDifs() {
@@ -116,11 +128,11 @@ public class Config {
         return phyHeader;
     }
 
-    public int getMacHeader(){
+    public int getMacHeader() {
         return macHeader;
     }
 
-    public int getMacRtsHeader(){
+    public int getMacRtsHeader() {
         return macRtsHeader;
     }
 
@@ -140,7 +152,7 @@ public class Config {
         return bandWidth;
     }
 
-    public float getSimulationDuration(){
+    public float getSimulationDuration() {
         return simulationDuration;
     }
 

@@ -1,6 +1,7 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.ClockController;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.RtsFrame;
@@ -17,7 +18,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Medium {
 
-    public static final List<Station> stationList = new ArrayList<>();
     private static final Logger logger = new Logger(Medium.class);
     private static final Medium sMedium = new Medium();
 
@@ -47,7 +47,7 @@ public class Medium {
         ClockController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                for (Station station : stationList) {
+                for (Station station : StationUtil.stationList) {
                     station.receiveFrame(frame);
                 }
             }
@@ -97,7 +97,7 @@ public class Medium {
             ClockController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    for (Station station : stationList) {
+                    for (Station station : StationUtil.stationList) {
                         station.receiveFrame(frame);
                     }
                 }

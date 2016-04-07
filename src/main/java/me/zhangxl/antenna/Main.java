@@ -1,7 +1,7 @@
 package me.zhangxl.antenna;
 
-import me.zhangxl.antenna.application.App;
-import me.zhangxl.antenna.application.ExpApp;
+import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.ClockController;
 import me.zhangxl.antenna.util.Config;
 
@@ -17,16 +17,15 @@ public class Main {
         checkConfig();
 
         //新建站点
-        List<App> appList = new ArrayList<>();
-        for (int i = 0; i < Config.getInstance().getUserNum(); i++) {
-            App app = new ExpApp(i);
-
-            appList.add(app);
+        List<Station> stationList = new ArrayList<>();
+        for (int i = 0; i < Config.getInstance().getStationNum(); i++) {
+            Station station = new Station(i);
+            stationList.add(station);
         }
 
         //激活所有的站点
-        for (App app : appList) {
-            app.activate();
+        for (Station station : stationList) {
+            StationUtil.guaranteeEnoughFrame(station);
         }
 
         //时间片在主线程中开始流动
@@ -34,8 +33,9 @@ public class Main {
     }
 
     private static void checkConfig() {
+        System.out.println("start check config");
         String errInfo = "";
-        if (Config.getInstance().getUserNum() <= 0) {
+        if (Config.getInstance().getStationNum() <= 0) {
             errInfo += "    userNum is negative";
         }
         if(Config.getInstance().getDifs() <= Config.getInstance().getSifs()){
@@ -76,6 +76,16 @@ public class Main {
         }
         if(Config.getInstance().getSimulationDuration() <= 0){
             errInfo += "    simulationDuration less than or equal 0";
+        }
+        if(Config.getInstance().getWarmUp() <= 0){
+            errInfo += "    warm up time is less than 0";
+        }
+        //warp up的时间不能太长,即不能超过仿真时间的一半
+        if(Config.getInstance().getWarmUp() >= Config.getInstance().getSimulationDuration()/2){
+            errInfo += "    warm up time is larger than a half of simulation duration";
+        }
+        if(Config.getInstance().getFixDataLength() <= 0){
+            errInfo += "    fix data length is less than 0";
         }
         if(!errInfo.isEmpty()){
             throw new IllegalArgumentException(errInfo);
