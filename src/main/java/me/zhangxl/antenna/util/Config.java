@@ -20,11 +20,21 @@ public class Config {
     //局域网中站点的数量
     private int stationNum = -1;
     // TODO: 16/4/7 添加NAV 从RTS之后的sifs一直到ACK
+    // TODO: 16/4/7 每个节点有自己的一个时钟,然后还有一个统一的时钟
     /**
      * 正常的流程如下
      * difs  -> ContentionWindow -> RTS -> sifs -> CTS -> sifs -> DATA -> sifs -> ACK -> difs -> ContentionWindow .........
      * 只考虑一种碰撞的情况如下:
      * difs  -> ContentionWindow -> RTS(碰撞) -> difs -> ContentionWindow -> ............
+     *
+     * 正常情况下,对于发送方来讲,任何一个环节出了问题,都认为是碰撞次数加一,比如发送方没有收到CTS,或者发送方没有收到ACK
+     *
+     * 超时:RTS 发送完毕之后 CTS,ACK
+     * CTS,ACK timeout = SIFS + DIFS + ACK/CTS,
+     *
+     * 碰撞:没有发出去RTS
+     * RTS(2) + DIFS
+     *
      */
 
     private float difs = -1;
