@@ -1,5 +1,7 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
+import me.zhangxl.antenna.frame.AckFrame;
+import me.zhangxl.antenna.frame.GarbageFrame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.ClockController;
@@ -50,8 +52,16 @@ public class Medium {
                 for (Station station : StationUtil.stationList) {
                     station.receiveFrame(frame);
                 }
+                if(frame instanceof GarbageFrame || frame instanceof AckFrame) {
+                    ClockController.getInstance().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Medium.getInstance().setFree();
+                        }
+                    }, Config.getInstance().getDifs());
+                }
             }
-        }, frame.getTransmitDuration());
+        }, frame.getTransmitDuration());//计算要将frame全部全部传输到目标节点所需要的时间
     }
 
     /**
@@ -67,33 +77,24 @@ public class Medium {
      * 检查碰撞,如果没有发生碰撞,则真正开始发送frame
      */
     void checkCollisionAndSend() {
-        if (rtsToSend.size() > 1) {
+        if(rtsToSend.size() > 0){
             ClockController.getInstance().addSendTimes();
+        }
+
+        if (rtsToSend.size() > 1) {
             ClockController.getInstance().addCollitionTimes();
             if(Logger.DEBUG_COLLISION) {
                 logger.log("collision occur");
             }
+            //我们认为Station刚开始发送Rts就能立刻知道是否发生了碰撞,而不用等到Rts发送完成才知道
             MediumObservers.getInstance().onRtsCollision(new ArrayList<>(rtsToSend));
-            ClockController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    setFree();
-                }
-            }, rtsToSend.get(0).getTransmitDuration() + Config.getInstance().getDifs());
+            //发送一个垃圾桢
+            putFrame(Frame.generateGarbageFrame(new ArrayList<Frame>(rtsToSend)));
             rtsToSend.clear();
 
         } else if (rtsToSend.size() == 1) {
             //只有一个待发送的frame
-            ClockController.getInstance().addSendTimes();
-            final Frame frame = rtsToSend.remove(0);
-            ClockController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    for (Station station : StationUtil.stationList) {
-                        station.receiveFrame(frame);
-                    }
-                }
-            }, frame.getTransmitDuration());//计算要将frame全部全部传输到目标节点所需要的时间
+            putFrame(rtsToSend.remove(0));
         }
     }
 
@@ -101,7 +102,7 @@ public class Medium {
     /**
      * 这个方法标志着Medium刚好空闲了DIFS
      */
-    public void setFree() {
+    private void setFree() {
         free.set(true);
         MediumObservers.getInstance().onPostDifs();//有可能信道在postDifs的过程中又被占用了
         scheduleNewSlot();

@@ -47,7 +47,7 @@ public class Station implements MediumObserver {
 
     @Override
     public void onRtsCollision(List<RtsFrame> collisionFrames) {
-        int count = 0; //
+        int count = 0;
         for (RtsFrame frame : collisionFrames) {
             if (frame.getSrcId() == this.id) {
                 count++;
@@ -165,12 +165,6 @@ public class Station implements MediumObserver {
         }
         //已经发送完毕
         mCurrentSendingFrame = null;
-        ClockController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                Medium.getInstance().setFree();
-            }
-        }, Config.getInstance().getDifs());
     }
 
     //作为接受端发送的数据
@@ -218,7 +212,8 @@ public class Station implements MediumObserver {
     }
 
     public void receiveFrame(Frame frame) {
-        //如果frame的目标地址不是自己,则丢弃这个frame
+        //如果frame的目标地址不是自己,则丢弃这个frame.
+        //碰撞的GarbageFrame的TargetId 和任何Station的Id都不相同
         if (frame.getTargetId() != this.id) {
             return;
         }
@@ -232,7 +227,7 @@ public class Station implements MediumObserver {
         } else if (frame instanceof AckFrame) {
             receiveAck((AckFrame) frame);
         } else {
-            throw new IllegalArgumentException("unspecified frame type");
+            throw new IllegalArgumentException("unspecified frame type " + frame.getClass().getSimpleName());
         }
     }
 

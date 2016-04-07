@@ -19,8 +19,9 @@ public class Config {
     private static final Config sInstance = new Config();
     //局域网中站点的数量
     private int stationNum = -1;
+    // TODO: 16/4/7 添加NAV 从RTS之后的sifs一直到ACK
     /**
-     * 正常的流程如下:
+     * 正常的流程如下
      * difs  -> ContentionWindow -> RTS -> sifs -> CTS -> sifs -> DATA -> sifs -> ACK -> difs -> ContentionWindow .........
      * 只考虑一种碰撞的情况如下:
      * difs  -> ContentionWindow -> RTS(碰撞) -> difs -> ContentionWindow -> ............
@@ -78,7 +79,7 @@ public class Config {
             this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
             this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
 
-            this.simulationDuration = Float.valueOf(properties.getProperty("SIMULATION_Duration"));
+            this.simulationDuration = Float.valueOf(properties.getProperty("SIMULATION_DURATION"));
             this.warmUp = Float.valueOf(properties.getProperty("WARM_UP"));
             this.fixDataLength = Long.valueOf(properties.getProperty("FIX_DATA_LENGTH"));
 
