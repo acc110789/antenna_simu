@@ -1,6 +1,6 @@
 package me.zhangxl.antenna.application;
 
-import me.zhangxl.antenna.infrastructure.clock.ClockController;
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.Station;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public abstract class App  {
     public void activate(){
         if(!active.get()) {
             active.set(true);
-            ClockController.getInstance().post(getRunnable(), getNextFrameInterval());
+            TimeController.getInstance().post(getRunnable(), getNextFrameInterval());
         }
     }
 
@@ -67,8 +67,8 @@ public abstract class App  {
             @Override
             public void run() {
                 if(active.get()){
-                    getStation().sendRequest(getNextDesId(), getNextFrameLength());
-                    ClockController.getInstance().post(getRunnable(), getNextFrameInterval());
+                    getStation().putDataFrame(getNextDesId(), getNextFrameLength());
+                    TimeController.getInstance().post(getRunnable(), getNextFrameInterval());
                 }
             }
         };

@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.clock;
 
 /**
- *  {@link ClockController} 持有的ClockTask
+ *  {@link TimeController} 持有的ClockTask
  * Created by zhangxiaolong on 16/3/30.
  */
 class ClockTask implements Comparable<ClockTask> {

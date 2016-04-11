@@ -15,10 +15,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 所有需要用到时间的地方,比如Station或者Medium都要监听这个时间槽
  * Created by zhangxiaolong on 16/3/29.
  */
-public class ClockController {
+public class TimeController {
 
-    private static final ClockController sInstance = new ClockController();
-    private  Logger logger = new Logger(ClockController.class,false);
+    private static final TimeController sInstance = new TimeController();
+    private  Logger logger = new Logger(TimeController.class,false);
     private PriorityBlockingQueue<ClockTask> tasks = new PriorityBlockingQueue<>();
     private AtomicBoolean active = new AtomicBoolean(true);
     private Runnable loopCallBack;
@@ -41,9 +41,9 @@ public class ClockController {
      */
     private long totalSendTimes = 0;
 
-    private ClockController(){}
+    private TimeController(){}
 
-    public static ClockController getInstance(){
+    public static TimeController getInstance(){
         return sInstance;
     }
 

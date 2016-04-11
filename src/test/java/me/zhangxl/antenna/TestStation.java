@@ -1,7 +1,7 @@
 package me.zhangxl.antenna;
 
 import me.zhangxl.antenna.infrastructure.Station;
-import me.zhangxl.antenna.infrastructure.clock.ClockController;
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
 import org.junit.Test;
 
@@ -18,14 +18,14 @@ public class TestStation {
         final Station station1 = new Station(1);
         final Station station2 = new Station(2);
 
-        station1.sendRequest(2, 400);
-        station2.sendRequest(1, 400);
+        station1.putDataFrame(2, 400);
+        station2.putDataFrame(1, 400);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 for (int i = 0; i < 9; i++) {
-                    station1.sendRequest(2, 400);
-                    station2.sendRequest(1, 400);
+                    station1.putDataFrame(2, 400);
+                    station2.putDataFrame(1, 400);
                     try {
                         Thread.sleep(5);
                     } catch (InterruptedException e) {
@@ -38,6 +38,6 @@ public class TestStation {
         Field field = configClass.getDeclaredField("simulationDuration");
         field.setAccessible(true);
         field.setFloat(Config.getInstance(), (float) 3e-2);
-        ClockController.getInstance().loop();
+        TimeController.getInstance().loop();
     }
 }

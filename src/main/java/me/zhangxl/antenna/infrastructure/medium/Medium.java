@@ -1,10 +1,9 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.AckFrame;
-import me.zhangxl.antenna.frame.GarbageFrame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.StationUtil;
-import me.zhangxl.antenna.infrastructure.clock.ClockController;
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.util.Config;
@@ -18,17 +17,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 代表传输的介质(信道)
  * Created by zhangxiaolong on 16/3/24.
  */
-public class Medium {
+public abstract class Medium {
+
+    static final List<Station> stationList = new ArrayList<>();
 
     private static final Logger logger = new Logger(Medium.class);
-    private static final Medium sMedium = new Medium();
+    static final Medium sMedium;
+
+    static {
+        sMedium = new OmniMedium();
+    }
 
     private AtomicBoolean free = new AtomicBoolean(false);
 
-    private List<RtsFrame> rtsToSend = new ArrayList<>();
-
-    private Medium() {
-        ClockController.getInstance().setLoopCallBack(new Runnable() {
+    Medium() {
+        TimeController.getInstance().setLoopCallBack(new Runnable() {
             @Override
             public void run() {
                 //初始化为free
@@ -38,22 +41,27 @@ public class Medium {
         });
     }
 
+    public void register(Station station){
+        stationList.add(station);
+    }
+
     public static Medium getInstance() {
         return sMedium;
     }
 
     /**
-     * @param frame 对于一般的frame,可以直接post出去
+     * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
+     *              然后发送给这些节点
      */
     public void putFrame(final Frame frame) {
-        ClockController.getInstance().post(new Runnable() {
+        TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 for (Station station : StationUtil.stationList) {
                     station.receiveFrame(frame);
                 }
                 if(frame instanceof GarbageFrame || frame instanceof AckFrame) {
-                    ClockController.getInstance().post(new Runnable() {
+                    TimeController.getInstance().post(new Runnable() {
                         @Override
                         public void run() {
                             Medium.getInstance().setFree();
@@ -68,21 +76,25 @@ public class Medium {
      * @param frame 对于RtsFrame来说 不能直接ClockController.
      *              getInstance().post(),因为可能有Rts冲突
      */
-    public void putRts(RtsFrame frame){
-        rtsToSend.add(frame);
-        setBusyIfNeed();
+    public void putRts(Station station,RtsFrame frame){
+        //获取哪些Station是需要接受这个frame
+        for(Station desStation : getStationToReceive(station)){
+            desStation.beginReceiveFrame(frame);
+        }
     }
+
+    abstract List<Station> getStationToReceive(Station station);
 
     /**
      * 检查碰撞,如果没有发生碰撞,则真正开始发送frame
      */
     void checkCollisionAndSend() {
         if(rtsToSend.size() > 0){
-            ClockController.getInstance().addSendTimes();
+            TimeController.getInstance().addSendTimes();
         }
 
         if (rtsToSend.size() > 1) {
-            ClockController.getInstance().addCollitionTimes();
+            TimeController.getInstance().addCollitionTimes();
             if(Logger.DEBUG_COLLISION) {
                 logger.log("collision occur");
             }
@@ -111,19 +123,13 @@ public class Medium {
     //如果信道并没有被占有,则当下一个slot出现的时候予以通知
     private void scheduleNewSlot(){
         if(free.get()){
-            ClockController.getInstance().post(new Runnable() {
+            TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     MediumObservers.getInstance().onNewSLot();
                     scheduleNewSlot();
                 }
             },Config.getInstance().getSlotLength());
-        }
-    }
-
-    private void setBusyIfNeed(){
-        if(free.get()) {
-            free.set(false);
         }
     }
 }

@@ -24,14 +24,12 @@ public class Config {
     /**
      * 正常的流程如下
      * difs  -> ContentionWindow -> RTS -> sifs -> CTS -> sifs -> DATA -> sifs -> ACK -> difs -> ContentionWindow .........
-     * 只考虑一种碰撞的情况如下:
+     * 全向天线只考虑一种碰撞的情况如下:
      * difs  -> ContentionWindow -> RTS(碰撞) -> difs -> ContentionWindow -> ............
-     *
+     * 对于定向天线来说:
      * 正常情况下,对于发送方来讲,任何一个环节出了问题,都认为是碰撞次数加一,比如发送方没有收到CTS,或者发送方没有收到ACK
-     *
      * 超时:RTS 发送完毕之后 CTS,ACK
      * CTS,ACK timeout = SIFS + DIFS + ACK/CTS,
-     *
      * 碰撞:没有发出去RTS
      * RTS(2) + DIFS
      *

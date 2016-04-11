@@ -7,8 +7,15 @@ import me.zhangxl.antenna.util.Config;
  */
 public class AckFrame extends Frame {
 
+    private static final int ackLength = Config.getInstance().getAckLength();
+
     AckFrame(int srcId, int targetId) {
         super(srcId, targetId, Config.getInstance().getAckLength());
+    }
+
+    public static float getAckTimeOut(){
+        return Config.getInstance().getSifs() + Config.getInstance().getDifs()
+                + ackLength / Config.getInstance().getBandWidth();
     }
 
 }

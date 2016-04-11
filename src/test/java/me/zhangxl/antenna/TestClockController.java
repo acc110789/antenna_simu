@@ -1,6 +1,6 @@
 package me.zhangxl.antenna;
 
-import me.zhangxl.antenna.infrastructure.clock.ClockController;
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class TestClockController {
     public void clockController() throws InterruptedException {
         Random random = new Random(System.currentTimeMillis());
         for (int i = 0; i < 10; i++) {
-            ClockController.getInstance().post(new Runnable() {
+            TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
 
@@ -27,7 +27,7 @@ public class TestClockController {
             @Override
             public void run() {
                 try {
-                    ClockController.getInstance().loop();
+                    TimeController.getInstance().loop();
                     Assert.fail("program can not exit from here");
                 } catch (InterruptedException ignored) {
                 }
@@ -35,7 +35,7 @@ public class TestClockController {
         });
         thread.start();
         Thread.sleep(500);
-        ClockController.getInstance().deActive();
+        TimeController.getInstance().deActive();
         if(thread.isAlive()){
             thread.interrupt();
         }

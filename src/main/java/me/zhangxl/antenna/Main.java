@@ -2,7 +2,7 @@ package me.zhangxl.antenna;
 
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.StationUtil;
-import me.zhangxl.antenna.infrastructure.clock.ClockController;
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ public class Main {
         }
 
         //时间片在主线程中开始流动
-        ClockController.getInstance().loop();
+        TimeController.getInstance().loop();
     }
 
     private static void checkConfig() {
