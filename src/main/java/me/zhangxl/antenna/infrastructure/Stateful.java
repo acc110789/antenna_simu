@@ -17,7 +17,7 @@ import me.zhangxl.antenna.util.Config;
  * 在Stateful的方法中,用pre表示过程的开始的那一刻,用post表示过程结束的那一刻
  * Created by zhangxiaolong on 16/4/9.
  */
-public abstract class Stateful {
+abstract class Stateful {
     // TODO: 16/4/10 需要将TimeController中的时间给成double类型
     // TODO: 16/4/10 暂时没有考虑两件事情在同一时间点发生的概率是0
     private static final int READ_MODE = 1;
@@ -28,6 +28,7 @@ public abstract class Stateful {
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
     private int currentMode = READ_MODE;
 
+    // TODO: 16/4/11 在更改currentStatus之前先检查之前的Status是否是正确的
     private Status currentStatus = Status.IDLE;
 
     private enum Status {
@@ -112,7 +113,7 @@ public abstract class Stateful {
      * 这个时刻表示是CTS之前的的SIFS开始的时刻,在这个时刻,
      * Station进入了写模式
      */
-    protected void onPreSendSIFSAndCTS(final Frame frame) {
+    private void onPreSendSIFSAndCTS(final Frame frame) {
         setWriteMode();
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -148,7 +149,7 @@ public abstract class Stateful {
         currentStatus = Status.WAITING_DATA;
     }
 
-    protected void onPreSendSIFSAndDATA(final DataFrame frame) {
+    private void onPreSendSIFSAndDATA(final DataFrame frame) {
         setWriteMode();
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -181,7 +182,7 @@ public abstract class Stateful {
         currentStatus = Status.WAITING_ACK;
     }
 
-    protected void onPreSendSIFSAndACK(final AckFrame frame) {
+    private void onPreSendSIFSAndACK(final AckFrame frame) {
         setWriteMode();
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -210,21 +211,24 @@ public abstract class Stateful {
     }
     //</editor-fold>
 
-    private boolean canRecv(){
+    private boolean canRecv() {
         // TODO: 16/4/11 思考如何才能保证可以接受
         return currentMode == READ_MODE;
     }
 
     //<editor-fold desc="接受数据时间点函数">
-    /**开始接受rts frame
+
+    /**
+     * 开始接受rts frame
+     *
      * @param frame 即将被接受的frame
      */
-    protected void onPreRecvRTS(final RtsFrame frame){
-        if(canRecv()) {
+    protected void onPreRecvRTS(final RtsFrame frame) {
+        if (canRecv()) {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    if(!frame.collision()) {
+                    if (!frame.collision()) {
                         onPostRecvRTS(frame);
                     }
                 }
@@ -234,11 +238,74 @@ public abstract class Stateful {
     }
 
     /**
-     * {{@link Stateful#onPreSendSIFSAndCTS(Frame)}} 与这个方法是在同一时间点,直接调用这个方法即可
+     * {@link Stateful#onPreSendSIFSAndCTS(Frame)} 与这个方法是在同一时间点,直接调用这个方法即可
      */
-    private void onPostRecvRTS(RtsFrame frame){
+    private void onPostRecvRTS(RtsFrame frame) {
         onPreSendSIFSAndCTS(frame);
     }
+
+    protected void onPreRecvCTS(final CtsFrame frame) {
+        if (canRecv()) {
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    if (!frame.collision()) {
+                        onPostRecvCTS(frame);
+                    }
+                }
+            }, frame.getTransmitDuration());
+            currentStatus = Status.RECEIVING_CTS;
+        }
+    }
+
+    /**
+     * {@link Stateful#onPreSendSIFSAndDATA(DataFrame)}
+     */
+    private void onPostRecvCTS(CtsFrame frame) {
+        // TODO: 16/4/11 替换成真正的dataFrame
+        onPreSendSIFSAndDATA(null);
+    }
+
+    protected void onPreRecvData(final DataFrame dataFrame) {
+        if (canRecv()) {
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    if (!dataFrame.collision()) {
+                        onPostRecvData(dataFrame.generateAckFrame());
+                    }
+                }
+            }, dataFrame.getTransmitDuration());
+            currentStatus = Status.RECEIVING_DATA;
+        }
+    }
+
+    /**
+     * {@link #onPreSendSIFSAndACK(AckFrame)}
+     */
+    private void onPostRecvData(AckFrame frame) {
+        onPreSendSIFSAndACK(frame);
+    }
+
+    protected void onPreRecvACK(final AckFrame frame) {
+        if (canRecv()) {
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    if (!frame.collision()) {
+                        onPostRecvACK(frame);
+                    }
+                }
+            }, frame.getTransmitDuration());
+            currentStatus = Status.RECEIVING_ACK;
+        }
+    }
+
+    private void onPostRecvACK(Frame frame) {
+        //表明发送成功了
+        // TODO: 16/4/11 将当前的DataFrame放置到已发送中
+    }
+
     //</editor-fold>
 
 }
