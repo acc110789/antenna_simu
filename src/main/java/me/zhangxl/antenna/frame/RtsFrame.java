@@ -5,7 +5,7 @@ import me.zhangxl.antenna.util.Config;
 /**
  * Created by zhangxiaolong on 16/3/24.
  */
-public class RtsFrame extends me.zhangxl.antenna.frame.Frame {
+public class RtsFrame extends Frame {
 
     private static final int rtsLength = Config.getInstance().getRtsLength();
 

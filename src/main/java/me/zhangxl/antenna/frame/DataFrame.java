@@ -16,24 +16,33 @@ public class DataFrame extends Frame {
 
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
+
     private long startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
     private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
     private int backOff;
     private int id;
-    private long dataLength = -1;
+    //数据部分的长度
+    private static long dataLength = Config.getInstance().getFixDataLength();
+    private static long frameLength = Config.getInstance().getFixDataLength()
+            + Config.getInstance().getPhyHeader()
+            + Config.getInstance().getMacHeader();
     /**
      * 表明当前正在发生碰撞
      */
     private boolean collision = false;
 
-    public DataFrame(int srcId, int targetId, long length) {
-        this(srcId,targetId,length,nextSerialNum());
+    public DataFrame(int srcId, int targetId) {
+        this(srcId,targetId, nextSerialNum());
     }
 
-    public DataFrame(int srcId, int targetId, long length,int id) {
-        super(srcId, targetId, length + Config.getInstance().getPhyHeader() + Config.getInstance().getMacHeader());
-        this.dataLength = length;
+    public DataFrame(int srcId, int targetId, int id) {
+        super(srcId, targetId, frameLength);
         this.id = id;
+    }
+
+    public static float getDataTimeOut(){
+        return Config.getInstance().getSifs() + Config.getInstance().getDifs()
+                + frameLength / Config.getInstance().getBandWidth();
     }
 
     private static int nextSerialNum(){

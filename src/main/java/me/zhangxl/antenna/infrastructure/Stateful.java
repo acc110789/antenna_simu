@@ -1,8 +1,10 @@
 package me.zhangxl.antenna.infrastructure;
 
-import me.zhangxl.antenna.frame.*;
+import me.zhangxl.antenna.frame.AckFrame;
+import me.zhangxl.antenna.frame.CtsFrame;
+import me.zhangxl.antenna.frame.DataFrame;
+import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
-import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Config;
 
 /**
@@ -27,6 +29,8 @@ abstract class Stateful {
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
     private int currentMode = READ_MODE;
+
+    DataFrame mCurrentSendingFrame;
 
     // TODO: 16/4/11 在更改currentStatus之前先检查之前的Status是否是正确的
     private Status currentStatus = Status.IDLE;
@@ -54,6 +58,9 @@ abstract class Stateful {
     }
 
     private void setReadMode() {
+        if(this.currentMode != WRITE_MODE){
+            throw new IllegalStateException("interesting, already in read mode");
+        }
         this.currentMode = READ_MODE;
         // TODO: 16/4/10 可以监听frame并且主动去问Medium,有没有正在发给我的Frame,如果有请立刻给我
     }
@@ -67,6 +74,9 @@ abstract class Stateful {
     }
 
     private void setWriteMode() {
+        if(this.currentMode == WRITE_MODE){
+            throw new IllegalStateException("interesting, already in write mode");
+        }
         this.currentMode = WRITE_MODE;
     }
 
@@ -79,11 +89,15 @@ abstract class Stateful {
 
     public abstract void onPostSLOT();
 
-    //<editor-fold desc="发送数据时间点函数">
+    private void assertCurrentStatus(Status status){
+        if(currentStatus != status){
+            throw new IllegalStateException("currentStatus is not " + status);
+        }
+    }
 
+    //<editor-fold desc="发送数据时间点函数">
     /**
      * 这个时刻表示是RTS开始的那一刻,立刻进入写模式
-     *
      * @param frame 待发送的RTS
      */
     protected void onPreSendRTS(RtsFrame frame) {
@@ -94,6 +108,7 @@ abstract class Stateful {
                 onPostSendRTS();
             }
         }, frame.getTransmitDuration());
+        assertCurrentStatus(Status.IDLE);
         currentStatus = Status.SENDING_RTS;
     }
 
@@ -103,9 +118,12 @@ abstract class Stateful {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                onCollision();
+                if(currentStatus == Status.WAITING_CTS) {
+                    onCollision();
+                }
             }
-        }, RtsFrame.getRtsTimeOut());
+        }, CtsFrame.getCtsTimeOut());
+        assertCurrentStatus(Status.SENDING_RTS);
         currentStatus = Status.WAITING_CTS;
     }
 
@@ -113,7 +131,7 @@ abstract class Stateful {
      * 这个时刻表示是CTS之前的的SIFS开始的时刻,在这个时刻,
      * Station进入了写模式
      */
-    private void onPreSendSIFSAndCTS(final Frame frame) {
+    private void onPreSendSIFSAndCTS(final RtsFrame frame) {
         setWriteMode();
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -121,21 +139,27 @@ abstract class Stateful {
                 onPreSendCTS(frame.generateCtsFrame());
             }
         }, Config.getInstance().getSifs());
+        assertCurrentStatus(Status.RECEIVING_RTS);
         currentStatus = Status.SENDING_SIFS_CTS;
     }
 
-    private void onPreSendCTS(CtsFrame frame) {
+    /**
+     * 刚刚开始发送CTS的那个时刻
+     * @param frame 待发送的CTS
+     */
+    void onPreSendCTS(CtsFrame frame) {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 onPostSendCTS();
             }
         }, frame.getTransmitDuration());
+        assertCurrentStatus(Status.SENDING_SIFS_CTS);
         currentStatus = Status.SENDING_CTS;
     }
 
     /**
-     * CTS 发送完毕
+     * CTS 刚刚发送完毕的那个时刻
      */
     private void onPostSendCTS() {
         setReadMode();
@@ -143,30 +167,36 @@ abstract class Stateful {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                // TODO: 16/4/10 CTS超时之后干什么呢?
+                if(currentStatus == Status.WAITING_DATA){
+                    // TODO: 16/4/10 CTS超时之后就进入backOff
+                    onCollision();
+                }
             }
-        }, CtsFrame.getCtsTimeOut());
+        }, DataFrame.getDataTimeOut());
+        assertCurrentStatus(currentStatus = Status.SENDING_CTS);
         currentStatus = Status.WAITING_DATA;
     }
 
-    private void onPreSendSIFSAndDATA(final DataFrame frame) {
+    private void onPreSendSIFSAndDATA() {
         setWriteMode();
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                onPreSendData(frame);
+                onPreSendData(mCurrentSendingFrame);
             }
         }, Config.getInstance().getSifs());
+        assertCurrentStatus(Status.RECEIVING_CTS);
         currentStatus = Status.SENDING_SIFS_DATA;
     }
 
-    private void onPreSendData(DataFrame dataFrame) {
+    void onPreSendData(DataFrame dataFrame) {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 onPostSendDATA();
             }
         }, dataFrame.getTransmitDuration());
+        assertCurrentStatus(Status.SENDING_SIFS_DATA);
         currentStatus = Status.SENDING_DATA;
     }
 
@@ -176,9 +206,12 @@ abstract class Stateful {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                onCollision();
+                if(currentStatus == Status.WAITING_ACK) {
+                    onCollision();
+                }
             }
         }, AckFrame.getAckTimeOut());
+        assertCurrentStatus(currentStatus = Status.SENDING_DATA);
         currentStatus = Status.WAITING_ACK;
     }
 
@@ -190,24 +223,25 @@ abstract class Stateful {
                 onPreSendAck(frame);
             }
         }, Config.getInstance().getSifs());
+        assertCurrentStatus(Status.RECEIVING_DATA);
         currentStatus = Status.SENDING_SIFS_ACK;
     }
 
-    private void onPreSendAck(AckFrame frame) {
+    void onPreSendAck(AckFrame frame) {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 onPostSendACK();
             }
         }, frame.getTransmitDuration());
-        Medium.getInstance().putFrame(frame);
+        assertCurrentStatus(currentStatus = Status.SENDING_SIFS_ACK);
         currentStatus = Status.SENDING_ACK;
     }
 
     private void onPostSendACK() {
         setReadMode();
         currentStatus = Status.IDLE;
-        // TODO: 16/4/10 对DIFS的监控
+        // TODO: 16/4/10 DIFS的监控,怎么开始下一个DIFS
     }
     //</editor-fold>
 
@@ -217,13 +251,11 @@ abstract class Stateful {
     }
 
     //<editor-fold desc="接受数据时间点函数">
-
     /**
      * 开始接受rts frame
-     *
      * @param frame 即将被接受的frame
      */
-    protected void onPreRecvRTS(final RtsFrame frame) {
+    void onPreRecvRTS(final RtsFrame frame) {
         if (canRecv()) {
             TimeController.getInstance().post(new Runnable() {
                 @Override
@@ -233,40 +265,41 @@ abstract class Stateful {
                     }
                 }
             }, frame.getTransmitDuration());
+            assertCurrentStatus(Status.IDLE);
             currentStatus = Status.RECEIVING_RTS;
         }
     }
 
     /**
-     * {@link Stateful#onPreSendSIFSAndCTS(Frame)} 与这个方法是在同一时间点,直接调用这个方法即可
+     * {@link #onPreSendSIFSAndCTS(RtsFrame)} 与这个方法是在同一时间点,直接调用这个方法即可
      */
     private void onPostRecvRTS(RtsFrame frame) {
         onPreSendSIFSAndCTS(frame);
     }
 
-    protected void onPreRecvCTS(final CtsFrame frame) {
+    void onPreRecvCTS(final CtsFrame frame) {
         if (canRecv()) {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     if (!frame.collision()) {
-                        onPostRecvCTS(frame);
+                        onPostRecvCTS();
                     }
                 }
             }, frame.getTransmitDuration());
+            assertCurrentStatus(Status.WAITING_CTS);
             currentStatus = Status.RECEIVING_CTS;
         }
     }
 
     /**
-     * {@link Stateful#onPreSendSIFSAndDATA(DataFrame)}
+     * {@link Stateful#onPreSendSIFSAndDATA()}
      */
-    private void onPostRecvCTS(CtsFrame frame) {
-        // TODO: 16/4/11 替换成真正的dataFrame
-        onPreSendSIFSAndDATA(null);
+    private void onPostRecvCTS() {
+        onPreSendSIFSAndDATA();
     }
 
-    protected void onPreRecvData(final DataFrame dataFrame) {
+    void onPreRecvData(final DataFrame dataFrame) {
         if (canRecv()) {
             TimeController.getInstance().post(new Runnable() {
                 @Override
@@ -276,6 +309,7 @@ abstract class Stateful {
                     }
                 }
             }, dataFrame.getTransmitDuration());
+            assertCurrentStatus(Status.WAITING_DATA);
             currentStatus = Status.RECEIVING_DATA;
         }
     }
@@ -287,24 +321,25 @@ abstract class Stateful {
         onPreSendSIFSAndACK(frame);
     }
 
-    protected void onPreRecvACK(final AckFrame frame) {
+    void onPreRecvACK(final AckFrame frame) {
         if (canRecv()) {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     if (!frame.collision()) {
-                        onPostRecvACK(frame);
+                        onPostRecvACK();
                     }
                 }
             }, frame.getTransmitDuration());
+            assertCurrentStatus(Status.WAITING_ACK);
             currentStatus = Status.RECEIVING_ACK;
         }
     }
 
-    private void onPostRecvACK(Frame frame) {
-        //表明发送成功了
-        // TODO: 16/4/11 将当前的DataFrame放置到已发送中
-    }
+    /**
+     * //表明发送成功了
+     */
+    abstract void onPostRecvACK();
 
     //</editor-fold>
 

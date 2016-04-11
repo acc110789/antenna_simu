@@ -3,7 +3,6 @@ package me.zhangxl.antenna.infrastructure;
 import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 import me.zhangxl.antenna.util.Pair;
 
@@ -23,7 +22,6 @@ public class Station extends Stateful {
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
     private List<DataFrame> mDataFrameSent = new ArrayList<>();
     private List<Frame> receivingFrames = new ArrayList<>();
-    private DataFrame mCurrentSendingFrame;
     /**
      * readMode 为true时代表Station此时处于读的模式
      * 为false时代表Station此时处于写的模式
@@ -102,17 +100,12 @@ public class Station extends Stateful {
         }
     }
 
-    /**
-     * 提供给
-     * {@link me.zhangxl.antenna.application.App}
-     * 调用
-     */
     public void putDataFrame(int targetId, long length) {
-        mDataFramesToSend.add(new DataFrame(this.id, targetId, length));
+        mDataFramesToSend.add(new DataFrame(this.id, targetId));
     }
 
     public void putDataFrame(int targetId, long length, int dataFrameId) {
-        mDataFramesToSend.add(new DataFrame(this.id, targetId, length, dataFrameId));
+        mDataFramesToSend.add(new DataFrame(this.id, targetId, dataFrameId));
     }
 
     //作为发送端发送的数据
@@ -122,129 +115,74 @@ public class Station extends Stateful {
             logger.log(this.id + "    onPreSendRTS...");
         }
         super.onPreSendRTS(frame);
-        Medium.getInstance().putRts(this,frame);
+        Medium.getInstance().putFrame(this,frame);
     }
 
-    private void sendData() {
+    @Override
+    void onPreSendCTS(CtsFrame frame) {
         if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    sendData...");
+            logger.log(this.id + "    onPreSendCTS...");
         }
-        if (mCurrentSendingFrame == null) {
-            throw new IllegalStateException("current Frame of Station is null");
-        }
-        Medium.getInstance().putFrame(mCurrentSendingFrame);
+        super.onPreSendCTS(frame);
+        Medium.getInstance().putFrame(this,frame);
     }
 
-    //作为接受端发送的数据
-    private void sendCts(CtsFrame frame) {
+    @Override
+    void onPreSendData(DataFrame frame) {
         if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    sendCts...");
+            logger.log(this.id + "    onPreSendDATA...");
         }
-        Medium.getInstance().putFrame(frame);
+        super.onPreSendData(frame);
+        Medium.getInstance().putFrame(this,frame);
     }
 
-    private void sendAck(AckFrame frame) {
+    @Override
+    void onPreSendAck(AckFrame frame) {
         if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    sendAck...");
+            logger.log(this.id + "    onPreSendAck...");
         }
-        Medium.getInstance().putFrame(frame);
+        super.onPreSendAck(frame);
+        Medium.getInstance().putFrame(this,frame);
     }
 
-    //作为发送端的接受数据
-    private void receiveCts(CtsFrame frame) {
-        //需要等待一个SIFS之后再 sendData
+    @Override
+    void onPostRecvACK() {
         if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    receiveCts...");
+            logger.log(this.id + "    send a data successfully...");
         }
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                sendData();
-            }
-        }, Config.getInstance().getSifs());
-    }
-
-    private void receiveAck(AckFrame frame) {
-        if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    receiveAck...");
-        }
-        //已经发送完毕
+        TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
+        mDataFrameSent.add(mCurrentSendingFrame);
         mCurrentSendingFrame = null;
-    }
-
-
-    //作为接收端接受的数据
-    private void receiveRts(final RtsFrame frame) {
-        //需要等待一个SIFS回传一个Cts
-        if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    receiveRts...");
-        }
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                sendCts(frame.generateCtsFrame());
-            }
-        }, Config.getInstance().getSifs());
-    }
-
-    private void receiveData(final DataFrame frame) {
-        //等待一个SIFS之后 回复一个AckFrame
-        if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    receiveData...");
-        }
-        TimeController.getInstance().addDataAmount(frame.getLength() / 8);
-        mDataFrameReceived.add(frame);
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                sendAck(frame.generateAckFrame());
-            }
-        }, Config.getInstance().getSifs());
-    }
-
-    private void receiveFrame(Frame frame) {
-        //如果frame的目标地址不是自己,则丢弃这个frame.
-        //碰撞的GarbageFrame的TargetId 和任何Station的Id都不相同
-        if (frame.getTargetId() != this.id) {
-            return;
-        }
-
-        if (frame instanceof RtsFrame) {
-            receiveRts((RtsFrame) frame);
-        } else if (frame instanceof CtsFrame) {
-            receiveCts((CtsFrame) frame);
-        } else if (frame instanceof DataFrame) {
-            receiveData((DataFrame) frame);
-        } else if (frame instanceof AckFrame) {
-            receiveAck((AckFrame) frame);
-        } else {
-            throw new IllegalArgumentException("unspecified frame type " + frame.getClass().getSimpleName());
-        }
     }
 
     // TODO: 16/4/8 A被B发送ACK,刚好发送完成,这时候C给B发送RTS,这个情况的ACK和RTS算不算碰撞
     /**
      * @param frame 开始接受frame一个新的,如果有正在接受的frame,
      *              则表明所有的frame发生了碰撞.则将所有的frame
-     *              都标记为碰撞,对于碰撞的frame到时候不予处理
+     *              都标记为碰撞.
      */
-    public void beginReceiveFrame(final Frame frame){
+    public void beginReceiveFrame(Frame frame){
         receivingFrames.add(frame);
         if(receivingFrames.size() > 1){
             for(Frame frame1 : receivingFrames){
                 frame1.setCollision();
             }
         }
-
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                receivingFrames.remove(frame);
-                if(!frame.collision()){
-                    receiveFrame(frame);
-                }
-            }
-        },frame.getTransmitDuration());
+        //如果frame的目标地址不是自己,则丢弃这个frame.
+        if (frame.getTargetId() != this.id) {
+            return;
+        }
+        if (frame instanceof RtsFrame) {
+            onPreRecvRTS((RtsFrame) frame);
+        } else if (frame instanceof CtsFrame) {
+            onPreRecvCTS((CtsFrame) frame);
+        } else if (frame instanceof DataFrame) {
+            onPreRecvData((DataFrame) frame);
+        } else if (frame instanceof AckFrame) {
+            onPreRecvACK((AckFrame) frame);
+        } else {
+            throw new IllegalArgumentException("unspecified frame type " + frame.getClass().getSimpleName());
+        }
     }
 
 }

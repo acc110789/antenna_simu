@@ -53,7 +53,7 @@ public abstract class Medium {
      * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
      *              然后发送给这些节点
      */
-    public void putFrame(final Frame frame) {
+    public void putFrame(Station station,final Frame frame) {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
