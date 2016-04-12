@@ -9,6 +9,10 @@ import java.util.List;
  */
 class OmniMedium extends Medium {
 
+    static {
+        sMedium = new OmniMedium();
+    }
+
     @Override
     List<Station> getStationToReceive(Station station) {
         return stationList;

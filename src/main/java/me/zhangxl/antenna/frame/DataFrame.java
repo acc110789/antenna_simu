@@ -40,7 +40,7 @@ public class DataFrame extends Frame {
         this.id = id;
     }
 
-    public static float getDataTimeOut(){
+    public static double getDataTimeOut(){
         return Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + frameLength / Config.getInstance().getBandWidth();
     }

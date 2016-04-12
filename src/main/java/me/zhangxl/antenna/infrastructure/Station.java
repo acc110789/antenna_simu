@@ -3,6 +3,7 @@ package me.zhangxl.antenna.infrastructure;
 import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
+import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 import me.zhangxl.antenna.util.Pair;
 
@@ -20,13 +21,14 @@ public class Station extends Stateful {
     private final Pair<Double, Double> mLocation; //定向天线时需要保证
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
-    private List<DataFrame> mDataFrameSent = new ArrayList<>();
-    private List<Frame> receivingFrames = new ArrayList<>();
     /**
-     * readMode 为true时代表Station此时处于读的模式
-     * 为false时代表Station此时处于写的模式
+     * 已经发送成功的frames
      */
-    private boolean readMode = true;
+    private List<DataFrame> mDataFrameSent = new ArrayList<>();
+    /**
+     * 正在接受的frames
+     */
+    private List<Frame> receivingFrames = new ArrayList<>();
 
     public Station(int id) {
         this.id = id;
@@ -50,8 +52,53 @@ public class Station extends Stateful {
         return this.id;
     }
 
-    public void onCollision() {
+    public void backOffDueToTimeout() {
         mCurrentSendingFrame.addCollitionTimes();
+        mCurrentSendingFrame.unsetCollision();
+        mCurrentSendingFrame.setStartTimeNow();
+    }
+
+    @Override
+    public void scheduleDIFS(boolean Immediate) {
+        assertCurrentStatus(Status.IDLE);
+        if(Immediate){
+            onPostDIFS();
+        } else {
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    onPostDIFS();
+                }
+            }, Config.getInstance().getDifs());
+        }
+    }
+
+    private void scheduleSlotIfNeed(){
+        if(currentStatus == Status.IDLE){
+            scheduleSLOT();
+        }
+    }
+
+    @Override
+    public void onPostDIFS() {
+        if (mCurrentSendingFrame == null) {
+            getDataFrameToSend();
+        } else if (mCurrentSendingFrame.isCollision()) {
+            mCurrentSendingFrame.unsetCollision();
+        }
+        sendDataIfNeed();
+        scheduleSlotIfNeed();
+    }
+
+    @Override
+    public void scheduleSLOT() {
+        assertCurrentStatus(Status.IDLE);
+        TimeController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                onPostSLOT();
+            }
+        }, Config.getInstance().getSlotLength());
     }
 
     @Override
@@ -63,16 +110,7 @@ public class Station extends Stateful {
             getDataFrameToSend();
         }
         sendDataIfNeed();
-    }
-
-    @Override
-    public void onPostDIFS() {
-        if (mCurrentSendingFrame == null) {
-            getDataFrameToSend();
-        } else if (mCurrentSendingFrame.isCollision()) {
-            mCurrentSendingFrame.unsetCollision();
-        }
-        sendDataIfNeed();
+        scheduleSlotIfNeed();
     }
 
     /**
@@ -115,6 +153,7 @@ public class Station extends Stateful {
             logger.log(this.id + "    onPreSendRTS...");
         }
         super.onPreSendRTS(frame);
+        frame.setStartTimeNow();
         Medium.getInstance().putFrame(this,frame);
     }
 
@@ -124,6 +163,7 @@ public class Station extends Stateful {
             logger.log(this.id + "    onPreSendCTS...");
         }
         super.onPreSendCTS(frame);
+        frame.setStartTimeNow();
         Medium.getInstance().putFrame(this,frame);
     }
 
@@ -133,6 +173,7 @@ public class Station extends Stateful {
             logger.log(this.id + "    onPreSendDATA...");
         }
         super.onPreSendData(frame);
+        frame.setStartTimeNow();
         Medium.getInstance().putFrame(this,frame);
     }
 
@@ -142,17 +183,61 @@ public class Station extends Stateful {
             logger.log(this.id + "    onPreSendAck...");
         }
         super.onPreSendAck(frame);
+        frame.setStartTimeNow();
         Medium.getInstance().putFrame(this,frame);
     }
 
     @Override
-    void onPostRecvACK() {
-        if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    send a data successfully...");
+    void onPostRecvACK(AckFrame frame) {
+        if(!frame.collision()) {
+            if (Logger.DEBUG_STATION) {
+                logger.log(this.id + "    send a data successfully...");
+            }
+            TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
+            mDataFrameSent.add(mCurrentSendingFrame);
+            mCurrentSendingFrame = null;
         }
-        TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
-        mDataFrameSent.add(mCurrentSendingFrame);
-        mCurrentSendingFrame = null;
+    }
+
+    /**
+     * 前提是碰撞发生了,找到最晚的那个frame,并且在在最晚的那个frame结束之后,安排DIFS
+     */
+    private void findLatestFrameAndScheduleDIFS(){
+        double latestTime = -1;
+        Frame latestFrame = null;
+        for(Frame frame1 : receivingFrames){
+            if(frame1.getEndTime() > latestTime){
+                latestTime = frame1.getEndTime();
+                latestFrame = frame1;
+            }
+        }
+        assert latestFrame != null;
+
+        double timeToDo = latestFrame.getEndTime()-TimeController.getInstance().getCurrentTime();
+        if(timeToDo <= 0){
+            throw new IllegalArgumentException("remain time is less than 0");
+        }
+        final Frame finalLatestFrame = latestFrame;
+
+        //防止多次被schedule
+        if(!finalLatestFrame.scheduled()) {
+            finalLatestFrame.setScheduled();
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    boolean needSchedule = false;
+                    if (receivingFrames.size() == 0) {
+                        needSchedule = true;
+                    } else if (receivingFrames.size() == 1) {
+                        needSchedule = receivingFrames.get(0) == finalLatestFrame;
+                    }
+                    if (needSchedule) {
+                        currentStatus = Status.IDLE;
+                        scheduleDIFS(false);
+                    }
+                }
+            }, timeToDo);
+        }
     }
 
     // TODO: 16/4/8 A被B发送ACK,刚好发送完成,这时候C给B发送RTS,这个情况的ACK和RTS算不算碰撞
@@ -160,17 +245,30 @@ public class Station extends Stateful {
      * @param frame 开始接受frame一个新的,如果有正在接受的frame,
      *              则表明所有的frame发生了碰撞.则将所有的frame
      *              都标记为碰撞.
+     * @return accepted by this station
      */
-    public void beginReceiveFrame(Frame frame){
+    public boolean beginReceiveFrame(final Frame frame){
+        //必须处于监听模式才能读取数据
+        if(currentMode != READ_MODE){
+            return false;
+        }
         receivingFrames.add(frame);
+        TimeController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                receivingFrames.remove(frame);
+            }
+        },frame.getTransmitDuration());
+
         if(receivingFrames.size() > 1){
             for(Frame frame1 : receivingFrames){
                 frame1.setCollision();
             }
+            findLatestFrameAndScheduleDIFS();
         }
         //如果frame的目标地址不是自己,则丢弃这个frame.
-        if (frame.getTargetId() != this.id) {
-            return;
+        if (frame.getTargetId() != this.id || frame.collision()) {
+            return true;
         }
         if (frame instanceof RtsFrame) {
             onPreRecvRTS((RtsFrame) frame);
@@ -183,6 +281,7 @@ public class Station extends Stateful {
         } else {
             throw new IllegalArgumentException("unspecified frame type " + frame.getClass().getSimpleName());
         }
+        return true;
     }
 
 }

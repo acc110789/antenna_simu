@@ -35,9 +35,9 @@ public class Config {
      *
      */
 
-    private float difs = -1;
-    private float sifs = -1;
-    private float slotLength = -1;
+    private double difs = -1;
+    private double sifs = -1;
+    private double slotLength = -1;
     //contentionWindow,竞争窗口
     private int defaultCW = -1;
     private int maxCW = -1;
@@ -49,9 +49,9 @@ public class Config {
     private int rtsLength = -1;
     private int ctsLength = -1;
     private int ackLength = -1;
-    private float bandWidth = -1;
-    private float simulationDuration = -1;
-    private float warmUp = -1;
+    private double bandWidth = -1;
+    private double simulationDuration = -1;
+    private double warmUp = -1;
     private long fixDataLength = -1;
 
     private Config() {
@@ -78,17 +78,17 @@ public class Config {
             this.maxCW = Integer.valueOf(properties.getProperty("MAX_CW"));
 
             String currentVersion = properties.getProperty("CURRENT_VERSION");
-            this.slotLength = Float.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH"));
-            this.sifs = Float.valueOf(properties.getProperty(currentVersion + "_SIFS"));
+            this.slotLength = Double.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH"));
+            this.sifs = Double.valueOf(properties.getProperty(currentVersion + "_SIFS"));
             this.defaultCW = Integer.valueOf(properties.getProperty(currentVersion + "_DEFAULT_CW"));
 
-            this.bandWidth = Float.valueOf(properties.getProperty("BAND_WIDTH"));
+            this.bandWidth = Double.valueOf(properties.getProperty("BAND_WIDTH"));
             this.phyHeader = Integer.valueOf(properties.getProperty("PHY_HEADER"));
             this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
             this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
 
-            this.simulationDuration = Float.valueOf(properties.getProperty("SIMULATION_DURATION"));
-            this.warmUp = Float.valueOf(properties.getProperty("WARM_UP"));
+            this.simulationDuration = Double.valueOf(properties.getProperty("SIMULATION_DURATION"));
+            this.warmUp = Double.valueOf(properties.getProperty("WARM_UP"));
             this.fixDataLength = Long.valueOf(properties.getProperty("FIX_DATA_LENGTH"));
 
             difs = sifs + 2 * slotLength;
@@ -105,7 +105,7 @@ public class Config {
         return this.fixDataLength;
     }
 
-    public float getWarmUp() {
+    public double getWarmUp() {
         return this.warmUp;
     }
 
@@ -113,15 +113,15 @@ public class Config {
         return stationNum;
     }
 
-    public float getDifs() {
+    public double getDifs() {
         return difs;
     }
 
-    public float getSifs() {
+    public double getSifs() {
         return sifs;
     }
 
-    public float getSlotLength() {
+    public double getSlotLength() {
         return slotLength;
     }
 
@@ -157,11 +157,11 @@ public class Config {
         return ackLength;
     }
 
-    public float getBandWidth() {
+    public double getBandWidth() {
         return bandWidth;
     }
 
-    public float getSimulationDuration() {
+    public double getSimulationDuration() {
         return simulationDuration;
     }
 

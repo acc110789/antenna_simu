@@ -22,7 +22,7 @@ public class TimeController {
     private PriorityBlockingQueue<ClockTask> tasks = new PriorityBlockingQueue<>();
     private AtomicBoolean active = new AtomicBoolean(true);
     private Runnable loopCallBack;
-    private float accumulateTime = 0;
+    private double currentTime = 0;
 
     /**
      * 统计的阀门,只有当持续时间过了warmUp时间之后,才真的开始统计
@@ -47,11 +47,15 @@ public class TimeController {
         return sInstance;
     }
 
+    public double getCurrentTime(){
+        return this.currentTime;
+    }
+
     /**同步的目的是保证不会被乱添加,
      * 只能在一开始活着loop循环调用的函数中添加.
      * 防止刚刚被添加进来时间就被剪掉
      */
-    public synchronized void post(Runnable toRun,float timeToRun){
+    public synchronized void post(Runnable toRun,double timeToRun){
         if(Logger.DEBUG_CLOCK){
             logger.log("post a runnable at %f",timeToRun);
         }
@@ -82,10 +86,10 @@ public class TimeController {
 
     public synchronized void loop() throws InterruptedException {
         preLoop();
-        while (active.get() && this.accumulateTime < Config.getInstance().getSimulationDuration()) {
+        while (active.get() && this.currentTime < Config.getInstance().getSimulationDuration()) {
             ClockTask task = tasks.take();
             //减去时间
-            float time = task.getTaskTime();
+            double time = task.getTaskTime();
             if (Logger.DEBUG_CLOCK) {
                 logger.log("time has passed : %f", time);
             }
@@ -94,9 +98,9 @@ public class TimeController {
                 task1.reduceTime(time);
             }
             //仿真过程积累相应的时间
-            accumulateTime += time;
+            currentTime += time;
 
-            if(!statValve && accumulateTime >= Config.getInstance().getWarmUp()){
+            if(!statValve && currentTime >= Config.getInstance().getWarmUp()){
                 statValve = true;
             }
             //下面开始执行任务

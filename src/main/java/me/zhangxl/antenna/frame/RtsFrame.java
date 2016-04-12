@@ -13,7 +13,7 @@ public class RtsFrame extends Frame {
         super(srcId, targetId, rtsLength);
     }
 
-    public static float getRtsTimeOut(){
+    public static double getRtsTimeOut(){
         return Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + rtsLength / Config.getInstance().getBandWidth();
     }

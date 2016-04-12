@@ -13,7 +13,7 @@ public class CtsFrame extends Frame {
         super(srcId, targetId, ctsLength);
     }
 
-    public static float getCtsTimeOut(){
+    public static double getCtsTimeOut(){
         return Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + ctsLength / Config.getInstance().getBandWidth();
     }

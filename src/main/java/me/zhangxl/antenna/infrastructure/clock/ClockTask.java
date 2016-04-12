@@ -6,7 +6,7 @@ package me.zhangxl.antenna.infrastructure.clock;
  */
 class ClockTask implements Comparable<ClockTask> {
 
-    private float mTimeToRun;
+    private double mTimeToRun;
     private final Runnable mToRun;
 
     @Override
@@ -17,17 +17,17 @@ class ClockTask implements Comparable<ClockTask> {
         return (mTimeToRun - o.mTimeToRun) > 0 ? 1 : -1;
     }
 
-    ClockTask(float timeToRun, Runnable toRun) {
+    ClockTask(double timeToRun, Runnable toRun) {
         this.mTimeToRun = timeToRun;
         if(toRun == null) throw new NullPointerException();
         this.mToRun = toRun;
     }
 
-    float getTaskTime(){
+    double getTaskTime(){
         return mTimeToRun;
     }
 
-    void reduceTime(float time){
+    void reduceTime(double time){
         this.mTimeToRun -= time;
     }
 

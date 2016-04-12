@@ -1,5 +1,6 @@
 package me.zhangxl.antenna.frame;
 
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
 
 /**
@@ -11,6 +12,8 @@ public abstract class Frame {
     private final long length;
     private final int targetId;
     private boolean collision = false;
+    private double startTime = -1;
+    private boolean scheduled = false;
 
     Frame(int srcId, int targetId, long length){
         this.srcId = srcId;
@@ -19,6 +22,14 @@ public abstract class Frame {
         if(this.length < 0){
             throw new IllegalArgumentException("length is less than 0");
         }
+    }
+
+    public void setScheduled(){
+        this.scheduled = true;
+    }
+
+    public boolean scheduled(){
+        return this.scheduled;
     }
 
     public void setCollision(){
@@ -32,7 +43,7 @@ public abstract class Frame {
     /**
      * @return 将所有的桢数据从原始节点到目标节点所需要的时间
      */
-    public float getTransmitDuration(){
+    public double getTransmitDuration(){
         if(length <= 0){
             throw new IllegalArgumentException("length is negative");
         }
@@ -45,6 +56,21 @@ public abstract class Frame {
 
     public int getTargetId(){
         return targetId;
+    }
+
+    public void setStartTimeNow(){
+        this.startTime = TimeController.getInstance().getCurrentTime();
+    }
+
+    public double getStartTime(){
+        return this.startTime;
+    }
+
+    public double getEndTime(){
+        if(this.startTime < 0){
+            throw new IllegalArgumentException("startTime is less than 0");
+        }
+        return this.startTime + getTransmitDuration();
     }
 
     public int getSrcId(){

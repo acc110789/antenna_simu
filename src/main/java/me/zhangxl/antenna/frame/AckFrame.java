@@ -13,7 +13,7 @@ public class AckFrame extends Frame {
         super(srcId, targetId, Config.getInstance().getAckLength());
     }
 
-    public static float getAckTimeOut(){
+    public static double getAckTimeOut(){
         return Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + ackLength / Config.getInstance().getBandWidth();
     }
