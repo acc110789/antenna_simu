@@ -115,6 +115,7 @@ public class TimeController {
                     if (Logger.DEBUG_CLOCK) {
                         logger.log("do a same time task...");
                     }
+                    temp = tasks.poll();
                     temp.doTask();
                 } else {
                     //说明没有task了 或者需要等到下一个时间点运行

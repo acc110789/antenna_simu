@@ -72,6 +72,11 @@ abstract class Stateful {
         this.id = id;
     }
 
+    /**
+     * 重置通信目标,即表明通信已经完毕,有两种情况会使得通信完毕
+     * (1)通信成功,则通信双方应该reset通信目标
+     * (2)通信失败,对于一方来说是遭受到了碰撞,对于另一方来说是超时没有收到期待的frame
+     */
     void resetCommunicationTarget(){
         this.currentCommunicationTarget = defaultCommunicationTarget;
     }
@@ -103,7 +108,7 @@ abstract class Stateful {
 
     public abstract void scheduleDIFS(boolean Immediate);
 
-    public abstract void onPostDIFS();
+    abstract void onPostDIFS();
 
     public abstract void scheduleSLOT();
 
@@ -155,6 +160,8 @@ abstract class Stateful {
             @Override
             public void run() {
                 if (currentStatus == Status.WAITING_CTS) {
+                    currentStatus = Status.IDLE;
+                    resetCommunicationTarget();
                     backOffDueToTimeout();
                 }
             }
@@ -206,6 +213,8 @@ abstract class Stateful {
             @Override
             public void run() {
                 if (currentStatus == Status.WAITING_DATA) {
+                    currentStatus = Status.IDLE;
+                    resetCommunicationTarget();
                     backOffDueToTimeout();
                 }
             }
@@ -245,6 +254,8 @@ abstract class Stateful {
             @Override
             public void run() {
                 if (currentStatus == Status.WAITING_ACK) {
+                    currentStatus = Status.IDLE;
+                    resetCommunicationTarget();
                     backOffDueToTimeout();
                 }
             }
@@ -280,6 +291,7 @@ abstract class Stateful {
     private void onPostSendACK() {
         setReadMode();
         currentStatus = Status.IDLE;
+        resetCommunicationTarget();
         scheduleDIFS(false);
     }
     //</editor-fold>
@@ -293,6 +305,7 @@ abstract class Stateful {
     void onPreRecvRTS(final RtsFrame frame) {
         if(currentCommunicationTarget == defaultCommunicationTarget){
             if(frame.getTargetId() == id) {
+                logger.log("%d onPreRecvRTS()",id);
                 currentCommunicationTarget = frame.getSrcId();
                 TimeController.getInstance().post(new Runnable() {
                     @Override
@@ -323,12 +336,17 @@ abstract class Stateful {
      */
     private void onPostRecvRTS(RtsFrame frame) {
         if (!frame.collision()) {
+            logger.log("%d onPostRecvRTS()",id);
             onPreSendSIFSAndCTS(frame);
+        } else {
+            currentStatus = Status.IDLE;
+            resetCommunicationTarget();
         }
     }
 
     void onPreRecvCTS(final CtsFrame frame) {
         if(frame.getSrcId() == currentCommunicationTarget){
+            logger.log("%d onPreRecvCTS()",id);
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
@@ -348,12 +366,17 @@ abstract class Stateful {
      */
     private void onPostRecvCTS(CtsFrame frame) {
         if (!frame.collision()) {
+            logger.log("%d onPostRecvCTS()",id);
             onPreSendSIFSAndDATA();
+        } else {
+            currentStatus = Status.IDLE;
+            resetCommunicationTarget();
         }
     }
 
     void onPreRecvData(final DataFrame dataFrame) {
         if(dataFrame.getSrcId() == currentCommunicationTarget) {
+            logger.log("%d onPreRecvData()",id);
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
@@ -372,12 +395,17 @@ abstract class Stateful {
      */
     private void onPostRecvData(DataFrame frame) {
         if (!frame.collision()) {
+            logger.log("%d onPostRecvData()",id);
             onPreSendSIFSAndACK(frame.generateAckFrame());
+        } else {
+            currentStatus = Status.IDLE;
+            resetCommunicationTarget();
         }
     }
 
     void onPreRecvACK(final AckFrame frame) {
         if(frame.getSrcId() == currentCommunicationTarget) {
+            logger.log("%d onPreRecvACK()",id);
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {

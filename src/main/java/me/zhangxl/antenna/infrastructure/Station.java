@@ -55,7 +55,7 @@ public class Station extends Stateful {
     public void backOffDueToTimeout() {
         mCurrentSendingFrame.addCollitionTimes();
         mCurrentSendingFrame.setStartTimeNow();
-        onPostDIFS();
+        scheduleDIFS(true);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class Station extends Stateful {
     }
 
     @Override
-    public void onPostDIFS() {
+    void onPostDIFS() {
         if (mCurrentSendingFrame == null) {
             getDataFrameToSend();
         } else if (mCurrentSendingFrame.isCollision()) {
@@ -107,14 +107,19 @@ public class Station extends Stateful {
 
     @Override
     public void onPostSLOT() {
-        if (mCurrentSendingFrame != null) {
-            mCurrentSendingFrame.countDownBackOff();
-        } else {
-            //mCurrentSendingFrame == null
-            getDataFrameToSend();
+        //有可能Station已经作为接收端开始在接受信息了
+        //这种情况下,不能再执行onPostSLOT()了
+        if(currentStatus == Status.IDLE) {
+            logger.log("station :%d onPostSLOT", this.id);
+            if (mCurrentSendingFrame != null) {
+                mCurrentSendingFrame.countDownBackOff();
+            } else {
+                //mCurrentSendingFrame == null
+                getDataFrameToSend();
+            }
+            sendDataIfNeed();
+            scheduleSlotIfNeed();
         }
-        sendDataIfNeed();
-        scheduleSlotIfNeed();
     }
 
     /**
@@ -136,7 +141,7 @@ public class Station extends Stateful {
         if (mCurrentSendingFrame != null && mCurrentSendingFrame.canBeSent()) {
             //开始进入流程
             if (Logger.DEBUG_STATION) {
-                logger.log("%d start transmit data frame:%d", this.getId(), mCurrentSendingFrame.getSerialNum());
+                logger.log("%d start transmit data frame sendDataIfNeed", this.getId());
             }
             onPreSendRTS(mCurrentSendingFrame.generateRtsFrame());
         }
@@ -194,6 +199,7 @@ public class Station extends Stateful {
     @Override
     void onPostRecvACK(AckFrame frame) {
         if(!frame.collision()) {
+            logger.log("%d onPostRecvACK()",id);
             if (Logger.DEBUG_STATION) {
                 logger.log(this.id + "    send a data successfully...");
             }
@@ -201,6 +207,9 @@ public class Station extends Stateful {
             mDataFrameSent.add(mCurrentSendingFrame);
             mCurrentSendingFrame = null;
         }
+        //不管是不是碰撞都要释放状态
+        currentStatus = Status.IDLE;
+        resetCommunicationTarget();
     }
 
     /**
@@ -237,6 +246,7 @@ public class Station extends Stateful {
                     }
                     if (needSchedule) {
                         currentStatus = Status.IDLE;
+                        resetCommunicationTarget();
                         scheduleDIFS(false);
                     }
                 }
@@ -269,10 +279,9 @@ public class Station extends Stateful {
                 frame1.setCollision();
             }
             findLatestFrameAndScheduleDIFS();
-        }
-        if (frame.collision()) {
             return true;
         }
+
         if (frame instanceof RtsFrame) {
             onPreRecvRTS((RtsFrame) frame);
         } else if (frame instanceof CtsFrame) {
