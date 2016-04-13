@@ -19,8 +19,6 @@ public class Config {
     private static final Config sInstance = new Config();
     //局域网中站点的数量
     private int stationNum = -1;
-    // TODO: 16/4/7 添加NAV 从RTS之后的sifs一直到ACK
-    // TODO: 16/4/7 每个节点有自己的一个时钟,然后还有一个统一的时钟
     /**
      * 正常的流程如下
      * difs  -> ContentionWindow -> RTS -> sifs -> CTS -> sifs -> DATA -> sifs -> ACK -> difs -> ContentionWindow .........

@@ -18,4 +18,10 @@ public class RtsFrame extends Frame {
                 + rtsLength / Config.getInstance().getBandWidth();
     }
 
+    @Override
+    public double getNavDuration() {
+        return Config.getInstance().getSifs() + CtsFrame.ctsLength/Config.getInstance().getBandWidth()
+                +Config.getInstance().getSifs() + DataFrame.frameLength/Config.getInstance().getBandWidth()
+                +Config.getInstance().getSifs() + AckFrame.ackLength/Config.getInstance().getBandWidth();
+    }
 }

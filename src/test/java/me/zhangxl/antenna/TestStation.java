@@ -18,26 +18,19 @@ public class TestStation {
         final Station station1 = new Station(1);
         final Station station2 = new Station(2);
 
-        station1.putDataFrame(2, 400);
-        station2.putDataFrame(1, 400);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 9; i++) {
-                    station1.putDataFrame(2, 400);
-                    station2.putDataFrame(1, 400);
-                    try {
-                        Thread.sleep(5);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+        for (int i = 0; i < 10; i++) {
+            station1.putDataFrame(2, 400);
+            station2.putDataFrame(1, 400);
+        }
+        Config.getInstance();
         Class<Config> configClass = Config.class;
-        Field field = configClass.getDeclaredField("simulationDuration");
-        field.setAccessible(true);
-        field.setFloat(Config.getInstance(), (float) 3e-2);
+        Field field1 = configClass.getDeclaredField("simulationDuration");
+        field1.setAccessible(true);
+        field1.setDouble(Config.getInstance(), 3e-2);
+
+        Field field2 = configClass.getDeclaredField("warmUp");
+        field2.setAccessible(true);
+        field2.setDouble(Config.getInstance(), 1e-2);
         TimeController.getInstance().loop();
     }
 }

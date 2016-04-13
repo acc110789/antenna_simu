@@ -1,5 +1,6 @@
 package me.zhangxl.antenna.frame;
 
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
@@ -17,13 +18,13 @@ public class DataFrame extends Frame {
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
 
-    private long startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
+    private double startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
     private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
     private int backOff;
     private int id;
     //数据部分的长度
     private static long dataLength = Config.getInstance().getFixDataLength();
-    private static long frameLength = Config.getInstance().getFixDataLength()
+    static long frameLength = Config.getInstance().getFixDataLength()
             + Config.getInstance().getPhyHeader()
             + Config.getInstance().getMacHeader();
     /**
@@ -75,7 +76,7 @@ public class DataFrame extends Frame {
      */
     public void init() {
         if (this.startTime == Config.DEFAULT_DATA_FRAME_START_TIME) {
-            this.startTime = System.currentTimeMillis();
+            this.startTime = TimeController.getInstance().getCurrentTime();
         }
         if (this.collisionTimes == Config.DEFAULT_DATA_FRAME_COLLISION_TIME) {
             this.collisionTimes = 0;
@@ -108,8 +109,13 @@ public class DataFrame extends Frame {
         }
     }
 
+    @Override
+    public double getNavDuration() {
+        throw new IllegalStateException("data frame can not hava nav");
+    }
+
     public long getLength(){
-        return this.dataLength;
+        return dataLength;
     }
 
 }

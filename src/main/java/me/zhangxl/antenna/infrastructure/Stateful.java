@@ -7,6 +7,7 @@ import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.Logger;
 
 /**
  * 对于全向天线来说,所有的Statin的状态都是同步的.
@@ -22,8 +23,13 @@ import me.zhangxl.antenna.util.Config;
  */
 abstract class Stateful {
     // TODO: 16/4/10 暂时没有考虑两件事情在同一时间点发生的概率是0
+    private static Logger logger = new Logger(Stateful.class);
+
+    final int id;
     static final int READ_MODE = 1;
     static final int WRITE_MODE = 2;
+
+    boolean NAVING = false;
 
     //需要注意的是一旦一个Station进入了写(发送)模式之后,
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
@@ -33,6 +39,12 @@ abstract class Stateful {
     DataFrame mCurrentSendingFrame;
 
     Status currentStatus = Status.IDLE;
+
+    private static int defaultCommunicationTarget = -1;
+    /**
+     * 节点的当前通信对象
+     */
+    int currentCommunicationTarget = defaultCommunicationTarget;
 
     enum Status {
         IDLE,
@@ -56,8 +68,16 @@ abstract class Stateful {
         RECEIVING_ACK,
     }
 
+    Stateful(int id){
+        this.id = id;
+    }
+
+    void resetCommunicationTarget(){
+        this.currentCommunicationTarget = defaultCommunicationTarget;
+    }
+
     private void setReadMode() {
-        if(this.currentMode != WRITE_MODE){
+        if (this.currentMode != WRITE_MODE) {
             throw new IllegalStateException("interesting, already in read mode");
         }
         this.currentMode = READ_MODE;
@@ -73,9 +93,6 @@ abstract class Stateful {
     }
 
     private void setWriteMode() {
-        if(this.currentMode == WRITE_MODE){
-            throw new IllegalStateException("interesting, already in write mode");
-        }
         this.currentMode = WRITE_MODE;
     }
 
@@ -92,17 +109,17 @@ abstract class Stateful {
 
     public abstract void onPostSLOT();
 
-    void assertCurrentStatus(Status status){
-        if(currentStatus != status){
+    void assertCurrentStatus(Status status) {
+        if (currentStatus != status) {
             throw new IllegalStateException("currentStatus is not " + status);
         }
     }
 
-    void assertCurrentMode(int mode){
-        if(currentMode != mode){
-            if(mode == READ_MODE) {
+    void assertCurrentMode(int mode) {
+        if (currentMode != mode) {
+            if (mode == READ_MODE) {
                 throw new IllegalStateException("currentMode is not READ MODE");
-            } else if(mode == WRITE_MODE){
+            } else if (mode == WRITE_MODE) {
                 throw new IllegalStateException("currentMode is not WRITE MODE");
             } else {
                 throw new IllegalStateException("neither READ MODE nor write mode");
@@ -111,12 +128,16 @@ abstract class Stateful {
     }
 
     //<editor-fold desc="发送数据时间点函数">
+
     /**
      * 这个时刻表示是RTS开始的那一刻,立刻进入写模式
+     *
      * @param frame 待发送的RTS
      */
     protected void onPreSendRTS(RtsFrame frame) {
+        assertCurrentMode(READ_MODE);
         setWriteMode();
+        currentCommunicationTarget = frame.getTargetId();
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -133,7 +154,7 @@ abstract class Stateful {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if(currentStatus == Status.WAITING_CTS) {
+                if (currentStatus == Status.WAITING_CTS) {
                     backOffDueToTimeout();
                 }
             }
@@ -147,6 +168,7 @@ abstract class Stateful {
      * Station进入了写模式
      */
     private void onPreSendSIFSAndCTS(final RtsFrame frame) {
+        assertCurrentMode(READ_MODE);
         setWriteMode();
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -160,6 +182,7 @@ abstract class Stateful {
 
     /**
      * 刚刚开始发送CTS的那个时刻
+     *
      * @param frame 待发送的CTS
      */
     void onPreSendCTS(CtsFrame frame) {
@@ -182,8 +205,7 @@ abstract class Stateful {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if(currentStatus == Status.WAITING_DATA){
-                    // TODO: 16/4/10 CTS超时之后就进入backOff
+                if (currentStatus == Status.WAITING_DATA) {
                     backOffDueToTimeout();
                 }
             }
@@ -193,6 +215,7 @@ abstract class Stateful {
     }
 
     private void onPreSendSIFSAndDATA() {
+        assertCurrentMode(READ_MODE);
         setWriteMode();
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -221,7 +244,7 @@ abstract class Stateful {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if(currentStatus == Status.WAITING_ACK) {
+                if (currentStatus == Status.WAITING_ACK) {
                     backOffDueToTimeout();
                 }
             }
@@ -231,6 +254,7 @@ abstract class Stateful {
     }
 
     private void onPreSendSIFSAndACK(final AckFrame frame) {
+        assertCurrentMode(READ_MODE);
         setWriteMode();
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -256,30 +280,41 @@ abstract class Stateful {
     private void onPostSendACK() {
         setReadMode();
         currentStatus = Status.IDLE;
-        // TODO: 16/4/10 DIFS的监控,怎么开始下一个DIFS
+        scheduleDIFS(false);
     }
     //</editor-fold>
 
-    private boolean canRecv() {
-        // TODO: 16/4/11 思考如何才能保证可以接受
-        return currentMode == READ_MODE;
-    }
-
     //<editor-fold desc="接受数据时间点函数">
+
     /**
      * 开始接受rts frame
      * @param frame 即将被接受的frame
      */
     void onPreRecvRTS(final RtsFrame frame) {
-        if (canRecv()) {
-            TimeController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    onPostRecvRTS(frame);
-                }
-            }, frame.getTransmitDuration());
-            assertCurrentStatus(Status.IDLE);
-            currentStatus = Status.RECEIVING_RTS;
+        if(currentCommunicationTarget == defaultCommunicationTarget){
+            if(frame.getTargetId() == id) {
+                currentCommunicationTarget = frame.getSrcId();
+                TimeController.getInstance().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onPostRecvRTS(frame);
+                    }
+                }, frame.getTransmitDuration());
+                assertCurrentStatus(Status.IDLE);
+                currentStatus = Status.RECEIVING_RTS;
+            } else {
+                //如果对方的通信目标不是自己,则设置NAV
+                NAVING = true;
+                TimeController.getInstance().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        NAVING = false;
+                        scheduleDIFS(false);
+                    }
+                },frame.getNavDuration());
+            }
+        } else {
+            logger.log("receive a non collision rts ,but already in a communication process,just ignore it");
         }
     }
 
@@ -287,13 +322,13 @@ abstract class Stateful {
      * {@link #onPreSendSIFSAndCTS(RtsFrame)} 与这个方法是在同一时间点,直接调用这个方法即可
      */
     private void onPostRecvRTS(RtsFrame frame) {
-        if(!frame.collision()) {
+        if (!frame.collision()) {
             onPreSendSIFSAndCTS(frame);
         }
     }
 
     void onPreRecvCTS(final CtsFrame frame) {
-        if (canRecv()) {
+        if(frame.getSrcId() == currentCommunicationTarget){
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
@@ -302,20 +337,23 @@ abstract class Stateful {
             }, frame.getTransmitDuration());
             assertCurrentStatus(Status.WAITING_CTS);
             currentStatus = Status.RECEIVING_CTS;
+        } else {
+            logger.log("receive a non collision cts ,but already in a communication process,just ignore it");
         }
+
     }
 
     /**
      * {@link Stateful#onPreSendSIFSAndDATA()}
      */
     private void onPostRecvCTS(CtsFrame frame) {
-        if(!frame.collision()) {
+        if (!frame.collision()) {
             onPreSendSIFSAndDATA();
         }
     }
 
     void onPreRecvData(final DataFrame dataFrame) {
-        if (canRecv()) {
+        if(dataFrame.getSrcId() == currentCommunicationTarget) {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
@@ -324,6 +362,8 @@ abstract class Stateful {
             }, dataFrame.getTransmitDuration());
             assertCurrentStatus(Status.WAITING_DATA);
             currentStatus = Status.RECEIVING_DATA;
+        } else {
+            logger.log("receive a non collision data ,but already in a communication process,just ignore it");
         }
     }
 
@@ -331,13 +371,13 @@ abstract class Stateful {
      * {@link #onPreSendSIFSAndACK(AckFrame)}
      */
     private void onPostRecvData(DataFrame frame) {
-        if(!frame.collision()) {
+        if (!frame.collision()) {
             onPreSendSIFSAndACK(frame.generateAckFrame());
         }
     }
 
     void onPreRecvACK(final AckFrame frame) {
-        if (canRecv()) {
+        if(frame.getSrcId() == currentCommunicationTarget) {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
@@ -346,11 +386,14 @@ abstract class Stateful {
             }, frame.getTransmitDuration());
             assertCurrentStatus(Status.WAITING_ACK);
             currentStatus = Status.RECEIVING_ACK;
+        } else {
+            logger.log("receive a non collision ack ,but already in a communication process,just ignore it");
         }
     }
 
     /**
      * //表明发送成功了
+     *
      * @param frame
      */
     abstract void onPostRecvACK(AckFrame frame);

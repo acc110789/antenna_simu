@@ -41,6 +41,14 @@ public abstract class Frame {
     }
 
     /**
+     * 收到与不是自己节点的Frame的时候,要设置NAV
+     * NAV完毕之后,立马启动一个DIFS,DIFS之后则
+     * 开始backOff
+     * @return NAV持续的时间
+     */
+    public abstract double getNavDuration();
+
+    /**
      * @return 将所有的桢数据从原始节点到目标节点所需要的时间
      */
     public double getTransmitDuration(){

@@ -48,6 +48,11 @@ public abstract class Medium {
     }
 
     public static Medium getInstance() {
+        try {
+            Class.forName("me.zhangxl.antenna.infrastructure.medium.OmniMedium");
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
         return sMedium;
     }
 

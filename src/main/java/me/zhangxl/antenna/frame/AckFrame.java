@@ -7,7 +7,7 @@ import me.zhangxl.antenna.util.Config;
  */
 public class AckFrame extends Frame {
 
-    private static final int ackLength = Config.getInstance().getAckLength();
+    static final int ackLength = Config.getInstance().getAckLength();
 
     AckFrame(int srcId, int targetId) {
         super(srcId, targetId, Config.getInstance().getAckLength());
@@ -18,4 +18,8 @@ public class AckFrame extends Frame {
                 + ackLength / Config.getInstance().getBandWidth();
     }
 
+    @Override
+    public double getNavDuration() {
+        throw new IllegalStateException("ack can not hava nav");
+    }
 }

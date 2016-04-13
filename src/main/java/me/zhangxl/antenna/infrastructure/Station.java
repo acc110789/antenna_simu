@@ -17,7 +17,7 @@ import java.util.List;
 public class Station extends Stateful {
 
     private static final Logger logger = new Logger(Station.class);
-    private final int id;
+
     private final Pair<Double, Double> mLocation; //定向天线时需要保证
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
@@ -31,14 +31,14 @@ public class Station extends Stateful {
     private List<Frame> receivingFrames = new ArrayList<>();
 
     public Station(int id) {
-        this.id = id;
+        super(id);
         mLocation = null;
         StationUtil.stationList.add(this);
         Medium.getInstance().register(this);
     }
 
     public Station(int id, Double xAxis, Double yAxis) {
-        this.id = id;
+        super(id);
         this.mLocation = new Pair<>(xAxis, yAxis);
         StationUtil.stationList.add(this);
         Medium.getInstance().register(this);
@@ -54,8 +54,8 @@ public class Station extends Stateful {
 
     public void backOffDueToTimeout() {
         mCurrentSendingFrame.addCollitionTimes();
-        mCurrentSendingFrame.unsetCollision();
         mCurrentSendingFrame.setStartTimeNow();
+        onPostDIFS();
     }
 
     @Override
@@ -67,7 +67,11 @@ public class Station extends Stateful {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    onPostDIFS();
+                    if(currentStatus == Status.IDLE) {
+                        //如果过了DIFS状态仍然是IDLE,则证明可以postDIFS
+                        // TODO: 16/4/13  这里面可能存在一个bug,即Status从IDLE变成非IDLE,然后又变回IDLE
+                        onPostDIFS();
+                    }
                 }
             }, Config.getInstance().getDifs());
         }
@@ -266,8 +270,7 @@ public class Station extends Stateful {
             }
             findLatestFrameAndScheduleDIFS();
         }
-        //如果frame的目标地址不是自己,则丢弃这个frame.
-        if (frame.getTargetId() != this.id || frame.collision()) {
+        if (frame.collision()) {
             return true;
         }
         if (frame instanceof RtsFrame) {

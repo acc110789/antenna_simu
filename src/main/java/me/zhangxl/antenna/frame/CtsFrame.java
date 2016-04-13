@@ -7,7 +7,7 @@ import me.zhangxl.antenna.util.Config;
  */
 public class CtsFrame extends Frame {
 
-    private static final int ctsLength = Config.getInstance().getCtsLength();
+    static final int ctsLength = Config.getInstance().getCtsLength();
 
     CtsFrame(int srcId, int targetId) {
         super(srcId, targetId, ctsLength);
@@ -16,5 +16,11 @@ public class CtsFrame extends Frame {
     public static double getCtsTimeOut(){
         return Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + ctsLength / Config.getInstance().getBandWidth();
+    }
+
+    @Override
+    public double getNavDuration() {
+        return Config.getInstance().getSifs() + DataFrame.frameLength/Config.getInstance().getBandWidth()
+                +Config.getInstance().getSifs() + AckFrame.ackLength/Config.getInstance().getBandWidth();
     }
 }
