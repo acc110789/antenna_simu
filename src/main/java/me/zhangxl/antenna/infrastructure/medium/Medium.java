@@ -60,13 +60,18 @@ public abstract class Medium {
      * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
      *              然后发送给这些节点
      */
-    public void putFrame(Station station,final Frame frame) {
-        for(Station station1 : getStationToReceive(station)){
-            boolean accepted = station1.beginReceiveFrame(frame);
-            if(!accepted){
-                putUnacceptedFrames(station1,frame);
+    public void putFrame(final Station station, final Frame frame) {
+        TimeController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                for(Station station1 : getStationToReceive(station)){
+                    boolean accepted = station1.beginReceiveFrame(frame);
+                    if(!accepted){
+                        putUnacceptedFrames(station1,frame);
+                    }
+                }
             }
-        }
+        },0);
     }
 
     private void putUnacceptedFrames(final Station station , final Frame frame){

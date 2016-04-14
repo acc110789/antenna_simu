@@ -9,6 +9,7 @@ class TimeTask implements Comparable<TimeTask> {
     private double mTimeToRun;
     private final Runnable mToRun;
     private final long bornTime;
+    private static long serialNum = 1;
 
     @Override
     public int compareTo(TimeTask o) {
@@ -29,7 +30,7 @@ class TimeTask implements Comparable<TimeTask> {
         this.mTimeToRun = timeToRun;
         if(toRun == null) throw new NullPointerException();
         this.mToRun = toRun;
-        this.bornTime = System.currentTimeMillis();
+        this.bornTime = serialNum ++;
     }
 
     double getTaskTime(){

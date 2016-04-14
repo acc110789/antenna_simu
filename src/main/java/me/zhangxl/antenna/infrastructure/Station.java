@@ -56,7 +56,6 @@ public class Station extends Stateful {
         logger.logln();
         mCurrentSendingFrame.addCollitionTimes();
         mCurrentSendingFrame.setStartTimeNow();
-        scheduleDIFS(true);
     }
 
     @Override
@@ -158,16 +157,10 @@ public class Station extends Stateful {
 
     //作为发送端发送的数据
     @Override
-    protected void onPreSendRTS(final RtsFrame frame) {
+    protected void onPreSendRTS(RtsFrame frame) {
         super.onPreSendRTS(frame);
         frame.setStartTimeNow();
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                Medium.getInstance().putFrame(Station.this,frame);
-            }
-        },0);
-
+        Medium.getInstance().putFrame(this,frame);
     }
 
     @Override
@@ -202,16 +195,15 @@ public class Station extends Stateful {
             TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
             mDataFrameSent.add(mCurrentSendingFrame);
             mCurrentSendingFrame = null;
+            onPostCommunication(false, false);
         }
-        //不管是不是碰撞都要释放状态
-        currentStatus = Status.IDLE;
-        resetCommunicationTarget();
+
     }
 
     /**
      * 前提是碰撞发生了,找到最晚的那个frame,并且在在最晚的那个frame结束之后,安排DIFS
      */
-    private void findLatestFrameAndScheduleDIFS(){
+    private void findLatestCollisionFrame(){
         double latestTime = -1;
         Frame latestFrame = null;
         for(Frame frame1 : receivingFrames){
@@ -222,15 +214,17 @@ public class Station extends Stateful {
         }
         assert latestFrame != null;
 
+        scheduleLatestCollisionFrame(latestFrame);
+    }
+
+    private void scheduleLatestCollisionFrame(final Frame latestFrame){
         double timeToDo = latestFrame.getEndTime()-TimeController.getInstance().getCurrentTime();
         if(timeToDo <= 0){
             throw new IllegalArgumentException("remain time is less than 0");
         }
-        final Frame finalLatestFrame = latestFrame;
-
         //防止多次被schedule
-        if(!finalLatestFrame.scheduled()) {
-            finalLatestFrame.setScheduled();
+        if(!latestFrame.scheduled()) {
+            latestFrame.setScheduled();
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
@@ -238,12 +232,10 @@ public class Station extends Stateful {
                     if (receivingFrames.size() == 0) {
                         needSchedule = true;
                     } else if (receivingFrames.size() == 1) {
-                        needSchedule = receivingFrames.get(0) == finalLatestFrame;
+                        needSchedule = receivingFrames.get(0) == latestFrame;
                     }
                     if (needSchedule) {
-                        currentStatus = Status.IDLE;
-                        resetCommunicationTarget();
-                        scheduleDIFS(false);
+                        onPostCommunication(true, false);
                     }
                 }
             }, timeToDo);
@@ -259,7 +251,7 @@ public class Station extends Stateful {
      */
     public boolean beginReceiveFrame(final Frame frame){
         //必须处于监听模式才能读取数据
-        if(currentMode != READ_MODE){
+        if(currentMode != READ_MODE && !NAVING){
             return false;
         }
         receivingFrames.add(frame);
@@ -274,7 +266,7 @@ public class Station extends Stateful {
             for(Frame frame1 : receivingFrames){
                 frame1.setCollision();
             }
-            findLatestFrameAndScheduleDIFS();
+            findLatestCollisionFrame();
             return true;
         }
 
