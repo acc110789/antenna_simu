@@ -97,8 +97,8 @@ abstract class Stateful {
      *                {@link #onPostSendDATA()}
      *通信完毕之后有几件事情是需要注意的:
      * (1)如果通信失败,则对于发送方来说需要将碰撞次数加一,扩大碰撞窗口.接收方则不受影响
-     * (2)如果是 超时性质的通信失败,则要马上执行{@link #onPostDIFS()}
-     * 否则需要等DIFS之后才能执行{@link #onPostDIFS()}
+     * (2)如果是 超时性质的通信失败,则要马上执行{@link Station#onPostDIFS()}
+     * 否则需要等DIFS之后才能执行{@link Station#onPostDIFS()}
      * @param fail 通信是否是失败的
      */
     void onPostCommunication(boolean fail, boolean timeout){
@@ -130,11 +130,7 @@ abstract class Stateful {
 
     public abstract void scheduleDIFS(boolean Immediate);
 
-    abstract void onPostDIFS();
-
     public abstract void scheduleSLOT();
-
-    public abstract void onPostSLOT();
 
     void assertCurrentStatus(Status status) {
         if (currentStatus != status) {

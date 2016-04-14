@@ -83,8 +83,8 @@ public class Station extends Stateful {
         }
     }
 
-    @Override
-    void onPostDIFS() {
+    private void onPostDIFS() {
+        assertCurrentStatus(Status.IDLE);
         if (mCurrentSendingFrame == null) {
             getDataFrameToSend();
         } else if (mCurrentSendingFrame.isCollision()) {
@@ -100,26 +100,26 @@ public class Station extends Stateful {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                onPostSLOT();
+                if(currentStatus == Status.IDLE) {
+                    //有可能Station已经作为接收端开始在接受信息了
+                    //这种情况下,不能再执行onPostSLOT()了
+                    onPostSLOT();
+                }
             }
         }, Config.getInstance().getSlotLength());
     }
 
-    @Override
-    public void onPostSLOT() {
-        //有可能Station已经作为接收端开始在接受信息了
-        //这种情况下,不能再执行onPostSLOT()了
-        if(currentStatus == Status.IDLE) {
-            logger.log("%d onPostSLOT", this.id);
-            if (mCurrentSendingFrame != null) {
-                mCurrentSendingFrame.countDownBackOff();
-            } else {
-                //mCurrentSendingFrame == null
-                getDataFrameToSend();
-            }
-            sendDataIfNeed();
-            scheduleSlotIfNeed();
+    private void onPostSLOT() {
+        assertCurrentStatus(Status.IDLE);
+        logger.log("%d onPostSLOT", this.id);
+        if (mCurrentSendingFrame != null) {
+            mCurrentSendingFrame.countDownBackOff();
+        } else {
+            //mCurrentSendingFrame == null
+            getDataFrameToSend();
         }
+        sendDataIfNeed();
+        scheduleSlotIfNeed();
     }
 
     /**
