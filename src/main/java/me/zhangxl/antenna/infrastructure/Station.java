@@ -53,6 +53,7 @@ public class Station extends Stateful {
     }
 
     public void backOffDueToTimeout() {
+        logger.logln();
         mCurrentSendingFrame.addCollitionTimes();
         mCurrentSendingFrame.setStartTimeNow();
         scheduleDIFS(true);
@@ -110,7 +111,7 @@ public class Station extends Stateful {
         //有可能Station已经作为接收端开始在接受信息了
         //这种情况下,不能再执行onPostSLOT()了
         if(currentStatus == Status.IDLE) {
-            logger.log("station :%d onPostSLOT", this.id);
+            logger.log("%d onPostSLOT", this.id);
             if (mCurrentSendingFrame != null) {
                 mCurrentSendingFrame.countDownBackOff();
             } else {
@@ -157,20 +158,20 @@ public class Station extends Stateful {
 
     //作为发送端发送的数据
     @Override
-    protected void onPreSendRTS(RtsFrame frame) {
-        if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    onPreSendRTS...");
-        }
+    protected void onPreSendRTS(final RtsFrame frame) {
         super.onPreSendRTS(frame);
         frame.setStartTimeNow();
-        Medium.getInstance().putFrame(this,frame);
+        TimeController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                Medium.getInstance().putFrame(Station.this,frame);
+            }
+        },0);
+
     }
 
     @Override
     void onPreSendCTS(CtsFrame frame) {
-        if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    onPreSendCTS...");
-        }
         super.onPreSendCTS(frame);
         frame.setStartTimeNow();
         Medium.getInstance().putFrame(this,frame);
@@ -178,9 +179,6 @@ public class Station extends Stateful {
 
     @Override
     void onPreSendData(DataFrame frame) {
-        if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    onPreSendDATA...");
-        }
         super.onPreSendData(frame);
         frame.setStartTimeNow();
         Medium.getInstance().putFrame(this,frame);
@@ -188,9 +186,6 @@ public class Station extends Stateful {
 
     @Override
     void onPreSendAck(AckFrame frame) {
-        if (Logger.DEBUG_STATION) {
-            logger.log(this.id + "    onPreSendAck...");
-        }
         super.onPreSendAck(frame);
         frame.setStartTimeNow();
         Medium.getInstance().putFrame(this,frame);
@@ -199,9 +194,10 @@ public class Station extends Stateful {
     @Override
     void onPostRecvACK(AckFrame frame) {
         if(!frame.collision()) {
-            logger.log("%d onPostRecvACK()",id);
+            super.onPostRecvACK(frame);
             if (Logger.DEBUG_STATION) {
-                logger.log(this.id + "    send a data successfully...");
+                logger.log("%d send a data successfully...",id);
+                logger.logln();
             }
             TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
             mDataFrameSent.add(mCurrentSendingFrame);

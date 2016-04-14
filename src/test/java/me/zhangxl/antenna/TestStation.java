@@ -33,4 +33,13 @@ public class TestStation {
         field2.setDouble(Config.getInstance(), 1e-2);
         TimeController.getInstance().loop();
     }
+
+    @Test
+    public void leftFormatString(){
+        ppformat("%d king is king",12222);
+    }
+
+    private void ppformat(String formatter,Object... objects){
+        System.out.format(String.format("%-15s","ppformat") + formatter,objects);
+    }
 }

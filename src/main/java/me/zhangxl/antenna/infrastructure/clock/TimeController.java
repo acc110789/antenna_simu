@@ -19,7 +19,7 @@ public class TimeController {
 
     private static final TimeController sInstance = new TimeController();
     private  Logger logger = new Logger(TimeController.class,false);
-    private PriorityBlockingQueue<ClockTask> tasks = new PriorityBlockingQueue<>();
+    private PriorityBlockingQueue<TimeTask> tasks = new PriorityBlockingQueue<>();
     private AtomicBoolean active = new AtomicBoolean(true);
     private Runnable loopCallBack;
     private double currentTime = 0;
@@ -59,7 +59,7 @@ public class TimeController {
         if(Logger.DEBUG_CLOCK){
             logger.log("post a runnable at %f",timeToRun);
         }
-        tasks.put(new ClockTask(timeToRun,toRun));
+        tasks.put(new TimeTask(timeToRun,toRun));
     }
 
     public void deActive(){
@@ -87,14 +87,14 @@ public class TimeController {
     public synchronized void loop() throws InterruptedException {
         preLoop();
         while (active.get() && this.currentTime < Config.getInstance().getSimulationDuration()) {
-            ClockTask task = tasks.take();
+            TimeTask task = tasks.take();
             //减去时间
             double time = task.getTaskTime();
             if (Logger.DEBUG_CLOCK) {
                 logger.log("time has passed : %f", time);
             }
             task.reduceTime(time);
-            for (ClockTask task1 : tasks) {
+            for (TimeTask task1 : tasks) {
                 task1.reduceTime(time);
             }
             //仿真过程积累相应的时间
@@ -110,8 +110,8 @@ public class TimeController {
             task.doTask();
             while (true) {
                 //搜索可能还需要执行的任务
-                ClockTask temp = tasks.peek();
-                if (temp != null && Math.abs(temp.getTaskTime()) < 1e-10) { //浮点数比较,当绝对值小于一定值,可以认为是0
+                TimeTask temp = tasks.peek();
+                if (temp != null && temp.getTaskTime() == 0) {
                     if (Logger.DEBUG_CLOCK) {
                         logger.log("do a same time task...");
                     }

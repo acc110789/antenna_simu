@@ -89,7 +89,19 @@ public abstract class Medium {
         List<Frame> frames = stationToFrames.get(station);
         if(frames != null && frames.size() > 0){
             for(Frame frame : frames){
-                station.beginReceiveFrame(frame);
+                double endTime = frame.getStartTime() + frame.getTransmitDuration();
+                double currentTime = TimeController.getInstance().getCurrentTime();
+                if(endTime < currentTime){
+                    //这个frame本来应该是已经消失的
+                    throw new IllegalStateException("impossible state");
+                } else if(frame.getStartTime() <= currentTime && currentTime < endTime){
+                    //是否是一个残废的frame应该由Station自己去判断
+                    station.beginReceiveFrame(frame);
+                } else if(currentTime < frame.getStartTime()){
+                    throw new IllegalStateException();
+                }
+                //当endTime == currentTime时 可以认为数据已经传输完毕,此处不再进行数据的传输了
+
             }
         }
     }

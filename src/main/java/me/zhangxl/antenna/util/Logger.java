@@ -40,13 +40,18 @@ public class Logger {
         logInner(formater,objects);
     }
 
+    public void logln(){
+        printer.println();
+    }
+
     public void log(Throwable e,String info){
         logInner("%s \n %s",info,e.toString());
     }
 
     private void logInner(String formater,Object... objects){
         if(LOG) {
-            printer.format(TAG + "  " + formater + "\n", objects);
+            String tag = String.format("%-15s",TAG);
+            printer.format(tag + "  " + formater + "\n", objects);
         }
     }
 

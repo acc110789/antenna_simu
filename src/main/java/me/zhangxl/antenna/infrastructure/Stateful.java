@@ -120,7 +120,7 @@ abstract class Stateful {
         }
     }
 
-    void assertCurrentMode(int mode) {
+    private void assertCurrentMode(int mode) {
         if (currentMode != mode) {
             if (mode == READ_MODE) {
                 throw new IllegalStateException("currentMode is not READ MODE");
@@ -142,6 +142,7 @@ abstract class Stateful {
     protected void onPreSendRTS(RtsFrame frame) {
         assertCurrentMode(READ_MODE);
         setWriteMode();
+        logger.log("%d onPreSendRTS()",id);
         currentCommunicationTarget = frame.getTargetId();
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -154,12 +155,15 @@ abstract class Stateful {
     }
 
     private void onPostSendRTS() {
+        assertCurrentMode(WRITE_MODE);
         setReadMode();
+        logger.log("%d onPostSendRTS()",id);
         //设置RTS超时时间,如果超时,则直接判定为碰撞
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 if (currentStatus == Status.WAITING_CTS) {
+                    logger.log("%d after onPostSendRTS() wait CTS timeout",id);
                     currentStatus = Status.IDLE;
                     resetCommunicationTarget();
                     backOffDueToTimeout();
@@ -177,6 +181,7 @@ abstract class Stateful {
     private void onPreSendSIFSAndCTS(final RtsFrame frame) {
         assertCurrentMode(READ_MODE);
         setWriteMode();
+        logger.log("%d onPreSendSIFSAndCTS()",id);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -193,6 +198,7 @@ abstract class Stateful {
      * @param frame 待发送的CTS
      */
     void onPreSendCTS(CtsFrame frame) {
+        logger.log("%d onPreSendCTS()",id);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -207,12 +213,15 @@ abstract class Stateful {
      * CTS 刚刚发送完毕的那个时刻
      */
     private void onPostSendCTS() {
+        assertCurrentMode(WRITE_MODE);
         setReadMode();
+        logger.log("%d onPostSendCTS()",id);
         //设置CTS超时,如果超时,直接判定为碰撞
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 if (currentStatus == Status.WAITING_DATA) {
+                    logger.log("station :%d after onPostSendCTS(),wait data timeout",id);
                     currentStatus = Status.IDLE;
                     resetCommunicationTarget();
                     backOffDueToTimeout();
@@ -226,6 +235,7 @@ abstract class Stateful {
     private void onPreSendSIFSAndDATA() {
         assertCurrentMode(READ_MODE);
         setWriteMode();
+        logger.log("%d onPreSendSIFSAndDATA()",id);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -237,6 +247,7 @@ abstract class Stateful {
     }
 
     void onPreSendData(DataFrame dataFrame) {
+        logger.log("%d onPreSendData()",id);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -248,12 +259,15 @@ abstract class Stateful {
     }
 
     private void onPostSendDATA() {
+        assertCurrentMode(WRITE_MODE);
         setReadMode();
+        logger.log("%d onPostSendDATA()",id);
         //设置Data的Timeout,过时当碰撞处理
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 if (currentStatus == Status.WAITING_ACK) {
+                    logger.log("%d after onPostSendDATA(),wait ack timeout",id);
                     currentStatus = Status.IDLE;
                     resetCommunicationTarget();
                     backOffDueToTimeout();
@@ -267,6 +281,7 @@ abstract class Stateful {
     private void onPreSendSIFSAndACK(final AckFrame frame) {
         assertCurrentMode(READ_MODE);
         setWriteMode();
+        logger.log("%d onPreSendSIFSAndACK()",id);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -278,6 +293,7 @@ abstract class Stateful {
     }
 
     void onPreSendAck(AckFrame frame) {
+        logger.log("%d onPreSendAck()",id);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -289,7 +305,9 @@ abstract class Stateful {
     }
 
     private void onPostSendACK() {
+        assertCurrentMode(WRITE_MODE);
         setReadMode();
+        logger.log("%d onPostSendACK()",id);
         currentStatus = Status.IDLE;
         resetCommunicationTarget();
         scheduleDIFS(false);
@@ -327,7 +345,8 @@ abstract class Stateful {
                 },frame.getNavDuration());
             }
         } else {
-            logger.log("receive a non collision rts ,but already in a communication process,just ignore it");
+            logger.log("%d receive a non collision rts ," +
+                    "but already in a communication process,just ignore it",id);
         }
     }
 
@@ -356,7 +375,8 @@ abstract class Stateful {
             assertCurrentStatus(Status.WAITING_CTS);
             currentStatus = Status.RECEIVING_CTS;
         } else {
-            logger.log("receive a non collision cts ,but already in a communication process,just ignore it");
+            logger.log("%d receive a non collision cts ,but already" +
+                    " in a communication process,just ignore it",id);
         }
 
     }
@@ -386,7 +406,8 @@ abstract class Stateful {
             assertCurrentStatus(Status.WAITING_DATA);
             currentStatus = Status.RECEIVING_DATA;
         } else {
-            logger.log("receive a non collision data ,but already in a communication process,just ignore it");
+            logger.log("%d receive a non collision data ," +
+                    "but already in a communication process,just ignore it",id);
         }
     }
 
@@ -415,7 +436,8 @@ abstract class Stateful {
             assertCurrentStatus(Status.WAITING_ACK);
             currentStatus = Status.RECEIVING_ACK;
         } else {
-            logger.log("receive a non collision ack ,but already in a communication process,just ignore it");
+            logger.log("%d receive a non collision ack ," +
+                    "but already in a communication process,just ignore it",id);
         }
     }
 
@@ -424,7 +446,9 @@ abstract class Stateful {
      *
      * @param frame
      */
-    abstract void onPostRecvACK(AckFrame frame);
+    void onPostRecvACK(AckFrame frame){
+        logger.log("%d onPostRecvACK()",id);
+    }
 
     //</editor-fold>
 

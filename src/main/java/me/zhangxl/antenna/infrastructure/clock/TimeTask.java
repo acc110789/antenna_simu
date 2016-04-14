@@ -4,23 +4,32 @@ package me.zhangxl.antenna.infrastructure.clock;
  *  {@link TimeController} 持有的ClockTask
  * Created by zhangxiaolong on 16/3/30.
  */
-class ClockTask implements Comparable<ClockTask> {
+class TimeTask implements Comparable<TimeTask> {
 
     private double mTimeToRun;
     private final Runnable mToRun;
+    private final long bornTime;
 
     @Override
-    public int compareTo(ClockTask o) {
+    public int compareTo(TimeTask o) {
         if(o == null){
             throw new NullPointerException();
         }
-        return (mTimeToRun - o.mTimeToRun) > 0 ? 1 : -1;
+        if(mTimeToRun != o.mTimeToRun){
+            return mTimeToRun < o.mTimeToRun ? -1 : 1;
+        } else if(this != o){
+            return bornTime < o.bornTime ? -1 : 1;
+        } else {
+            return 0;
+        }
+
     }
 
-    ClockTask(double timeToRun, Runnable toRun) {
+    TimeTask(double timeToRun, Runnable toRun) {
         this.mTimeToRun = timeToRun;
         if(toRun == null) throw new NullPointerException();
         this.mToRun = toRun;
+        this.bornTime = System.currentTimeMillis();
     }
 
     double getTaskTime(){
