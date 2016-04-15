@@ -14,11 +14,13 @@ import java.util.List;
  * 该类代表一个站点,以及其行为和状态.
  * Created by zhangxiaolong on 16/3/24.
  */
-public class Station extends Stateful {
+public class Station extends AbstractRole{
 
     private static final Logger logger = new Logger(Station.class);
 
     private final Pair<Double, Double> mLocation; //定向天线时需要保证
+
+    DataFrame mCurrentSendingFrame;
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
     /**
@@ -54,20 +56,21 @@ public class Station extends Stateful {
 
     public void backOffDueToTimeout() {
         logger.logln();
+        TimeController.getInstance().addCollitionTimes();
         mCurrentSendingFrame.addCollitionTimes();
         mCurrentSendingFrame.setStartTimeNow();
     }
 
     @Override
     public void scheduleDIFS(boolean Immediate) {
-        assertCurrentStatus(Status.IDLE);
+        assertCurrentStatus(Role.Status.IDLE);
         if(Immediate){
             onPostDIFS();
         } else {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    if(currentStatus == Status.IDLE) {
+                    if(currentStatus == Role.Status.IDLE) {
                         //如果过了DIFS状态仍然是IDLE,则证明可以postDIFS
                         // TODO: 16/4/13  这里面可能存在一个bug,即Status从IDLE变成非IDLE,然后又变回IDLE
                         onPostDIFS();
@@ -78,13 +81,13 @@ public class Station extends Stateful {
     }
 
     private void scheduleSlotIfNeed(){
-        if(currentStatus == Status.IDLE){
+        if(currentStatus == Role.Status.IDLE){
             scheduleSLOT();
         }
     }
 
     private void onPostDIFS() {
-        assertCurrentStatus(Status.IDLE);
+        assertCurrentStatus(Role.Status.IDLE);
         if (mCurrentSendingFrame == null) {
             getDataFrameToSend();
         } else if (mCurrentSendingFrame.isCollision()) {
@@ -96,11 +99,11 @@ public class Station extends Stateful {
 
     @Override
     public void scheduleSLOT() {
-        assertCurrentStatus(Status.IDLE);
+        assertCurrentStatus(Role.Status.IDLE);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if(currentStatus == Status.IDLE) {
+                if(currentStatus == Role.Status.IDLE) {
                     //有可能Station已经作为接收端开始在接受信息了
                     //这种情况下,不能再执行onPostSLOT()了
                     onPostSLOT();
@@ -110,7 +113,7 @@ public class Station extends Stateful {
     }
 
     private void onPostSLOT() {
-        assertCurrentStatus(Status.IDLE);
+        assertCurrentStatus(Role.Status.IDLE);
         logger.log("%d onPostSLOT", this.id);
         if (mCurrentSendingFrame != null) {
             mCurrentSendingFrame.countDownBackOff();
@@ -144,10 +147,11 @@ public class Station extends Stateful {
                 logger.log("%d start transmit data frame sendDataIfNeed", this.getId());
             }
             onPreSendRTS(mCurrentSendingFrame.generateRtsFrame());
+            TimeController.getInstance().addSendTimes();
         }
     }
 
-    public void putDataFrame(int targetId, long length) {
+    void putDataFrame(int targetId, long length) {
         mDataFramesToSend.add(new DataFrame(this.id, targetId));
     }
 
@@ -250,8 +254,8 @@ public class Station extends Stateful {
      * @return accepted by this station
      */
     public boolean beginReceiveFrame(final Frame frame){
-        //必须处于监听模式才能读取数据
-        if(currentMode != READ_MODE && !NAVING){
+        //当station不是读数据模式  或者 处于NAV中时,不接受数据
+        if(currentMode != READ_MODE || NAVING){
             return false;
         }
         receivingFrames.add(frame);
@@ -284,4 +288,8 @@ public class Station extends Stateful {
         return true;
     }
 
+    @Override
+    public DataFrame getDataToSend() {
+        return mCurrentSendingFrame;
+    }
 }

@@ -66,7 +66,7 @@ public class DataFrame extends Frame {
     public void unsetCollision() {
         collision = false;
         if(Logger.DEBUG_COLLISION){
-            logger.log("resolve collision data frame srcid:%d",srcId);
+            logger.log("Station %d resolve collision data frame",srcId);
         }
         updateBackOff();
     }
@@ -88,8 +88,10 @@ public class DataFrame extends Frame {
         int contentionWindow = Math.min(Config.getInstance().getDefaultCW() + this.collisionTimes,Config.getInstance().getMaxCW());
         int window = (int) Math.pow(2, contentionWindow);
         backOff = random.nextInt(window);
+        //for Test
+        //backOff = 1;
         if(Logger.DEBUG_FRAME){
-            logger.log("station :%d  new DataFrame callBack window:%d   frame id:%d",srcId,backOff,getSerialNum());
+            logger.log("station :%d  new DataFrame callBack window:%d  destination :%d",srcId,backOff,getTargetId());
         }
     }
 

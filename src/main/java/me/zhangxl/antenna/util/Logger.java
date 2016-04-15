@@ -1,5 +1,7 @@
 package me.zhangxl.antenna.util;
 
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
+
 import java.io.PrintWriter;
 
 /**
@@ -50,8 +52,9 @@ public class Logger {
 
     private void logInner(String formater,Object... objects){
         if(LOG) {
+            String time = String.format("time : %-10f", TimeController.getInstance().getCurrentTime());
             String tag = String.format("%-15s",TAG);
-            printer.format(tag + "  " + formater + "\n", objects);
+            printer.format(time + tag + "  " + formater + "\n", objects);
         }
     }
 

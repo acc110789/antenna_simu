@@ -9,7 +9,7 @@ public class RtsFrame extends Frame {
 
     private static final int rtsLength = Config.getInstance().getRtsLength();
 
-    RtsFrame(int srcId, int targetId) {
+    public RtsFrame(int srcId, int targetId) {
         super(srcId, targetId, rtsLength);
     }
 
