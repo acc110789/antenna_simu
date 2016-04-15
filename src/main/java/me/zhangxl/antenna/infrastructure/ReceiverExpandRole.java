@@ -8,7 +8,7 @@ import me.zhangxl.antenna.frame.RtsFrame;
 /**
  * Created by zhangxiaolong on 16/4/15.
  */
-public interface ReceiverRole extends Role{
+interface ReceiverExpandRole extends ReceiveBaseRole {
 
     /**
      * 这个时刻表示是CTS之前的的SIFS开始的时刻,在这个时刻,
@@ -34,7 +34,8 @@ public interface ReceiverRole extends Role{
     void onPostSendACK();
 
     /**
-     * 开始接受rts frame
+     * 开始接受rts frame,如果本station是接受目标,则开启会话
+     * 如果本station不是接受目标,则开启NAV
      * @param frame 即将被接受的frame
      */
     void onPreRecvRTS(final RtsFrame frame);

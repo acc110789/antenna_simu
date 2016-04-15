@@ -13,27 +13,25 @@ import java.util.Random;
  */
 public class DataFrame extends Frame {
 
+    static long frameLength = Config.getInstance().getFixDataLength()
+            + Config.getInstance().getPhyHeader()
+            + Config.getInstance().getMacHeader();
     private static Logger logger = new Logger(DataFrame.class);
-
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
-
+    //数据部分的长度
+    private static long dataLength = Config.getInstance().getFixDataLength();
     private double startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
     private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
     private int backOff;
     private int id;
-    //数据部分的长度
-    private static long dataLength = Config.getInstance().getFixDataLength();
-    static long frameLength = Config.getInstance().getFixDataLength()
-            + Config.getInstance().getPhyHeader()
-            + Config.getInstance().getMacHeader();
     /**
      * 表明当前正在发生碰撞
      */
     private boolean collision = false;
 
     public DataFrame(int srcId, int targetId) {
-        this(srcId,targetId, nextSerialNum());
+        this(srcId, targetId, nextSerialNum());
     }
 
     public DataFrame(int srcId, int targetId, int id) {
@@ -41,16 +39,16 @@ public class DataFrame extends Frame {
         this.id = id;
     }
 
-    public static double getDataTimeOut(){
+    public static double getDataTimeOut() {
         return Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + frameLength / Config.getInstance().getBandWidth();
     }
 
-    private static int nextSerialNum(){
+    private static int nextSerialNum() {
         return ++serialNum;
     }
 
-    public int getSerialNum(){
+    public int getSerialNum() {
         return id;
     }
 
@@ -65,8 +63,8 @@ public class DataFrame extends Frame {
 
     public void unsetCollision() {
         collision = false;
-        if(Logger.DEBUG_COLLISION){
-            logger.log("Station %d resolve collision data frame",srcId);
+        if (Logger.DEBUG_COLLISION) {
+            logger.log("Station %d resolve collision data frame", srcId);
         }
         updateBackOff();
     }
@@ -85,13 +83,13 @@ public class DataFrame extends Frame {
     }
 
     private void updateBackOff() {
-        int contentionWindow = Math.min(Config.getInstance().getDefaultCW() + this.collisionTimes,Config.getInstance().getMaxCW());
+        int contentionWindow = Math.min(Config.getInstance().getDefaultCW() + this.collisionTimes, Config.getInstance().getMaxCW());
         int window = (int) Math.pow(2, contentionWindow);
         backOff = random.nextInt(window);
         //for Test
         //backOff = 1;
-        if(Logger.DEBUG_FRAME){
-            logger.log("station :%d  new DataFrame callBack window:%d  destination :%d",srcId,backOff,getTargetId());
+        if (Logger.DEBUG_FRAME) {
+            logger.log("station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);
         }
     }
 
@@ -116,7 +114,7 @@ public class DataFrame extends Frame {
         throw new IllegalStateException("data frame can not hava nav");
     }
 
-    public long getLength(){
+    public long getLength() {
         return dataLength;
     }
 

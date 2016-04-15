@@ -14,10 +14,11 @@ import java.util.List;
  * 该类代表一个站点,以及其行为和状态.
  * Created by zhangxiaolong on 16/3/24.
  */
-public class Station extends AbstractRole implements SendPermitRole,ReceivePermitRole{
+public class Station extends AbstractRole{
 
     private static final Logger logger = new Logger(Station.class);
-
+    private final Sender mSender;
+    private final Receiver mReceiver;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
 
     private DataFrame mCurrentSendingFrame;
@@ -31,9 +32,6 @@ public class Station extends AbstractRole implements SendPermitRole,ReceivePermi
      * 正在接受的frames
      */
     private List<Frame> receivingFrames = new ArrayList<>();
-
-    private final Sender mSender;
-    private final Receiver mReceiver;
 
     public Station(int id) {
         super(id);
@@ -52,17 +50,20 @@ public class Station extends AbstractRole implements SendPermitRole,ReceivePermi
         return mDataFramesToSend.size();
     }
 
+    /**
+     * 遭受到了碰撞
+     */
     @Override
-    public void backOffDueToTimeout() {
+    void backOffDueToTimeout() {
         logger.logln();
         TimeController.getInstance().addCollitionTimes();
         mCurrentSendingFrame.addCollitionTimes();
         mCurrentSendingFrame.setStartTimeNow();
     }
-
+    
     @Override
     public void scheduleDIFS(boolean Immediate) {
-        assertCurrentStatus(Role.Status.IDLE);
+        assert getCurrentStatus() == Status.IDLE;
         if(Immediate){
             onPostDIFS();
         } else {
@@ -71,7 +72,7 @@ public class Station extends AbstractRole implements SendPermitRole,ReceivePermi
                 public void run() {
                     if(getCurrentStatus() == Status.IDLE) {
                         //如果过了DIFS状态仍然是IDLE,则证明可以postDIFS
-                        // TODO: 16/4/13  这里面可能存在一个bug,即Status从IDLE变成非IDLE,然后又变回IDLE
+                        // TODO: 16/4/15  一个Station有可能在一个DIFS期间从IDLE变成非IDLE,然后又变回IDLE
                         onPostDIFS();
                     }
                 }
@@ -80,7 +81,8 @@ public class Station extends AbstractRole implements SendPermitRole,ReceivePermi
     }
 
     private void onPostDIFS() {
-        assertCurrentStatus(Role.Status.IDLE);
+        assert !inNAV();
+        assert getCurrentStatus() == Status.IDLE;
         if (mCurrentSendingFrame == null) {
             getDataFrameToSend();
         } else if (mCurrentSendingFrame.isCollision()) {
@@ -90,9 +92,9 @@ public class Station extends AbstractRole implements SendPermitRole,ReceivePermi
         scheduleSlotIfNeed();
     }
 
-    @Override
-    public void scheduleSLOT() {
-        assertCurrentStatus(Role.Status.IDLE);
+    private void scheduleSLOT() {
+        assert !inNAV();
+        assert getCurrentStatus() == Status.IDLE;
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -112,8 +114,8 @@ public class Station extends AbstractRole implements SendPermitRole,ReceivePermi
     }
 
     private void onPostSLOT() {
-        assertCurrentStatus(Status.IDLE);
-        logger.log("%d onPostSLOT", this.id);
+        assert getCurrentStatus() == Status.IDLE;
+        logger.log("%d onPostSLOT", getId());
         if (mCurrentSendingFrame != null) {
             mCurrentSendingFrame.countDownBackOff();
         } else {
@@ -151,11 +153,11 @@ public class Station extends AbstractRole implements SendPermitRole,ReceivePermi
     }
 
     void putDataFrame(int targetId, long length) {
-        mDataFramesToSend.add(new DataFrame(this.id, targetId));
+        mDataFramesToSend.add(new DataFrame(getId(), targetId));
     }
 
     public void putDataFrame(int targetId, long length, int dataFrameId) {
-        mDataFramesToSend.add(new DataFrame(this.id, targetId, dataFrameId));
+        mDataFramesToSend.add(new DataFrame(getId(), targetId, dataFrameId));
     }
 
     @Override
@@ -217,7 +219,7 @@ public class Station extends AbstractRole implements SendPermitRole,ReceivePermi
      */
     public boolean beginReceiveFrame(final Frame frame){
         //当station不是读数据模式  或者 处于NAV中时,不接受数据
-        if(currentMode != READ_MODE || NAVING){
+        if(getCurrentMode() != Mode.READ_MODE || inNAV()){
             return false;
         }
         receivingFrames.add(frame);

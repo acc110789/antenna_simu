@@ -1,6 +1,6 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
-import me.zhangxl.antenna.infrastructure.Role;
+import me.zhangxl.antenna.infrastructure.Station;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class DirectMedium extends Medium {
     @Override
-    List<Role> getStationToReceive(Role station) {
+    List<Station> getStationToReceive(Station station) {
         return null;
     }
 }

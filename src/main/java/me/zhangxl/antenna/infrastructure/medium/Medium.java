@@ -1,16 +1,14 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.Role;
+import me.zhangxl.antenna.infrastructure.BaseRole;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
-import me.zhangxl.antenna.util.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 代表传输的介质(信道)
@@ -18,31 +16,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class Medium {
 
-    static final List<Role> stationList = new ArrayList<>();
-
+    static final List<Station> stationList = new ArrayList<>();
     /**
      * 把station没有接受(由于station)的frame暂时放置在这里
      */
-    static final Map<Role,List<Frame>> stationToFrames = new HashMap<>();
-
-    private static final Logger logger = new Logger(Medium.class);
-
+    static final Map<BaseRole,List<Frame>> stationToFrames = new HashMap<>();
     static  Medium sMedium ;
-
-    private AtomicBoolean free = new AtomicBoolean(false);
 
     Medium() {
         TimeController.getInstance().setLoopCallBack(new Runnable() {
             @Override
             public void run() {
                 //触发所有的节点
-                for(Role station : stationList){
+                for(Station station : stationList){
                     station.scheduleDIFS(true);
                 }
             }
         });
     }
-
 
     public void register(Station station){
         stationList.add(station);
@@ -61,11 +52,11 @@ public abstract class Medium {
      * @param station
      * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
      */
-    public void putFrame(final Role station, final Frame frame) {
+    public void putFrame(final Station station, final Frame frame) {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                for(Role station1 : getStationToReceive(station)){
+                for(BaseRole station1 : getStationToReceive(station)){
                     boolean accepted = ((Station)station1).beginReceiveFrame(frame);
                     if(!accepted){
                         putUnacceptedFrames(station1,frame);
@@ -75,7 +66,7 @@ public abstract class Medium {
         },0);
     }
 
-    private void putUnacceptedFrames(final Role station , final Frame frame){
+    private void putUnacceptedFrames(final BaseRole station , final Frame frame){
         List<Frame> frames = stationToFrames.get(station);
         if(frames == null){
             frames = new ArrayList<>();
@@ -112,7 +103,7 @@ public abstract class Medium {
         }
     }
 
-    abstract List<Role> getStationToReceive(Role station);
+    abstract List<Station> getStationToReceive(Station station);
 
 
 }

@@ -64,7 +64,7 @@ public class TestStation {
         System.out.println("***************config*****************");
         System.out.format("slot length :%f",Config.getInstance().getSlotLength());
         System.out.println();
-        System.out.format("rts length  :%f",new RtsFrame(-1,-1).getTransmitDuration());
+        System.out.format("rts  length :%f",new RtsFrame(-1,-1).getTransmitDuration());
         System.out.println();
         System.out.println("**************************************");
         System.out.println("**************************************");
@@ -76,6 +76,12 @@ public class TestStation {
     public void testThreeStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
         testStations(3,0,2e-1);
+    }
+
+    @Test
+    public void testFourStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
+        printConfig();
+        testStations(4,0,1);
     }
 
 }

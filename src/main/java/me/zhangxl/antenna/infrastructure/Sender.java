@@ -12,12 +12,12 @@ import me.zhangxl.antenna.util.Logger;
  * 一次通信过程中的发送者角色
  * Created by zhangxiaolong on 16/4/15.
  */
-class Sender extends RoleFilter implements SenderRole {
+class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     private static final Logger logger = new Logger(Sender.class);
-    private final SendPermitRole mRole;
+    private final SendBaseRole mRole;
 
-    Sender(SendPermitRole role){
+    Sender(SendBaseRole role){
         super(role);
         this.mRole = role;
     }
@@ -25,9 +25,9 @@ class Sender extends RoleFilter implements SenderRole {
     @Override
     public void onPreSendRTS(RtsFrame frame) {
         logger.log("%d onPreSendRTS()",getId());
-        assertCurrentMode(READ_MODE);
+        assert getCurrentMode() == Mode.READ_MODE;
         setWriteMode();
-        assertCurrentStatus(Status.IDLE);
+        assert getCurrentStatus() == Status.IDLE;
         setCurrentStatus(Status.SENDING_RTS);
 
         setCommunicationTarget(frame.getTargetId());
@@ -45,9 +45,9 @@ class Sender extends RoleFilter implements SenderRole {
     @Override
     public void onPostSendRTS() {
         logger.log("%d onPostSendRTS()",getId());
-        assertCurrentMode(WRITE_MODE);
+        assert getCurrentMode() == Mode.WRITE_MODE;
         setReadMode();
-        assertCurrentStatus(Status.SENDING_RTS);
+        assert getCurrentStatus() == Status.SENDING_RTS;
         setCurrentStatus(Status.WAITING_CTS);
         //设置RTS超时时间,如果超时,则直接判定为碰撞
         TimeController.getInstance().post(new Runnable() {
@@ -64,9 +64,9 @@ class Sender extends RoleFilter implements SenderRole {
     @Override
     public void onPreSendSIFSAndDATA() {
         logger.log("%d onPreSendSIFSAndDATA()",getId());
-        assertCurrentMode(READ_MODE);
+        assert getCurrentMode() == Mode.READ_MODE;
         setWriteMode();
-        assertCurrentStatus(Status.RECEIVING_CTS);
+        assert getCurrentStatus() == Status.RECEIVING_CTS;
         setCurrentStatus(Status.SENDING_SIFS_DATA);
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -80,8 +80,8 @@ class Sender extends RoleFilter implements SenderRole {
     @Override
     public void onPreSendData(DataFrame dataFrame) {
         logger.log("%d onPreSendData()",getId());
-        assertCurrentMode(WRITE_MODE);
-        assertCurrentStatus(Status.SENDING_SIFS_DATA);
+        assert getCurrentMode() == Mode.WRITE_MODE;
+        assert getCurrentStatus() == Status.SENDING_SIFS_DATA;
         setCurrentStatus(Status.SENDING_DATA);
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -95,9 +95,9 @@ class Sender extends RoleFilter implements SenderRole {
     @Override
     public void onPostSendDATA() {
         logger.log("%d onPostSendDATA()",getId());
-        assertCurrentMode(WRITE_MODE);
+        assert getCurrentMode() == Mode.WRITE_MODE;
         setReadMode();
-        assertCurrentStatus(Status.SENDING_DATA);
+        assert getCurrentStatus() == Status.SENDING_DATA;
         setCurrentStatus(Status.WAITING_ACK);
         //设置Data的Timeout,过时当碰撞处理
         TimeController.getInstance().post(new Runnable() {
@@ -115,8 +115,8 @@ class Sender extends RoleFilter implements SenderRole {
     public void onPreRecvCTS(final CtsFrame frame) {
         logger.log("%d onPreRecvCTS()",getId());
         if(frame.getSrcId() == getCommunicationTarget()){
-            assertCurrentMode(READ_MODE);
-            assertCurrentStatus(Status.WAITING_CTS);
+            assert getCurrentMode() == Mode.READ_MODE;
+            assert getCurrentStatus() == Status.WAITING_CTS;
             setCurrentStatus(Status.RECEIVING_CTS);
 
             TimeController.getInstance().post(new Runnable() {
@@ -148,8 +148,8 @@ class Sender extends RoleFilter implements SenderRole {
     public void onPreRecvACK(final AckFrame frame) {
         logger.log("%d onPreRecvACK()",getId());
         if(frame.getSrcId() == getCommunicationTarget()) {
-            assertCurrentMode(READ_MODE);
-            assertCurrentStatus(Status.WAITING_ACK);
+            assert getCurrentMode() == Mode.READ_MODE;
+            assert getCurrentStatus() == Status.WAITING_ACK;
             setCurrentStatus(Status.RECEIVING_ACK);
 
             TimeController.getInstance().post(new Runnable() {
@@ -172,8 +172,13 @@ class Sender extends RoleFilter implements SenderRole {
                 logger.log("%d send a data successfully...", getId());
                 logger.logln();
             }
-            mRole.onSendSuccess();
+            onSendSuccess();
             onPostCommunication(false, false);
         }
+    }
+
+    @Override
+    public void onSendSuccess() {
+        mRole.onSendSuccess();
     }
 }

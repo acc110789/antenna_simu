@@ -3,8 +3,10 @@ package me.zhangxl.antenna.infrastructure;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Logger;
 
+import static me.zhangxl.antenna.infrastructure.BaseRole.Mode.READ_MODE;
+import static me.zhangxl.antenna.infrastructure.BaseRole.Mode.WRITE_MODE;
+
 /**
- * **
  * 对于全向天线来说,所有的Statin的状态都是同步的.
  * 但是对于定向天线来说,如果一个DataFrame的发送
  * 过程是成功的,则至少发送方和接收方的状态应该是同步的.
@@ -17,17 +19,17 @@ import me.zhangxl.antenna.util.Logger;
  *
  * Created by zhangxiaolong on 16/4/15.
  */
-abstract class AbstractRole implements Role {
+abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
-    static int defaultCommunicationTarget = -1;
     // TODO: 16/4/10 暂时没有考虑两件事情在同一时间点发生的概率是0
     private static Logger logger = new Logger(AbstractRole.class);
-    final int id;
-    boolean NAVING = false;
+    private final int id;
+    private boolean NAVING = false;
+
     //需要注意的是一旦一个Station进入了写(发送)模式之后,
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
-    int currentMode = READ_MODE;
+    private Mode currentMode = READ_MODE;
     private Status currentStatus = Status.IDLE;
 
     /**
@@ -54,27 +56,9 @@ abstract class AbstractRole implements Role {
         this.currentMode = WRITE_MODE;
     }
 
-    @Override
-    public void assertCurrentStatus(Status status) {
-        String info = "station " + id + " ";
-        if (getCurrentStatus() != status) {
-            throw new IllegalStateException(info + "currentStatus is not " + status);
-        }
-    }
+    abstract void backOffDueToTimeout();
 
-    @Override
-    public void assertCurrentMode(int mode) {
-        String info = "station " + id + " ";
-        if (currentMode != mode) {
-            if (mode == READ_MODE) {
-                throw new IllegalStateException(info + "currentMode is not READ MODE");
-            } else if (mode == WRITE_MODE) {
-                throw new IllegalStateException(info + "currentMode is not WRITE MODE");
-            } else {
-                throw new IllegalStateException(info + "neither READ MODE nor write mode");
-            }
-        }
-    }
+    abstract void scheduleDIFS(boolean Immediate);
 
     @Override
     public void onPostCommunication(boolean fail, boolean timeout){
@@ -95,6 +79,11 @@ abstract class AbstractRole implements Role {
     @Override
     public void setCommunicationTarget(int id) {
         this.currentCommunicationTarget = id;
+    }
+
+    @Override
+    public Mode getCurrentMode() {
+        return currentMode;
     }
 
     @Override
