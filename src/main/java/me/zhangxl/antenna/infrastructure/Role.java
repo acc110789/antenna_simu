@@ -7,7 +7,7 @@ import me.zhangxl.antenna.frame.Frame;
 /**
  * Created by zhangxiaolong on 16/4/15.
  */
-interface Role {
+public interface Role {
 
     int READ_MODE = 1;
     int WRITE_MODE = 2;
@@ -92,4 +92,10 @@ interface Role {
     void setNAV();
 
     void unsetNAV();
+
+    boolean inNAV();
+
+    void setCommunicationTarget(int id);
+
+    int getCommunicationTarget();
 }

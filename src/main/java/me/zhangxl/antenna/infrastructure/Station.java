@@ -14,13 +14,13 @@ import java.util.List;
  * 该类代表一个站点,以及其行为和状态.
  * Created by zhangxiaolong on 16/3/24.
  */
-public class Station extends AbstractRole{
+public class Station extends AbstractRole implements SendPermitRole,ReceivePermitRole{
 
     private static final Logger logger = new Logger(Station.class);
 
-    private final Pair<Double, Double> mLocation; //定向天线时需要保证
+    private Pair<Double, Double> mLocation; //定向天线时需要保证
 
-    DataFrame mCurrentSendingFrame;
+    private DataFrame mCurrentSendingFrame;
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
     /**
@@ -32,28 +32,27 @@ public class Station extends AbstractRole{
      */
     private List<Frame> receivingFrames = new ArrayList<>();
 
+    private final Sender mSender;
+    private final Receiver mReceiver;
+
     public Station(int id) {
         super(id);
-        mLocation = null;
+        this.mSender = new Sender(this);
+        this.mReceiver = new Receiver(this);
         StationUtil.stationList.add(this);
         Medium.getInstance().register(this);
     }
 
     public Station(int id, Double xAxis, Double yAxis) {
-        super(id);
+        this(id);
         this.mLocation = new Pair<>(xAxis, yAxis);
-        StationUtil.stationList.add(this);
-        Medium.getInstance().register(this);
     }
 
     int getWaitingRequestNum() {
         return mDataFramesToSend.size();
     }
 
-    int getId() {
-        return this.id;
-    }
-
+    @Override
     public void backOffDueToTimeout() {
         logger.logln();
         TimeController.getInstance().addCollitionTimes();
@@ -70,19 +69,13 @@ public class Station extends AbstractRole{
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    if(currentStatus == Role.Status.IDLE) {
+                    if(getCurrentStatus() == Status.IDLE) {
                         //如果过了DIFS状态仍然是IDLE,则证明可以postDIFS
                         // TODO: 16/4/13  这里面可能存在一个bug,即Status从IDLE变成非IDLE,然后又变回IDLE
                         onPostDIFS();
                     }
                 }
             }, Config.getInstance().getDifs());
-        }
-    }
-
-    private void scheduleSlotIfNeed(){
-        if(currentStatus == Role.Status.IDLE){
-            scheduleSLOT();
         }
     }
 
@@ -103,7 +96,7 @@ public class Station extends AbstractRole{
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if(currentStatus == Role.Status.IDLE) {
+                if(getCurrentStatus() == Status.IDLE) {
                     //有可能Station已经作为接收端开始在接受信息了
                     //这种情况下,不能再执行onPostSLOT()了
                     onPostSLOT();
@@ -112,8 +105,14 @@ public class Station extends AbstractRole{
         }, Config.getInstance().getSlotLength());
     }
 
+    private void scheduleSlotIfNeed(){
+        if(getCurrentStatus() == Status.IDLE){
+            scheduleSLOT();
+        }
+    }
+
     private void onPostSLOT() {
-        assertCurrentStatus(Role.Status.IDLE);
+        assertCurrentStatus(Status.IDLE);
         logger.log("%d onPostSLOT", this.id);
         if (mCurrentSendingFrame != null) {
             mCurrentSendingFrame.countDownBackOff();
@@ -146,7 +145,7 @@ public class Station extends AbstractRole{
             if (Logger.DEBUG_STATION) {
                 logger.log("%d start transmit data frame sendDataIfNeed", this.getId());
             }
-            onPreSendRTS(mCurrentSendingFrame.generateRtsFrame());
+            mSender.onPreSendRTS(mCurrentSendingFrame.generateRtsFrame());
             TimeController.getInstance().addSendTimes();
         }
     }
@@ -159,50 +158,13 @@ public class Station extends AbstractRole{
         mDataFramesToSend.add(new DataFrame(this.id, targetId, dataFrameId));
     }
 
-    //作为发送端发送的数据
     @Override
-    protected void onPreSendRTS(RtsFrame frame) {
-        super.onPreSendRTS(frame);
-        frame.setStartTimeNow();
-        Medium.getInstance().putFrame(this,frame);
+    public void onSendSuccess() {
+        TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
+        mDataFrameSent.add(mCurrentSendingFrame);
+        mCurrentSendingFrame = null;
     }
 
-    @Override
-    void onPreSendCTS(CtsFrame frame) {
-        super.onPreSendCTS(frame);
-        frame.setStartTimeNow();
-        Medium.getInstance().putFrame(this,frame);
-    }
-
-    @Override
-    void onPreSendData(DataFrame frame) {
-        super.onPreSendData(frame);
-        frame.setStartTimeNow();
-        Medium.getInstance().putFrame(this,frame);
-    }
-
-    @Override
-    void onPreSendAck(AckFrame frame) {
-        super.onPreSendAck(frame);
-        frame.setStartTimeNow();
-        Medium.getInstance().putFrame(this,frame);
-    }
-
-    @Override
-    void onPostRecvACK(AckFrame frame) {
-        if(!frame.collision()) {
-            super.onPostRecvACK(frame);
-            if (Logger.DEBUG_STATION) {
-                logger.log("%d send a data successfully...",id);
-                logger.logln();
-            }
-            TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
-            mDataFrameSent.add(mCurrentSendingFrame);
-            mCurrentSendingFrame = null;
-            onPostCommunication(false, false);
-        }
-
-    }
 
     /**
      * 前提是碰撞发生了,找到最晚的那个frame,并且在在最晚的那个frame结束之后,安排DIFS
@@ -275,13 +237,13 @@ public class Station extends AbstractRole{
         }
 
         if (frame instanceof RtsFrame) {
-            onPreRecvRTS((RtsFrame) frame);
+            mReceiver.onPreRecvRTS((RtsFrame) frame);
         } else if (frame instanceof CtsFrame) {
-            onPreRecvCTS((CtsFrame) frame);
+            mSender.onPreRecvCTS((CtsFrame) frame);
         } else if (frame instanceof DataFrame) {
-            onPreRecvData((DataFrame) frame);
+            mReceiver.onPreRecvData((DataFrame) frame);
         } else if (frame instanceof AckFrame) {
-            onPreRecvACK((AckFrame) frame);
+            mSender.onPreRecvACK((AckFrame) frame);
         } else {
             throw new IllegalArgumentException("unspecified frame type " + frame.getClass().getSimpleName());
         }
@@ -292,4 +254,6 @@ public class Station extends AbstractRole{
     public DataFrame getDataToSend() {
         return mCurrentSendingFrame;
     }
+
+
 }

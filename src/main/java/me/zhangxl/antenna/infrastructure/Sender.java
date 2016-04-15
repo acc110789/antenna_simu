@@ -9,118 +9,131 @@ import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
 /**
+ * 一次通信过程中的发送者角色
  * Created by zhangxiaolong on 16/4/15.
  */
-public class Sender extends FilterRole implements SenderRole {
+class Sender extends RoleFilter implements SenderRole {
 
     private static final Logger logger = new Logger(Sender.class);
+    private final SendPermitRole mRole;
 
-    public Sender(Role role){
+    Sender(SendPermitRole role){
         super(role);
+        this.mRole = role;
     }
 
     @Override
     public void onPreSendRTS(RtsFrame frame) {
-        assertCurrentMode(Role.READ_MODE);
-        setWriteMode();
         logger.log("%d onPreSendRTS()",getId());
-        currentCommunicationTarget = frame.getTargetId();
+        assertCurrentMode(READ_MODE);
+        setWriteMode();
+        assertCurrentStatus(Status.IDLE);
+        setCurrentStatus(Status.SENDING_RTS);
+
+        setCommunicationTarget(frame.getTargetId());
+
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 onPostSendRTS();
             }
         }, frame.getTransmitDuration());
-        assertCurrentStatus(Role.Status.IDLE);
-        setCurrentStatus(Role.Status.SENDING_RTS);
+
+        sendFrame(frame);
     }
 
     @Override
     public void onPostSendRTS() {
-        assertCurrentMode(Role.WRITE_MODE);
-        setReadMode();
         logger.log("%d onPostSendRTS()",getId());
+        assertCurrentMode(WRITE_MODE);
+        setReadMode();
+        assertCurrentStatus(Status.SENDING_RTS);
+        setCurrentStatus(Status.WAITING_CTS);
         //设置RTS超时时间,如果超时,则直接判定为碰撞
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if (getCurrentStatus() == Role.Status.WAITING_CTS) {
+                if (getCurrentStatus() == Status.WAITING_CTS) {
                     logger.log("%d after onPostSendRTS() wait CTS timeout",getId());
                     onPostCommunication(true,true);
                 }
             }
         }, CtsFrame.getCtsTimeOut());
-        assertCurrentStatus(Role.Status.SENDING_RTS);
-        setCurrentStatus(Status.WAITING_CTS);
     }
 
     @Override
     public void onPreSendSIFSAndDATA() {
-        assertCurrentMode(Role.READ_MODE);
-        setWriteMode();
         logger.log("%d onPreSendSIFSAndDATA()",getId());
+        assertCurrentMode(READ_MODE);
+        setWriteMode();
+        assertCurrentStatus(Status.RECEIVING_CTS);
+        setCurrentStatus(Status.SENDING_SIFS_DATA);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 onPreSendData(getDataToSend());
             }
         }, Config.getInstance().getSifs());
-        assertCurrentStatus(Status.RECEIVING_CTS);
-        setCurrentStatus(Status.SENDING_SIFS_DATA);
+
     }
 
     @Override
     public void onPreSendData(DataFrame dataFrame) {
         logger.log("%d onPreSendData()",getId());
+        assertCurrentMode(WRITE_MODE);
+        assertCurrentStatus(Status.SENDING_SIFS_DATA);
+        setCurrentStatus(Status.SENDING_DATA);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 onPostSendDATA();
             }
         }, dataFrame.getTransmitDuration());
-        assertCurrentStatus(Status.SENDING_SIFS_DATA);
-        setCurrentStatus(Status.SENDING_DATA);
+        sendFrame(dataFrame);
     }
 
     @Override
     public void onPostSendDATA() {
-        assertCurrentMode(Role.WRITE_MODE);
-        setReadMode();
         logger.log("%d onPostSendDATA()",getId());
+        assertCurrentMode(WRITE_MODE);
+        setReadMode();
+        assertCurrentStatus(Status.SENDING_DATA);
+        setCurrentStatus(Status.WAITING_ACK);
         //设置Data的Timeout,过时当碰撞处理
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if (getCurrentStatus() == Role.Status.WAITING_ACK) {
+                if (getCurrentStatus() == Status.WAITING_ACK) {
                     logger.log("%d after onPostSendDATA(),wait ack timeout",getId());
                     onPostCommunication(true , true);
                 }
             }
         }, AckFrame.getAckTimeOut());
-        assertCurrentStatus(Status.SENDING_DATA);
-        setCurrentStatus(Status.WAITING_ACK);
     }
 
     @Override
     public void onPreRecvCTS(final CtsFrame frame) {
-        if(frame.getSrcId() == currentCommunicationTarget){
-            logger.log("%d onPreRecvCTS()",getId());
+        logger.log("%d onPreRecvCTS()",getId());
+        if(frame.getSrcId() == getCommunicationTarget()){
+            assertCurrentMode(READ_MODE);
+            assertCurrentStatus(Status.WAITING_CTS);
+            setCurrentStatus(Status.RECEIVING_CTS);
+
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     onPostRecvCTS(frame);
                 }
             }, frame.getTransmitDuration());
-            assertCurrentStatus(Status.WAITING_CTS);
-            setCurrentStatus(Status.RECEIVING_CTS);
-        } else {
-            logger.log("%d receive a non collision cts ,but already" +
-                    " in a communication process,just ignore it",getId());
-        }
 
+        } else {
+            logger.log("%d begin receive a non collision cts ,but already" +
+                    " in a communication process,will ignore it",getId());
+        }
     }
 
     /**
+     * 在真实的环境下,只有没有被碰撞的frame才能收到,所以当发生碰撞时,不打log
      * {@link #onPreSendSIFSAndDATA()}
      */
     @Override
@@ -133,24 +146,34 @@ public class Sender extends FilterRole implements SenderRole {
 
     @Override
     public void onPreRecvACK(final AckFrame frame) {
-        if(frame.getSrcId() == currentCommunicationTarget) {
-            logger.log("%d onPreRecvACK()",getId());
+        logger.log("%d onPreRecvACK()",getId());
+        if(frame.getSrcId() == getCommunicationTarget()) {
+            assertCurrentMode(READ_MODE);
+            assertCurrentStatus(Status.WAITING_ACK);
+            setCurrentStatus(Status.RECEIVING_ACK);
+
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     onPostRecvACK(frame);
                 }
             }, frame.getTransmitDuration());
-            assertCurrentStatus(Status.WAITING_ACK);
-            setCurrentStatus(Status.RECEIVING_ACK);
         } else {
-            logger.log("%d receive a non collision ack ," +
-                    "but already in a communication process,just ignore it",getId());
+            logger.log("%d begin receive a non collision ack ," +
+                    "but already in a communication process,will ignore it",getId());
         }
     }
 
     @Override
     public void onPostRecvACK(AckFrame frame){
-        logger.log("%d onPostRecvACK()",getId());
+        if(!frame.collision()) {
+            logger.log("%d onPostRecvACK()",getId());
+            if (Logger.DEBUG_STATION) {
+                logger.log("%d send a data successfully...", getId());
+                logger.logln();
+            }
+            mRole.onSendSuccess();
+            onPostCommunication(false, false);
+        }
     }
 }

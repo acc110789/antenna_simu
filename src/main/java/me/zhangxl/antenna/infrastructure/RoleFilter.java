@@ -1,25 +1,19 @@
 package me.zhangxl.antenna.infrastructure;
 
 import me.zhangxl.antenna.frame.DataFrame;
+import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.infrastructure.medium.Medium;
 
 /**
  * Created by zhangxiaolong on 16/4/15.
  */
-public class FilterRole implements Role {
-
-    static int defaultCommunicationTarget = -1;
-
-    /**
-     * 节点的当前通信对象
-     */
-    int currentCommunicationTarget = defaultCommunicationTarget;
+class RoleFilter implements Role {
 
     private final Role mRole;
 
-    public FilterRole(Role role){
+    RoleFilter(Role role){
         this.mRole = role;
     }
-
 
     @Override
     public void setReadMode() {
@@ -32,13 +26,13 @@ public class FilterRole implements Role {
     }
 
     @Override
-    public void setCurrentStatus(Status status) {
-        mRole.setCurrentStatus(status);
+    public Status getCurrentStatus() {
+        return mRole.getCurrentStatus();
     }
 
     @Override
-    public Status getCurrentStatus() {
-        return mRole.getCurrentStatus();
+    public void setCurrentStatus(Status status) {
+        mRole.setCurrentStatus(status);
     }
 
     @Override
@@ -89,5 +83,25 @@ public class FilterRole implements Role {
     @Override
     public void unsetNAV() {
         mRole.unsetNAV();
+    }
+
+    @Override
+    public boolean inNAV() {
+        return mRole.inNAV();
+    }
+
+    @Override
+    public int getCommunicationTarget() {
+        return mRole.getCommunicationTarget();
+    }
+
+    @Override
+    public void setCommunicationTarget(int id) {
+        mRole.setCommunicationTarget(id);
+    }
+
+    void sendFrame(Frame frame){
+        frame.setStartTimeNow();
+        Medium.getInstance().putFrame(mRole,frame);
     }
 }
