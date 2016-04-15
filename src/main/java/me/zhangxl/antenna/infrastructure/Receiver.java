@@ -65,7 +65,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
             public void run() {
                 if (getCurrentStatus() == Status.WAITING_DATA) {
                     logger.log("station :%d after onPostSendCTS(),wait data timeout", getId());
-                    onPostCommunication(true, true);
+                    onPostCommunication(false, true);
                 }
             }
         }, DataFrame.getDataTimeOut());
@@ -106,47 +106,25 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
         logger.log("%d onPostSendACK()", getId());
         assert getCurrentMode() == Mode.WRITE_MODE;
         setReadMode();
-        onPostCommunication(false, false);
+        onPostCommunication(true, false);
     }
 
     @Override
     public void onPreRecvRTS(final RtsFrame frame) {
         if (getCommunicationTarget() == BaseRole.defaultCommunicationTarget) {
+            logger.log("%d onPreRecvRTS()", getId());
             assert getCurrentMode() == Mode.READ_MODE;
             assert getCurrentStatus() == Status.IDLE;
             setCurrentStatus(Status.RECEIVING_RTS);
-            String infoToLog;
-            if (frame.getTargetId() == getId()) {
-                infoToLog = String.format("%d onPreRecvRTS()", getId());
+            if (frame.getTargetId() == getId()){
                 setCommunicationTarget(frame.getSrcId());
-                TimeController.getInstance().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onPostRecvRTS(frame);
-                    }
-                }, frame.getTransmitDuration());
-            } else {
-                //如果对方的通信目标不是自己,则设置NAV
-                infoToLog = String.format("%d received irrelevant frame onPreRecvRTS()", getId());
-                TimeController.getInstance().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!frame.collision()) {
-                            setNAV();
-                            logger.log("%d blocked due to NAV set", getId());
-                            TimeController.getInstance().post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    unsetNAV();
-                                    logger.log("%d unblocked", getId());
-                                    onPostCommunication(false,false);
-                                }
-                            }, frame.getNavDuration());
-                        }
-                    }
-                }, frame.getTransmitDuration());
             }
-            logger.log(infoToLog);
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    onPostRecvRTS(frame);
+                }
+            }, frame.getTransmitDuration());
         } else {
             logger.log("%d receive a non collision rts ," +
                     "but already in a communication process,just ignore it", getId());
@@ -157,7 +135,21 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
     public void onPostRecvRTS(RtsFrame frame) {
         if (!frame.collision()) {
             logger.log("%d onPostRecvRTS()", getId());
-            onPreSendSIFSAndCTS(frame);
+            if (getCommunicationTarget() != defaultCommunicationTarget) {
+                onPreSendSIFSAndCTS(frame);
+            } else {
+                //收到的是与自己无关的frame,此时应该设置NAV
+                setNAV();
+                logger.log("%d blocked due to NAV set", getId());
+                TimeController.getInstance().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        unsetNAV();
+                        logger.log("%d unblocked", getId());
+                        onPostCommunication(true, false);
+                    }
+                }, frame.getNavDuration());
+            }
         }
     }
 

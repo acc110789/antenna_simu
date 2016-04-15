@@ -61,9 +61,9 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
     abstract void scheduleDIFS(boolean Immediate);
 
     @Override
-    public void onPostCommunication(boolean fail, boolean timeout){
+    public void onPostCommunication(boolean success, boolean timeout){
         assert getCurrentStatus() != Status.IDLE;
-        if(fail && getCurrentStatus().isSender()){
+        if(!success && getCurrentStatus().isSender()){
             backOffDueToTimeout();
         }
         setCurrentStatus(Status.IDLE);

@@ -56,6 +56,7 @@ public class TestStation {
 
     @Test
     public void twoStation() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
+        printConfig();
         testStations(2,0,1e-1);
     }
 

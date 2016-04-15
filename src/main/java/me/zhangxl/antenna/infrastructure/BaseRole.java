@@ -7,7 +7,7 @@ import me.zhangxl.antenna.frame.Frame;
 /**
  * Created by zhangxiaolong on 16/4/15.
  */
-public interface BaseRole {
+interface BaseRole {
 
     int defaultCommunicationTarget = -1;
 
@@ -75,9 +75,9 @@ public interface BaseRole {
      * (1)如果通信失败,则对于发送方来说需要将碰撞次数加一,扩大碰撞窗口.接收方则不受影响
      * (2)如果是 超时性质的通信失败,则要马上执行{@link Station#onPostDIFS()}
      * 否则需要等DIFS之后才能执行{@link Station#onPostDIFS()}
-     * @param fail 通信是否是失败的
+     * @param success 通信是否是成功的
      */
-    void onPostCommunication(boolean fail, boolean timeout);
+    void onPostCommunication(boolean success, boolean timeout);
 
     void setCommunicationTarget(int id);
 

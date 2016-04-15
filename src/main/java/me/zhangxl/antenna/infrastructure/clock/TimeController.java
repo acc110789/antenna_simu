@@ -99,6 +99,9 @@ public class TimeController {
             }
             //仿真过程积累相应的时间
             currentTime += time;
+            if(time > 0){
+                logger.logln();
+            }
 
             if(!statValve && currentTime >= Config.getInstance().getWarmUp()){
                 statValve = true;

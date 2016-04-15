@@ -1,7 +1,6 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.BaseRole;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 
@@ -20,7 +19,7 @@ public abstract class Medium {
     /**
      * 把station没有接受(由于station)的frame暂时放置在这里
      */
-    static final Map<BaseRole,List<Frame>> stationToFrames = new HashMap<>();
+    static final Map<Station,List<Frame>> stationToFrames = new HashMap<>();
     static  Medium sMedium ;
 
     Medium() {
@@ -56,8 +55,8 @@ public abstract class Medium {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                for(BaseRole station1 : getStationToReceive(station)){
-                    boolean accepted = ((Station)station1).beginReceiveFrame(frame);
+                for(Station station1 : getStationToReceive(station)){
+                    boolean accepted = station1.beginReceiveFrame(frame);
                     if(!accepted){
                         putUnacceptedFrames(station1,frame);
                     }
@@ -66,7 +65,7 @@ public abstract class Medium {
         },0);
     }
 
-    private void putUnacceptedFrames(final BaseRole station , final Frame frame){
+    private void putUnacceptedFrames(final Station station , final Frame frame){
         List<Frame> frames = stationToFrames.get(station);
         if(frames == null){
             frames = new ArrayList<>();

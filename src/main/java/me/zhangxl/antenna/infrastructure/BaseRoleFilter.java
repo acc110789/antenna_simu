@@ -51,8 +51,8 @@ class BaseRoleFilter implements BaseRole {
     }
 
     @Override
-    public void onPostCommunication(boolean fail, boolean timeout) {
-        mBaseRole.onPostCommunication(fail,timeout);
+    public void onPostCommunication(boolean success, boolean timeout) {
+        mBaseRole.onPostCommunication(success,timeout);
     }
 
     @Override

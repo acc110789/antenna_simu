@@ -55,7 +55,6 @@ public class Station extends AbstractRole{
      */
     @Override
     void backOffDueToTimeout() {
-        logger.logln();
         TimeController.getInstance().addCollitionTimes();
         mCurrentSendingFrame.addCollitionTimes();
         mCurrentSendingFrame.setStartTimeNow();
@@ -203,14 +202,17 @@ public class Station extends AbstractRole{
                         needSchedule = receivingFrames.get(0) == latestFrame;
                     }
                     if (needSchedule) {
-                        onPostCommunication(true, false);
+                        logger.log("%d collision",getId());
+                        onPostCommunication(false, false);
                     }
                 }
             }, timeToDo);
         }
+        for(Frame frame : receivingFrames){
+            frame.setScheduled();
+        }
     }
 
-    // TODO: 16/4/8 A被B发送ACK,刚好发送完成,这时候C给B发送RTS,这个情况的ACK和RTS算不算碰撞
     /**
      * @param frame 开始接受frame一个新的,如果有正在接受的frame,
      *              则表明所有的frame发生了碰撞.则将所有的frame
@@ -222,6 +224,17 @@ public class Station extends AbstractRole{
         if(getCurrentMode() != Mode.READ_MODE || inNAV()){
             return false;
         }
+        //frame的起始传输时刻是当前时候,只要receivingFrames中存在一个Frame的
+        //终点传输时刻大于当前时刻,则表明frame会遭到碰撞
+        //如果终点传输时刻等于当前时刻,本仿真试验认为不会发生碰撞
+        for(Frame frame1 : receivingFrames){
+            if(frame.getStartTime() < frame1.getEndTime()){
+                frame.setCollision();
+                frame1.setCollision();
+            } else if(frame.getStartTime() > frame1.getEndTime()){
+                throw new IllegalStateException(getId() + " has rubbish");
+            }
+        }
         receivingFrames.add(frame);
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -230,10 +243,7 @@ public class Station extends AbstractRole{
             }
         },frame.getTransmitDuration());
 
-        if(receivingFrames.size() > 1){
-            for(Frame frame1 : receivingFrames){
-                frame1.setCollision();
-            }
+        if(frame.collision()){
             findLatestCollisionFrame();
             return true;
         }
