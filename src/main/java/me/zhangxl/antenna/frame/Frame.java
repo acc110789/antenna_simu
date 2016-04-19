@@ -28,6 +28,10 @@ public abstract class Frame {
         this.scheduled = true;
     }
 
+    public void unsetScheduled(){
+        this.scheduled = false;
+    }
+
     public boolean scheduled(){
         return this.scheduled;
     }

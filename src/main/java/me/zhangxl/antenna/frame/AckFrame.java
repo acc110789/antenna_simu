@@ -14,8 +14,9 @@ public class AckFrame extends Frame {
     }
 
     public static double getAckTimeOut(){
-        return Config.getInstance().getSifs() + Config.getInstance().getDifs()
+        double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + ackLength / Config.getInstance().getBandWidth();
+        return oldTimeout - Config.getInstance().getDifs();
     }
 
     @Override

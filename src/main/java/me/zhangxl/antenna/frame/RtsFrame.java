@@ -14,8 +14,9 @@ public class RtsFrame extends Frame {
     }
 
     public static double getRtsTimeOut(){
-        return Config.getInstance().getSifs() + Config.getInstance().getDifs()
+        double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + rtsLength / Config.getInstance().getBandWidth();
+        return oldTimeout - Config.getInstance().getDifs();
     }
 
     @Override

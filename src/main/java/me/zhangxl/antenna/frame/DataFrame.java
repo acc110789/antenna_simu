@@ -40,8 +40,9 @@ public class DataFrame extends Frame {
     }
 
     public static double getDataTimeOut() {
-        return Config.getInstance().getSifs() + Config.getInstance().getDifs()
+        double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + frameLength / Config.getInstance().getBandWidth();
+        return oldTimeout - Config.getInstance().getDifs();
     }
 
     private static int nextSerialNum() {

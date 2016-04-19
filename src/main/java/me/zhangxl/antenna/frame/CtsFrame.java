@@ -14,8 +14,9 @@ public class CtsFrame extends Frame {
     }
 
     public static double getCtsTimeOut(){
-        return Config.getInstance().getSifs() + Config.getInstance().getDifs()
+        double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
                 + ctsLength / Config.getInstance().getBandWidth();
+        return oldTimeout - Config.getInstance().getDifs();
     }
 
     @Override

@@ -55,7 +55,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
             public void run() {
                 if (getCurrentStatus() == Status.WAITING_CTS) {
                     logger.log("%d after onPostSendRTS() wait CTS timeout",getId());
-                    onPostCommunication(false,true);
+                    onPostTimeOut();
                 }
             }
         }, CtsFrame.getCtsTimeOut());
@@ -105,7 +105,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
             public void run() {
                 if (getCurrentStatus() == Status.WAITING_ACK) {
                     logger.log("%d after onPostSendDATA(),wait ack timeout",getId());
-                    onPostCommunication(false , true);
+                    onPostTimeOut();
                 }
             }
         }, AckFrame.getAckTimeOut());
@@ -171,8 +171,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
             if (Logger.DEBUG_STATION) {
                 logger.log("%d send a data successfully...", getId());
             }
-            onSendSuccess();
-            onPostCommunication(true, false);
+            onPostCommunication(, EndReason.SUCCESS, );
         }
     }
 

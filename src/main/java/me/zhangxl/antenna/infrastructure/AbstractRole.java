@@ -1,6 +1,8 @@
 package me.zhangxl.antenna.infrastructure;
 
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
+import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
 import static me.zhangxl.antenna.infrastructure.BaseRole.Mode.READ_MODE;
@@ -58,18 +60,25 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
     abstract void backOffDueToTimeout();
 
-    abstract void scheduleDIFS(boolean Immediate);
+    @Override
+    public void onPostTimeOut() {
+
+    }
 
     @Override
-    public void onPostCommunication(boolean success, boolean timeout){
+    public void onPostCommunication(boolean success, boolean fail){
         assert getCurrentStatus() != Status.IDLE;
-        if(!success && getCurrentStatus().isSender()){
-            backOffDueToTimeout();
+        if(success){
+            onSendSuccess();
         }
-        setCurrentStatus(Status.IDLE);
+        if(getCurrentStatus().isSender() && fail){
+                getDataToSend().unsetScheduled();
+                backOffDueToTimeout();
+        }
         setCommunicationTarget(defaultCommunicationTarget);
-        scheduleDIFS(timeout);
+        setCurrentStatus(Status.IDLE);
     }
+
 
     @Override
     public int getCommunicationTarget() {
@@ -91,9 +100,34 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
         return this.currentStatus;
     }
 
+    abstract void onPostDIFS();
+
     @Override
     public void setCurrentStatus(Status status) {
         this.currentStatus = status;
+        if(this.currentStatus.isReadMode()){
+            Medium.getInstance().notify((Station)this);
+        }
+        if(getCurrentStatus() == Status.IDLE) {
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    TimeController.getInstance().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            TimeController.getInstance().post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(getCurrentStatus() == Status.IDLE){
+                                        onPostDIFS();
+                                    }
+                                }
+                            },0);
+                        }
+                    },0);
+                }
+            }, Config.getInstance().getDifs());
+        }
     }
 
     @Override

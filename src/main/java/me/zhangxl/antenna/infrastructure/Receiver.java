@@ -10,6 +10,7 @@ import me.zhangxl.antenna.util.Logger;
 
 /**
  * 指一次通信过程中的接受者角色
+ * 凡是收到的数据一定是没有遭受到碰撞的数据
  * Created by zhangxiaolong on 16/4/15.
  */
 class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
@@ -65,7 +66,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
             public void run() {
                 if (getCurrentStatus() == Status.WAITING_DATA) {
                     logger.log("station :%d after onPostSendCTS(),wait data timeout", getId());
-                    onPostCommunication(false, true);
+                    onPostTimeOut();
                 }
             }
         }, DataFrame.getDataTimeOut());
@@ -104,21 +105,18 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
     @Override
     public void onPostSendACK() {
         logger.log("%d onPostSendACK()", getId());
-        assert getCurrentMode() == Mode.WRITE_MODE;
-        setReadMode();
-        onPostCommunication(true, false);
+        assert getCurrentStatus() == Status.SENDING_ACK;
+        onPostCommunication(true,false);
     }
 
     @Override
     public void onPreRecvRTS(final RtsFrame frame) {
-        if (getCommunicationTarget() == BaseRole.defaultCommunicationTarget) {
+        if (getCommunicationTarget() == BaseRole.defaultCommunicationTarget && frame.getTargetId() == getId()) {
             logger.log("%d onPreRecvRTS()", getId());
             assert getCurrentMode() == Mode.READ_MODE;
             assert getCurrentStatus() == Status.IDLE;
             setCurrentStatus(Status.RECEIVING_RTS);
-            if (frame.getTargetId() == getId()){
-                setCommunicationTarget(frame.getSrcId());
-            }
+            setCommunicationTarget(frame.getSrcId());
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
@@ -133,24 +131,26 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
 
     @Override
     public void onPostRecvRTS(RtsFrame frame) {
-        if (!frame.collision()) {
-            logger.log("%d onPostRecvRTS()", getId());
-            if (getCommunicationTarget() != defaultCommunicationTarget) {
-                onPreSendSIFSAndCTS(frame);
+        String infoToLog = String.format("%d onPostRecvRTS()", getId());
+        if(getCurrentStatus() == Status.IDLE || getCurrentStatus() == Status.SLOTING){
+            if(frame.getTargetId() == getId()){
+                //的确是发给本Station的,则开启会话
+                assert getCommunicationTarget() == defaultCommunicationTarget;
+                setCommunicationTarget(frame.getSrcId());
             } else {
-                //收到的是与自己无关的frame,此时应该设置NAV
-                setNAV();
-                logger.log("%d blocked due to NAV set", getId());
+                //不是发给本Station的,这种情况下应当设置NAV向量
+                setCurrentStatus(Status.NAV);
                 TimeController.getInstance().post(new Runnable() {
                     @Override
                     public void run() {
-                        unsetNAV();
-                        logger.log("%d unblocked", getId());
-                        onPostCommunication(true, false);
+                        onPostCommunication(false,false);
                     }
-                }, frame.getNavDuration());
+                },frame.getNavDuration());
             }
+        } else {
+            infoToLog += "currentStatus is :" + getCurrentStatus().toString() + "ignore";
         }
+        logger.log(infoToLog);
     }
 
     @Override
