@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.util.Properties;
 
 /**
@@ -51,6 +52,10 @@ public class Config {
     private double simulationDuration = -1;
     private double warmUp = -1;
     private long fixDataLength = -1;
+    /**
+     * 时间的精度(小数点之后)
+     */
+    private int timePrecision = 13;
 
     private Config() {
         try {
@@ -62,6 +67,12 @@ public class Config {
 
     public static Config getInstance() {
         return sInstance;
+    }
+
+    public static double round(double v) {
+        BigDecimal b = new BigDecimal(Double.toString(v));
+        BigDecimal one = new BigDecimal("1");
+        return b.divide(one, getInstance().getTimePrecision(), BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
     private void loadConfig() throws IOException {
@@ -112,15 +123,15 @@ public class Config {
     }
 
     public double getDifs() {
-        return difs;
+        return round(difs);
     }
 
     public double getSifs() {
-        return sifs;
+        return round(sifs);
     }
 
     public double getSlotLength() {
-        return slotLength;
+        return round(slotLength);
     }
 
     public int getDefaultCW() {
@@ -161,6 +172,10 @@ public class Config {
 
     public double getSimulationDuration() {
         return simulationDuration;
+    }
+
+    private int getTimePrecision(){
+        return this.timePrecision;
     }
 
 }

@@ -44,12 +44,15 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
     @Override
     public void onPostCommunication(boolean success, boolean fail){
         assert getCurrentStatus() != Status.IDLE;
-        if(success){
-            onSendSuccess();
-        }
-        if(getCurrentStatus().isSender() && fail){
-                getDataToSend().unsetScheduled();
+        if(getCurrentStatus().isSender()) {
+            //如果发送成功,则统计数据
+            if (success) {
+                onSendSuccess();
+            }
+            //如果发送失败,则将backOff窗口加倍
+            if (fail) {
                 backOffDueToTimeout();
+            }
         }
         setCommunicationTarget(defaultCommunicationTarget);
         setCurrentStatus(Status.IDLE);
@@ -81,7 +84,7 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
             Medium.getInstance().notify((Station)this);
         }
         if(previous.isReadMode() && this.currentStatus.isWriteMode()){
-            // TODO: 16/4/19 要将正在接受的frame push到Medium的缓冲区
+            // TODO: 16/4/19 要将正在接收的frame push到Medium的缓冲区
         }
         if(getCurrentStatus() == Status.IDLE) {
             TimeController.getInstance().post(new Runnable() {

@@ -48,7 +48,6 @@ public abstract class Medium {
     }
 
     /**
-     * @param station
      * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
      */
     public void putFrame(final Station station, final Frame frame) {

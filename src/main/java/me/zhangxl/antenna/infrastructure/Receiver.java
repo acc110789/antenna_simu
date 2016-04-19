@@ -2,6 +2,7 @@ package me.zhangxl.antenna.infrastructure;
 
 import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
+import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
@@ -22,34 +23,31 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
 
     @Override
     public void onPreSendSIFSAndCTS(final RtsFrame frame) {
-        onSendMethod(String.format("%d onPreSendSIFSAndCTS()", getId()),
-                Status.RECEIVING_RTS, Status.SENDING_SIFS_CTS,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendSIFSAndCTS()", getId()), Status.RECEIVING_RTS,
+                Status.SENDING_SIFS_CTS, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendCTS(frame.generateCtsFrame());
                     }
-                },Config.getInstance().getSifs());
+                }, Config.getInstance().getSifs());
     }
 
     @Override
     public void onPreSendCTS(CtsFrame frame) {
-        onSendMethod(String.format("%d onPreSendCTS()", getId()),
-                Status.SENDING_SIFS_CTS, Status.SENDING_CTS,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendCTS()", getId()), Status.SENDING_SIFS_CTS,
+                Status.SENDING_CTS, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendCTS();
                     }
-                },frame.getTransmitDuration());
+                }, frame.getTransmitDuration());
         sendFrame(frame);
     }
 
     @Override
     public void onPostSendCTS() {
-        onSendMethod(String.format("%d onPostSendCTS()", getId()),
-                Status.SENDING_CTS, Status.WAITING_DATA,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPostSendCTS()", getId()), Status.SENDING_CTS,
+                Status.WAITING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_DATA) {
@@ -57,31 +55,29 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                             onPostCommunication(false,true);
                         }
                     }
-                },DataFrame.getDataTimeOut());
+                }, DataFrame.getDataTimeOut(),TimeTask.DATA_TIMEOUT);
     }
 
     @Override
     public void onPreSendSIFSAndACK(final AckFrame frame) {
-        onSendMethod(String.format("%d onPreSendSIFSAndACK()", getId()),
-                Status.RECEIVING_DATA, Status.SENDING_SIFS_ACK,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendSIFSAndACK()", getId()), Status.RECEIVING_DATA,
+                Status.SENDING_SIFS_ACK, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendAck(frame);
                     }
-                },Config.getInstance().getSifs());
+                }, Config.getInstance().getSifs());
     }
 
     @Override
     public void onPreSendAck(AckFrame frame) {
-        onSendMethod(String.format("%d onPreSendAck()", getId()),
-                Status.SENDING_SIFS_ACK, Status.SENDING_ACK,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendAck()", getId()), Status.SENDING_SIFS_ACK,
+                Status.SENDING_ACK, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendACK();
                     }
-                },frame.getTransmitDuration());
+                }, frame.getTransmitDuration());
         sendFrame(frame);
     }
 
@@ -123,9 +119,9 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
      */
     @Override
     public void onPostRecvData(final DataFrame frame) {
-        onPostRecvMethod(String.format("%d onPostRecvData()", getId()),
-                frame, Status.WAITING_DATA, Status.RECEIVING_DATA,
-                new Runnable() {
+        onPostRecvMethod(logger,
+                String.format("%d onPostRecvData()", getId()), frame, Status.WAITING_DATA,
+                Status.RECEIVING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendSIFSAndACK(frame.generateAckFrame());

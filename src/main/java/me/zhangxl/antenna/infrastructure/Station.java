@@ -2,6 +2,7 @@ package me.zhangxl.antenna.infrastructure;
 
 import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
+import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
@@ -168,6 +169,14 @@ public class Station extends AbstractRole{
         if(getCurrentStatus() == Status.SLOTING || getCurrentStatus() == Status.IDLE){
             setCurrentStatus(Status.IDLE_RECEIVING);
         }
+        int priority = TimeTask.COMMON_PRIORITY;
+        if(frame instanceof CtsFrame){
+            priority = TimeTask.POST_SEND_CTS;
+        } else if(frame instanceof DataFrame){
+            priority = TimeTask.POST_SEND_DATA;
+        } else if(frame instanceof AckFrame){
+            priority = TimeTask.POST_SEND_ACK;
+        }
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -193,7 +202,7 @@ public class Station extends AbstractRole{
                 }
                 //接收失败且当前状态不是处于IDLE_RECEIVING的状态的时候就当作没有什么都没有发生过,上层发现timeout之后会自行处理
             }
-        },frame.getTransmitDuration());
+        },frame.getTransmitDuration(),priority);
         return true;
     }
 

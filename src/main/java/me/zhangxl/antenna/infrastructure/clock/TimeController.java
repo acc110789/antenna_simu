@@ -55,11 +55,20 @@ public class TimeController {
      * 只能在一开始活着loop循环调用的函数中添加.
      * 防止刚刚被添加进来时间就被剪掉
      */
-    public synchronized void post(Runnable toRun,double timeToRun){
+    public  void post(Runnable toRun,double timeToRun){
         if(Logger.DEBUG_CLOCK){
             logger.log("post a runnable at %f",timeToRun);
         }
+        timeToRun = Config.round(timeToRun);
         tasks.put(new TimeTask(timeToRun,toRun));
+    }
+
+    public  void post(Runnable toRun,double timeToRun,int priority){
+        if(Logger.DEBUG_CLOCK){
+            logger.log("post a runnable at %f",timeToRun);
+        }
+        timeToRun = Config.round(timeToRun);
+        tasks.put(new TimeTask(timeToRun,toRun,priority));
     }
 
     public void deActive(){

@@ -3,6 +3,7 @@ package me.zhangxl.antenna.infrastructure;
 import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
+import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Logger;
 
@@ -10,9 +11,6 @@ import me.zhangxl.antenna.util.Logger;
  * Created by zhangxiaolong on 16/4/15.
  */
 class BaseRoleFilter implements BaseRole {
-
-    private static final Logger receiverLogger = new Logger(Receiver.class);
-    private static final Logger senderLogger = new Logger(Sender.class);
 
     private final BaseRole mBaseRole;
 
@@ -60,7 +58,7 @@ class BaseRoleFilter implements BaseRole {
         Medium.getInstance().putFrame((Station) mBaseRole,frame);
     }
 
-    void onPostRecvMethod(String info, Frame frame,
+    void onPostRecvMethod(Logger receiverLogger, String info, Frame frame,
                           Status lastStatus, Status currentStatus, Runnable nextAction){
         receiverLogger.log(info);
         if(getCurrentStatus() == lastStatus){
@@ -80,11 +78,17 @@ class BaseRoleFilter implements BaseRole {
         }
     }
 
-    void onSendMethod(String info, Status lastStatus,
+    void onSendMethod(Logger senderLogger, String info, Status lastStatus,
                       Status currentStatus, Runnable toPost, double postTime){
+        onSendMethod(senderLogger, info, lastStatus,
+                currentStatus, toPost, postTime, TimeTask.COMMON_PRIORITY);
+    }
+
+    void onSendMethod(Logger senderLogger, String info, Status lastStatus,
+                              Status currentStatus, Runnable toPost, double postTime, int priority){
         senderLogger.log(info);
         assert getCurrentStatus() == lastStatus;
         setCurrentStatus(currentStatus);
-        TimeController.getInstance().post(toPost,postTime);
+        TimeController.getInstance().post(toPost,postTime,priority);
     }
 }

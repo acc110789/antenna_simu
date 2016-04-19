@@ -15,13 +15,13 @@ public class CtsFrame extends Frame {
 
     public static double getCtsTimeOut(){
         double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
-                + ctsLength / Config.getInstance().getBandWidth();
+                + Config.round(ctsLength / Config.getInstance().getBandWidth());
         return oldTimeout - Config.getInstance().getDifs();
     }
 
     @Override
     public double getNavDuration() {
-        return Config.getInstance().getSifs() + DataFrame.frameLength/Config.getInstance().getBandWidth()
-                +Config.getInstance().getSifs() + AckFrame.ackLength/Config.getInstance().getBandWidth();
+        return Config.getInstance().getSifs() + Config.round(DataFrame.frameLength/Config.getInstance().getBandWidth())
+                +Config.getInstance().getSifs() + Config.round(AckFrame.ackLength/Config.getInstance().getBandWidth());
     }
 }

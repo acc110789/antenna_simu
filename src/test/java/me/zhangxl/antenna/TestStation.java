@@ -85,4 +85,9 @@ public class TestStation {
         testStations(4,0,1);
     }
 
+    @Test
+    public void testDouble(){
+        System.out.println(Config.round(Math.PI));
+    }
+
 }

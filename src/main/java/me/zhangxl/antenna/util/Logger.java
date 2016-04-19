@@ -52,7 +52,7 @@ public class Logger {
 
     private void logInner(String formater,Object... objects){
         if(LOG) {
-            String time = String.format("time : %#.10f  ", TimeController.getInstance().getCurrentTime());
+            String time = String.format("time : %#.14f  ", TimeController.getInstance().getCurrentTime());
             String tag = String.format("%-15s",TAG);
             printer.format(time + tag + "  " + formater + "\n", objects);
         }

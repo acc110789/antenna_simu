@@ -13,7 +13,6 @@ public abstract class Frame {
     private final int targetId;
     private boolean collision = false;
     private double startTime = -1;
-    private boolean scheduled = false;
 
     Frame(int srcId, int targetId, long length){
         this.srcId = srcId;
@@ -22,18 +21,6 @@ public abstract class Frame {
         if(this.length < 0){
             throw new IllegalArgumentException("length is less than 0");
         }
-    }
-
-    public void setScheduled(){
-        this.scheduled = true;
-    }
-
-    public void unsetScheduled(){
-        this.scheduled = false;
-    }
-
-    public boolean scheduled(){
-        return this.scheduled;
     }
 
     public void setCollision(){
@@ -59,7 +46,7 @@ public abstract class Frame {
         if(length <= 0){
             throw new IllegalArgumentException("length is negative");
         }
-        return length / Config.getInstance().getBandWidth();
+        return Config.round(length / Config.getInstance().getBandWidth());
     }
 
     private long getLength(){

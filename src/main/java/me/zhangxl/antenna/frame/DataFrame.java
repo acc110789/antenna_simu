@@ -41,7 +41,7 @@ public class DataFrame extends Frame {
 
     public static double getDataTimeOut() {
         double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
-                + frameLength / Config.getInstance().getBandWidth();
+                + Config.round(frameLength / Config.getInstance().getBandWidth());
         return oldTimeout - Config.getInstance().getDifs();
     }
 

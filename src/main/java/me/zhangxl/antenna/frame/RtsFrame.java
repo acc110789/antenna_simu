@@ -15,14 +15,14 @@ public class RtsFrame extends Frame {
 
     public static double getRtsTimeOut(){
         double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
-                + rtsLength / Config.getInstance().getBandWidth();
+                + Config.round(rtsLength / Config.getInstance().getBandWidth());
         return oldTimeout - Config.getInstance().getDifs();
     }
 
     @Override
     public double getNavDuration() {
-        return Config.getInstance().getSifs() + CtsFrame.ctsLength/Config.getInstance().getBandWidth()
-                +Config.getInstance().getSifs() + DataFrame.frameLength/Config.getInstance().getBandWidth()
-                +Config.getInstance().getSifs() + AckFrame.ackLength/Config.getInstance().getBandWidth();
+        return Config.getInstance().getSifs() + Config.round(CtsFrame.ctsLength/Config.getInstance().getBandWidth())
+                +Config.getInstance().getSifs() + Config.round(DataFrame.frameLength/Config.getInstance().getBandWidth())
+                +Config.getInstance().getSifs() + Config.round(AckFrame.ackLength/Config.getInstance().getBandWidth());
     }
 }

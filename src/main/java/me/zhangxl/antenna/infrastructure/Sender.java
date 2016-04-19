@@ -4,6 +4,7 @@ import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
+import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
@@ -23,23 +24,21 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     @Override
     public void onPreSendRTS(RtsFrame frame) {
-        onSendMethod(String.format("%d onPreSendRTS()", getId()),
-                Status.SLOTING, Status.SENDING_RTS,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendRTS()", getId()), Status.SLOTING,
+                Status.SENDING_RTS, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendRTS();
                     }
-                },frame.getTransmitDuration());
+                }, frame.getTransmitDuration());
         setCommunicationTarget(frame.getTargetId());
         sendFrame(frame);
     }
 
     @Override
     public void onPostSendRTS() {
-        onSendMethod(String.format("%d onPostSendRTS()",getId()),
-                Status.SENDING_RTS, Status.WAITING_CTS,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPostSendRTS()",getId()), Status.SENDING_RTS,
+                Status.WAITING_CTS, new Runnable() {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_CTS) {
@@ -47,47 +46,45 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                             onPostCommunication(false,true);
                         }
                     }
-                },CtsFrame.getCtsTimeOut());
+                }, CtsFrame.getCtsTimeOut(), TimeTask.CTS_TIMEOUT);
     }
 
     @Override
     public void onPreSendSIFSAndDATA() {
-        onSendMethod(String.format("%d onPreSendSIFSAndDATA()",getId()),
-                Status.RECEIVING_CTS, Status.SENDING_SIFS_DATA,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()",getId()), Status.RECEIVING_CTS,
+                Status.SENDING_SIFS_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendData(getDataToSend());
                     }
-                },Config.getInstance().getSifs());
+                }, Config.getInstance().getSifs());
     }
 
     @Override
     public void onPreSendData(DataFrame dataFrame) {
-        onSendMethod(String.format("%d onPreSendData()",getId()),
-                Status.SENDING_SIFS_DATA, Status.SENDING_DATA,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendData()",getId()), Status.SENDING_SIFS_DATA,
+                Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendDATA();
                     }
-                },dataFrame.getTransmitDuration());
+                }, dataFrame.getTransmitDuration());
         sendFrame(dataFrame);
     }
 
     @Override
     public void onPostSendDATA() {
-        onSendMethod(String.format("%d onPostSendDATA()",getId()),
-                Status.SENDING_DATA, Status.WAITING_ACK,
-                new Runnable() {
+        onSendMethod(logger, String.format("%d onPostSendDATA()",getId()), Status.SENDING_DATA,
+                Status.WAITING_ACK, new Runnable() {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_ACK) {
                             logger.log("%d after onPostSendDATA(),wait ack timeout",getId());
                             onPostCommunication(false,true);
                         }
+
                     }
-                },AckFrame.getAckTimeOut());
+                }, AckFrame.getAckTimeOut(),TimeTask.ACK_TIMEOUT);
     }
 
     /**
@@ -96,9 +93,9 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
      */
     @Override
     public void onPostRecvCTS(CtsFrame frame) {
-        onPostRecvMethod(String.format("%d onPostRecvCTS()", getId()), frame,
-                Status.WAITING_CTS, Status.RECEIVING_CTS,
-                new Runnable() {
+        onPostRecvMethod(logger, String.format("%d onPostRecvCTS()", getId()),
+                frame, Status.WAITING_CTS,
+                Status.RECEIVING_CTS, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendSIFSAndDATA();
@@ -108,9 +105,9 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     @Override
     public void onPostRecvACK(AckFrame frame){
-        onPostRecvMethod(String.format("%d onPostRecvACK()",getId()), frame,
-                Status.WAITING_ACK, Status.RECEIVING_ACK,
-                new Runnable() {
+        onPostRecvMethod(logger, String.format("%d onPostRecvACK()",getId()),
+                frame, Status.WAITING_ACK,
+                Status.RECEIVING_ACK, new Runnable() {
                     @Override
                     public void run() {
                         if (Logger.DEBUG_STATION) {
