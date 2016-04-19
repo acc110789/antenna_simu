@@ -25,11 +25,7 @@ interface SenderExpandRole extends SendBaseRole {
 
     void onPostSendDATA();
 
-    void onPreRecvCTS(final CtsFrame frame);
-
     void onPostRecvCTS(CtsFrame frame);
-
-    void onPreRecvACK(final AckFrame frame);
 
     /**
      * 表明发送成功了

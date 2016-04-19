@@ -64,13 +64,11 @@ interface BaseRole {
         boolean isReadMode(){
             return mode == Mode.READ_MODE;
         }
+
+        boolean isWriteMode(){
+            return mode == Mode.WRITE_MODE;
+        }
     }
-
-    Mode getCurrentMode();
-
-    void setReadMode();
-
-    void setWriteMode();
 
     void setCurrentStatus(Status status);
 
@@ -86,7 +84,7 @@ interface BaseRole {
      *      对于发送方来说 {@link SenderExpandRole#onPostRecvACK(AckFrame)}
      *      对于接受方来说 {@link ReceiverExpandRole#onPostSendACK()}
      * (2)通信失败,对于一方来说是遭受到了碰撞,对于另一方来说是超时没有收到期待的frame
-     *      碰撞发生的地点 {@link Station#scheduleLatestCollisionFrame(Frame)}
+     *      碰撞发生的地点 {@link Station#(Frame)}
      *      超时的地方 {@link SenderExpandRole#onPostSendRTS()}
      *                {@link ReceiverExpandRole#onPostSendCTS()}
      *                {@link SenderExpandRole#onPostSendDATA()}
@@ -99,12 +97,6 @@ interface BaseRole {
      * @param fail
      */
     void onPostCommunication(boolean success, boolean fail);
-
-    /**
-     * 当发生timeOut的时候,不能立刻进行DIFS,因为当前有可能正在接受无用的frame
-     * 应该
-     */
-    void onPostTimeOut();
 
     void setCommunicationTarget(int id);
 

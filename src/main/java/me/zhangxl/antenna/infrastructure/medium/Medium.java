@@ -28,7 +28,7 @@ public abstract class Medium {
             public void run() {
                 //触发所有的节点
                 for(Station station : stationList){
-                    station.scheduleDIFS(true);
+                    station.onPostDIFS();
                 }
             }
         });

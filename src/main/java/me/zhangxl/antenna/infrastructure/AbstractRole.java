@@ -5,9 +5,6 @@ import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
 
-import static me.zhangxl.antenna.infrastructure.BaseRole.Mode.READ_MODE;
-import static me.zhangxl.antenna.infrastructure.BaseRole.Mode.WRITE_MODE;
-
 /**
  * 对于全向天线来说,所有的Statin的状态都是同步的.
  * 但是对于定向天线来说,如果一个DataFrame的发送
@@ -26,13 +23,11 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
     // TODO: 16/4/10 暂时没有考虑两件事情在同一时间点发生的概率是0
     private static Logger logger = new Logger(AbstractRole.class);
     private final int id;
-    private boolean NAVING = false;
 
     //需要注意的是一旦一个Station进入了写(发送)模式之后,
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
-    private Mode currentMode = READ_MODE;
-    private Status currentStatus = Status.IDLE;
+    private Status currentStatus = Status.SLOTING;
 
     /**
      * 节点的当前通信对象
@@ -44,26 +39,7 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
         this.id = id;
     }
 
-    @Override
-    public void setReadMode() {
-        if (this.currentMode != WRITE_MODE) {
-            throw new IllegalStateException("interesting, already in read mode");
-        }
-        this.currentMode = READ_MODE;
-        Medium.getInstance().notify((Station) this);
-    }
-
-    @Override
-    public void setWriteMode() {
-        this.currentMode = WRITE_MODE;
-    }
-
     abstract void backOffDueToTimeout();
-
-    @Override
-    public void onPostTimeOut() {
-
-    }
 
     @Override
     public void onPostCommunication(boolean success, boolean fail){
@@ -91,11 +67,6 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
     }
 
     @Override
-    public Mode getCurrentMode() {
-        return currentMode;
-    }
-
-    @Override
     public Status getCurrentStatus() {
         return this.currentStatus;
     }
@@ -104,9 +75,13 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
     @Override
     public void setCurrentStatus(Status status) {
+        Status previous = this.currentStatus;
         this.currentStatus = status;
         if(this.currentStatus.isReadMode()){
             Medium.getInstance().notify((Station)this);
+        }
+        if(previous.isReadMode() && this.currentStatus.isWriteMode()){
+            // TODO: 16/4/19 要将正在接受的frame push到Medium的缓冲区
         }
         if(getCurrentStatus() == Status.IDLE) {
             TimeController.getInstance().post(new Runnable() {
@@ -119,7 +94,7 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
                                 @Override
                                 public void run() {
                                     if(getCurrentStatus() == Status.IDLE){
-                                        onPostDIFS();
+                                        setCurrentStatus(Status.SLOTING);
                                     }
                                 }
                             },0);
@@ -127,26 +102,13 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
                     },0);
                 }
             }, Config.getInstance().getDifs());
+        } else if(getCurrentStatus() == Status.SLOTING){
+            onPostDIFS();
         }
     }
 
     @Override
     public int getId() {
         return this.id;
-    }
-
-    @Override
-    public void setNAV() {
-        this.NAVING = true;
-    }
-
-    @Override
-    public void unsetNAV() {
-        this.NAVING = false;
-    }
-
-    @Override
-    public boolean inNAV() {
-        return this.NAVING;
     }
 }

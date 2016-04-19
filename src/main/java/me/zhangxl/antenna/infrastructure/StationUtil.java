@@ -40,7 +40,7 @@ public class StationUtil {
     /**
      * @return frame1 和 frame2有重叠部分,即使没有交集,表明不会发生碰撞
      */
-    public static boolean hasIntersection(Frame frame1 , Frame frame2){
+    static boolean hasIntersection(Frame frame1, Frame frame2){
         return frame2.getStartTime() < frame1.getEndTime()
                 && frame1.getStartTime() < frame2.getEndTime();
     }

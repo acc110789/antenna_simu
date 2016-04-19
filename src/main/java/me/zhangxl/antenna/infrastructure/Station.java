@@ -18,7 +18,6 @@ public class Station extends AbstractRole{
 
     private static final Logger logger = new Logger(Station.class);
     private final Sender mSender;
-    private final Balloon balloon = new Balloon();
     private final Receiver mReceiver;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
 
@@ -61,26 +60,10 @@ public class Station extends AbstractRole{
         mCurrentSendingFrame.setStartTimeNow();
     }
 
-//    @Override
-//    public void scheduleDIFS() {
-//        assert getCurrentStatus() == Status.IDLE;
-//        TimeController.getInstance().post(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (getCurrentStatus() == Status.IDLE) {
-//                    //如果过了DIFS状态仍然是IDLE,则证明可以postDIFS
-//                    // TODO: 16/4/15  一个Station有可能在一个DIFS期间从IDLE变成非IDLE,然后又变回IDLE
-//                    onPostDIFS();
-//                }
-//            }
-//        }, Config.getInstance().getDifs());
-//    }
-
     @Override
-    void onPostDIFS() {
+    public void onPostDIFS() {
         logger.log("%d onPostDIFS", getId());
-        assert !inNAV();
-        assert getCurrentStatus() == Status.IDLE;
+        assert getCurrentStatus() == Status.SLOTING;
         if (mCurrentSendingFrame == null) {
             getDataFrameToSend();
         } else if (mCurrentSendingFrame.isCollision()) {
@@ -91,12 +74,11 @@ public class Station extends AbstractRole{
     }
 
     private void scheduleSLOT() {
-        assert !inNAV();
-        assert getCurrentStatus() == Status.IDLE;
+        assert getCurrentStatus() == Status.SLOTING;
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if(getCurrentStatus() == Status.IDLE) {
+                if(getCurrentStatus() == Status.SLOTING) {
                     //有可能Station已经作为接收端开始在接受信息了
                     //这种情况下,不能再执行onPostSLOT()了
                     onPostSLOT();
@@ -106,15 +88,14 @@ public class Station extends AbstractRole{
     }
 
     private void scheduleSlotIfNeed(){
-        if(getCurrentStatus() == Status.IDLE){
+        if(getCurrentStatus() == Status.SLOTING){
             scheduleSLOT();
         }
     }
 
     private void onPostSLOT() {
         logger.log("%d onPostSLOT", getId());
-        assert !inNAV();
-        assert getCurrentStatus() == Status.IDLE;
+        assert getCurrentStatus() == Status.SLOTING;
         if (mCurrentSendingFrame != null) {
             mCurrentSendingFrame.countDownBackOff();
         } else {
@@ -166,63 +147,6 @@ public class Station extends AbstractRole{
         mCurrentSendingFrame = null;
     }
 
-//    @Override
-//    double getLongestWaitingTime(){
-//        double latestTime = TimeController.getInstance().getCurrentTime();
-//        for(Frame frame1 : receivingFrames){
-//            if(frame1.getEndTime() > latestTime){
-//                latestTime = frame1.getEndTime();
-//            }
-//        }
-//        for(Frame frame : receivingFrames){
-//            frame.setScheduled();
-//        }
-//        return latestTime - TimeController.getInstance().getCurrentTime();
-//    }
-//
-//    /**
-//     * 想要尝试进入SLOTING状态
-//     */
-//    private void waitIdleChannelAndTrySend(){
-//        if(getCurrentStatus() == Status.IDLE) {
-//            TimeController.getInstance().post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    waitIdleChannelAndTrySendInner();
-//                }
-//            }, getLongestWaitingTime());
-//        }
-//    }
-//
-//    @Override
-//    void waitIdleChannelAndTrySendInner(){
-//        TimeController.getInstance().post(new Runnable() {
-//            @Override
-//            public void run() {
-//                TimeController.getInstance().post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if(receivingFrames.size()==0){
-//                            balloon.reset();
-//                            TimeController.getInstance().post(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    if(balloon.isIdle()){
-//                                        onPostDIFS();
-//                                    } else {
-//                                        waitIdleChannelAndTrySend();
-//                                    }
-//                                }
-//                            },Config.getInstance().getDifs());
-//                        } else {
-//                            waitIdleChannelAndTrySend();
-//                        }
-//                    }
-//                },0);
-//            }
-//        },0);
-//    }
-
     /**
      * @param frame 开始接受frame一个新的,如果有正在接受的frame,
      *              则表明所有的frame发生了碰撞.则将所有的frame
@@ -230,7 +154,6 @@ public class Station extends AbstractRole{
      * @return accepted by this station
      */
     public boolean beginReceiveFrame(final Frame frame){
-        // TODO: 16/4/18 要停止SLOT ,在接受数据的时候停止SLOT
         //当station处于写数据模式  或者 处于NAV中时,不接受数据
         if(!getCurrentStatus().isReadMode()){
             return false;
@@ -241,7 +164,6 @@ public class Station extends AbstractRole{
                 frame1.setCollision();
             }
         }
-        balloon.touch();
         receivingFrames.add(frame);
         if(getCurrentStatus() == Status.SLOTING || getCurrentStatus() == Status.IDLE){
             setCurrentStatus(Status.IDLE_RECEIVING);
@@ -269,6 +191,7 @@ public class Station extends AbstractRole{
                     //接收失败且当前状态处于IDLE_RECEIVING状态
                     setCurrentStatus(Status.IDLE);
                 }
+                //接收失败且当前状态不是处于IDLE_RECEIVING的状态的时候就当作没有什么都没有发生过,上层发现timeout之后会自行处理
             }
         },frame.getTransmitDuration());
         return true;

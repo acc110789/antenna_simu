@@ -34,18 +34,9 @@ interface ReceiverExpandRole extends ReceiveBaseRole {
     void onPostSendACK();
 
     /**
-     * 开始接受rts frame,如果本station是接受目标,则开启会话
-     * 如果本station不是接受目标,则开启NAV
-     * @param frame 即将被接受的frame
-     */
-    void onPreRecvRTS(final RtsFrame frame);
-
-    /**
      * {@link #onPreSendSIFSAndCTS(RtsFrame)} 与这个方法是在同一时间点,直接调用这个方法即可
      */
     void onPostRecvRTS(RtsFrame frame);
-
-    void onPreRecvData(final DataFrame dataFrame);
 
     void onPostRecvData(DataFrame frame);
 }
