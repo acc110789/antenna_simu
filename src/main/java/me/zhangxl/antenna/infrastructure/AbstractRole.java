@@ -3,7 +3,8 @@ package me.zhangxl.antenna.infrastructure;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Logger;
+import me.zhangxl.antenna.util.SimuLoggerManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * 对于全向天线来说,所有的Statin的状态都是同步的.
@@ -20,7 +21,7 @@ import me.zhangxl.antenna.util.Logger;
  */
 abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
-    private static Logger logger = new Logger(AbstractRole.class);
+    private static Logger logger = SimuLoggerManager.getLogger(AbstractRole.class.getSimpleName());
     private final int id;
 
     //需要注意的是一旦一个Station进入了写(发送)模式之后,

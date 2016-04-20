@@ -1,8 +1,10 @@
 package me.zhangxl.antenna.infrastructure.clock;
 
 import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Logger;
 import me.zhangxl.antenna.util.PrecisionUtil;
+import me.zhangxl.antenna.util.SimuLoggerManager;
+import me.zhangxl.antenna.util.TimeLogger;
+import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TimeController {
 
     private static final TimeController sInstance = new TimeController();
-    private  Logger logger = new Logger(TimeController.class,false);
+    private Logger logger = SimuLoggerManager.getLogger(TimeController.class.getSimpleName());
     private PriorityBlockingQueue<TimeTask> tasks = new PriorityBlockingQueue<>();
     private AtomicBoolean active = new AtomicBoolean(true);
     private Runnable loopCallBack;
@@ -57,15 +59,15 @@ public class TimeController {
      * 防止刚刚被添加进来时间就被剪掉
      */
     public  void post(Runnable toRun,double timeToRun){
-        if(Logger.DEBUG_CLOCK){
-            logger.log("post a runnable at %f",timeToRun);
+        if(TimeLogger.DEBUG_CLOCK){
+            logger.debug("post a runnable at %f",timeToRun);
         }
         tasks.put(new TimeTask(timeToRun,toRun,TimeTask.COMMON_PRIORITY));
     }
 
     public  void post(Runnable toRun,double timeToRun,int priority){
-        if(Logger.DEBUG_CLOCK){
-            logger.log("post a runnable at %f",timeToRun);
+        if(TimeLogger.DEBUG_CLOCK){
+            logger.debug("post a runnable at %f",timeToRun);
         }
         tasks.put(new TimeTask(timeToRun,toRun,priority));
     }
@@ -98,8 +100,8 @@ public class TimeController {
             TimeTask task = tasks.take();
             //减去时间
             double time = task.getTaskTime();
-            if (Logger.DEBUG_CLOCK) {
-                logger.log("time has passed : %f", time);
+            if (TimeLogger.DEBUG_CLOCK) {
+                logger.debug("time has passed : %f", time);
             }
             task.reduceTime(time);
             for (TimeTask task1 : tasks) {
@@ -112,23 +114,23 @@ public class TimeController {
                 System.out.println("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
             }
             if(time > 0){
-                logger.logln();
+                logger.debug("");
             }
 
             if(!statValve && currentTime >= Config.getInstance().getWarmUp()){
                 statValve = true;
             }
             //下面开始执行任务
-            if (Logger.DEBUG_CLOCK) {
-                logger.log("do a task...");
+            if (TimeLogger.DEBUG_CLOCK) {
+                logger.debug("do a task...");
             }
             task.doTask();
             while (true) {
                 //搜索可能还需要执行的任务
                 TimeTask temp = tasks.peek();
                 if (temp != null && temp.getTaskTime() == 0) {
-                    if (Logger.DEBUG_CLOCK) {
-                        logger.log("do a same time task...");
+                    if (TimeLogger.DEBUG_CLOCK) {
+                        logger.debug("do a same time task...");
                     }
                     temp = tasks.poll();
                     temp.doTask();

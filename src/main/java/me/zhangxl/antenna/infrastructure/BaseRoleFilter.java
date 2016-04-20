@@ -5,7 +5,7 @@ import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.util.Logger;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by zhangxiaolong on 16/4/15.
@@ -63,12 +63,13 @@ class BaseRoleFilter implements BaseRole {
 
     void onPostRecvMethod(Logger receiverLogger, String info, Frame frame,
                           Status lastStatus, Status currentStatus, Runnable nextAction){
-        receiverLogger.log(info);
+        receiverLogger.debug(info);
         if(getCurrentStatus() == lastStatus){
             if(getCommunicationTarget() != frame.getSrcId()){
-                receiverLogger.log("%d this frame is not from its' communication target");
+                receiverLogger.debug("%d this frame is not from its' communication target :%d",
+                        getId(),getCommunicationTarget());
             } else if(getId() != frame.getTargetId()){
-                receiverLogger.log("%d this frame from %d is not sent to %d",frame.getSrcId(),getId());
+                receiverLogger.debug("%d this frame from %d is not sent to %d",frame.getSrcId(),getId());
             } else {
                 setCurrentStatus(currentStatus);
                 if(nextAction != null){
@@ -76,7 +77,7 @@ class BaseRoleFilter implements BaseRole {
                 }
             }
         } else {
-            receiverLogger.log("%d receive a unexpected frame,ignore this frame :%s :%s",
+            receiverLogger.debug("%d receive a unexpected frame,ignore this frame :%s :%s",
                     getId(),getCurrentStatus().toString(),frame.getClass().getSimpleName());
         }
     }
@@ -88,8 +89,8 @@ class BaseRoleFilter implements BaseRole {
     }
 
     void onSendMethod(Logger senderLogger, String info, Status lastStatus,
-                              Status currentStatus, Runnable toPost, double postTime, int priority){
-        senderLogger.log(info);
+                      Status currentStatus, Runnable toPost, double postTime, int priority){
+        senderLogger.debug(info);
         assert getCurrentStatus() == lastStatus;
         setCurrentStatus(currentStatus);
         TimeController.getInstance().post(toPost,postTime,priority);

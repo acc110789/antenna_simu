@@ -51,6 +51,7 @@ public class Config {
     private double simulationDuration = -1;
     private double warmUp = -1;
     private long fixDataLength = -1;
+    private double eifs= -1;
 
     private Config() {
         try {
@@ -93,6 +94,7 @@ public class Config {
             rtsLength = phyHeader + macRtsHeader;
             ctsLength = phyHeader + macHeader;
             ackLength = phyHeader + macHeader;
+            eifs = sifs + PrecisionUtil.div(ackLength,bandWidth);
         } finally {
             IOUtils.closeQuietly(reader);
         }

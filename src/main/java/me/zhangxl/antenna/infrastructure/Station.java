@@ -5,8 +5,10 @@ import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Logger;
 import me.zhangxl.antenna.util.Pair;
+import me.zhangxl.antenna.util.SimuLoggerManager;
+import me.zhangxl.antenna.util.TimeLogger;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +19,7 @@ import java.util.List;
  */
 public class Station extends AbstractRole{
 
-    private static final Logger logger = new Logger(Station.class);
+    private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
     private final Sender mSender;
     private final Receiver mReceiver;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
@@ -75,7 +77,7 @@ public class Station extends AbstractRole{
 
     @Override
     public void onPostDIFS() {
-        logger.log("%d onPostDIFS", getId());
+        logger.debug("%d onPostDIFS", getId());
         assert getCurrentStatus() == Status.SLOTING;
         if (mCurrentSendingFrame == null) {
             getDataFrameToSend();
@@ -103,7 +105,7 @@ public class Station extends AbstractRole{
     }
 
     private void onPostSLOT() {
-        logger.log("%d onPostSLOT", getId());
+        logger.debug("%d onPostSLOT", getId());
         assert getCurrentStatus() == Status.SLOTING;
         if (mCurrentSendingFrame != null) {
             mCurrentSendingFrame.countDownBackOff();
@@ -128,15 +130,15 @@ public class Station extends AbstractRole{
             StationUtil.guaranteeEnoughFrame(this);
             mCurrentSendingFrame.init();
         } else {
-            logger.log("%d has no frame to send",getId());
+            logger.debug("%d has no frame to send",getId());
         }
     }
 
     private void sendDataIfNeed() {
         if (mCurrentSendingFrame != null && mCurrentSendingFrame.canBeSent()) {
             //开始进入流程
-            if (Logger.DEBUG_STATION) {
-                logger.log("%d start transmit data frame sendDataIfNeed", this.getId());
+            if (TimeLogger.DEBUG_STATION) {
+                logger.debug("%d start transmit data frame sendDataIfNeed", this.getId());
             }
             mCurrentSendingFrame.setStartTimeNow();
             mSender.onPreSendRTS(mCurrentSendingFrame.generateRtsFrame());

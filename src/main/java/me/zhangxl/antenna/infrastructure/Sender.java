@@ -6,7 +6,9 @@ import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Logger;
+import me.zhangxl.antenna.util.SimuLoggerManager;
+import me.zhangxl.antenna.util.TimeLogger;
+import org.apache.logging.log4j.Logger;
 
 /**
  * 一次通信过程中的发送者角色
@@ -14,7 +16,7 @@ import me.zhangxl.antenna.util.Logger;
  */
 class Sender extends BaseRoleFilter implements SenderExpandRole {
 
-    private static final Logger logger = new Logger(Sender.class);
+    private static final Logger logger = SimuLoggerManager.getLogger(Sender.class.getSimpleName());
     private final SendBaseRole mRole;
 
     Sender(SendBaseRole role){
@@ -42,7 +44,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_CTS) {
-                            logger.log("%d after onPostSendRTS() wait CTS timeout",getId());
+                            logger.debug("%d after onPostSendRTS() wait CTS timeout",getId());
                             endCommunication(false,true);
                         }
                     }
@@ -79,7 +81,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_ACK) {
-                            logger.log("%d after onPostSendDATA(),wait ack timeout",getId());
+                            logger.debug("%d after onPostSendDATA(),wait ack timeout",getId());
                             endCommunication(false,true);
                         }
 
@@ -110,8 +112,8 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                 Status.RECEIVING_ACK, new Runnable() {
                     @Override
                     public void run() {
-                        if (Logger.DEBUG_STATION) {
-                            logger.log("%d send a data successfully...", getId());
+                        if (TimeLogger.DEBUG_STATION) {
+                            logger.debug("%d send a data successfully...", getId());
                         }
                         endCommunication(true,false);
                     }

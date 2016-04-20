@@ -2,8 +2,10 @@ package me.zhangxl.antenna.frame;
 
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Logger;
 import me.zhangxl.antenna.util.PrecisionUtil;
+import me.zhangxl.antenna.util.SimuLoggerManager;
+import me.zhangxl.antenna.util.TimeLogger;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Random;
 
@@ -17,7 +19,7 @@ public class DataFrame extends Frame {
     static long frameLength = Config.getInstance().getFixDataLength()
             + Config.getInstance().getPhyHeader()
             + Config.getInstance().getMacHeader();
-    private static Logger logger = new Logger(DataFrame.class);
+    private static Logger logger = SimuLoggerManager.getLogger(DataFrame.class.getSimpleName());
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
     //数据部分的长度
@@ -71,8 +73,8 @@ public class DataFrame extends Frame {
 
     public void unsetCollision() {
         collision = false;
-        if (Logger.DEBUG_COLLISION) {
-            logger.log("Station %d resolve collision data frame", srcId);
+        if (TimeLogger.DEBUG_COLLISION) {
+            logger.debug("Station %d resolve collision data frame", srcId);
         }
         updateBackOff();
     }
@@ -96,8 +98,8 @@ public class DataFrame extends Frame {
         backOff = random.nextInt(window);
         //for Test
         //backOff = 1;
-        if (Logger.DEBUG_FRAME) {
-            logger.log("station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);
+        if (TimeLogger.DEBUG_FRAME) {
+            logger.debug("station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);
         }
     }
 

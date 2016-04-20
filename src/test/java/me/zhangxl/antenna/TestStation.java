@@ -7,6 +7,8 @@ import me.zhangxl.antenna.infrastructure.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
+import me.zhangxl.antenna.util.SimuLoggerManager;
+import me.zhangxl.antenna.util.TimeLogger;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -20,6 +22,7 @@ import java.util.List;
  */
 public class TestStation {
 
+    private static final TimeLogger logger = SimuLoggerManager.getLogger(TestStation.class.getSimpleName());
     /**
      * @param time 设置计时起点
      */
@@ -60,26 +63,25 @@ public class TestStation {
     @Test
     public void twoStation() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
         printConfig();
-        testStations(2,0,10);
+        testStations(2,0,0.01);
     }
 
     private void printConfig(){
-        System.out.println("**************************************");
-        System.out.println("***************config*****************");
-        System.out.format("slot length :%#.14f",Config.getInstance().getSlotLength());
-        System.out.println();
-        System.out.format("rts  length :%#.14f",new RtsFrame(-1,-1).getTransmitDuration());
-        System.out.println();
-        System.out.format("difs  length :%#.14f",Config.getInstance().getDifs());
-        System.out.println();
-        System.out.format("cts timeout :%#.14f",CtsFrame.getCtsTimeOut());
-        System.out.println();
-        System.out.format("rts timeout :%#.14f",RtsFrame.getRtsTimeOut());
-        System.out.println();
-        System.out.println("**************************************");
-        System.out.println("**************************************");
-        System.out.println();
-        System.out.println();
+        logger.unLogHeader();
+        logger.info("**************************************");
+        logger.info("***************config*****************");
+        logger.ln();
+        logger.info("slot length :%#.14f",Config.getInstance().getSlotLength());
+        logger.info("rts  length :%#.14f",new RtsFrame(-1,-1).getTransmitDuration());
+        logger.info("difs  length :%#.14f",Config.getInstance().getDifs());
+        logger.info("cts timeout :%#.14f",CtsFrame.getCtsTimeOut());
+        logger.info("rts timeout :%#.14f",RtsFrame.getRtsTimeOut());
+        logger.ln();
+        logger.info("**************************************");
+        logger.info("**************************************");
+        logger.ln();
+        logger.ln();
+        logger.logHeader();
     }
 
     @Test
@@ -91,7 +93,7 @@ public class TestStation {
     @Test
     public void testFourStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
-        testStations(4,0,5);
+        testStations(4,0,0.05);
     }
 
     @Test

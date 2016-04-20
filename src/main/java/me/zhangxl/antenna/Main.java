@@ -12,7 +12,6 @@ import java.util.List;
  * 暂时先做计算机局域网络的仿真(即单信道,全方向发送,全方向接受)
  */
 public class Main {
-
     public static void main(String[] args) throws InterruptedException {
         checkConfig();
 

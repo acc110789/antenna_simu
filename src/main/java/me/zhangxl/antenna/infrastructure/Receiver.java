@@ -1,10 +1,14 @@
 package me.zhangxl.antenna.infrastructure;
 
-import me.zhangxl.antenna.frame.*;
+import me.zhangxl.antenna.frame.AckFrame;
+import me.zhangxl.antenna.frame.CtsFrame;
+import me.zhangxl.antenna.frame.DataFrame;
+import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Logger;
+import me.zhangxl.antenna.util.SimuLoggerManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * 指一次通信过程中的接受者角色
@@ -13,7 +17,7 @@ import me.zhangxl.antenna.util.Logger;
  */
 class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
 
-    private static final Logger logger = new Logger(Receiver.class);
+    private static final Logger logger = SimuLoggerManager.getLogger(Receiver.class.getSimpleName());
     private final ReceiveBaseRole mRole;
 
     Receiver(ReceiveBaseRole role) {
@@ -51,7 +55,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_DATA) {
-                            logger.log("station :%d after onPostSendCTS(),wait data timeout", getId());
+                            logger.debug("station :%d after onPostSendCTS(),wait data timeout", getId());
                             endCommunication(false,true);
                         }
                     }
@@ -83,7 +87,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
 
     @Override
     public void onPostSendACK() {
-        logger.log("%d onPostSendACK()", getId());
+        logger.debug("%d onPostSendACK()", getId());
         assert getCurrentStatus() == Status.SENDING_ACK;
         endCommunication(true,false);
     }
@@ -91,7 +95,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
 
     @Override
     public void onPostRecvRTS(RtsFrame frame) {
-        logger.log("%d onPostRecvRTS()", getId());
+        logger.debug("%d onPostRecvRTS()", getId());
         if(getCurrentStatus() == Status.IDLE_RECEIVING){
             assert getCommunicationTarget() == defaultCommunicationTarget;
             if(frame.getTargetId() == getId()){
@@ -102,17 +106,17 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
             } else {
                 //不是发给本Station的,这种情况下应当设置NAV向量
                 setCurrentStatus(Status.NAV);
-                logger.log("%d set NAV",getId());
+                logger.debug("%d set NAV",getId());
                 TimeController.getInstance().post(new Runnable() {
                     @Override
                     public void run() {
-                        logger.log("%d NAV finish",getId());
+                        logger.debug("%d NAV finish",getId());
                         endCommunication(false,false);
                     }
                 },frame.getNavDuration());
             }
         } else {
-            logger.log("%d ignore RTS because currentStatus is :%s",getId(),getCurrentStatus().toString());
+            logger.debug("%d ignore RTS because currentStatus is :%s",getId(),getCurrentStatus().toString());
         }
     }
 
