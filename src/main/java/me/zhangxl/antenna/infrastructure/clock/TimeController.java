@@ -4,7 +4,6 @@ import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
-import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TimeController {
 
     private static final TimeController sInstance = new TimeController();
-    private Logger logger = SimuLoggerManager.getLogger(TimeController.class.getSimpleName());
+    private TimeLogger logger = SimuLoggerManager.getLogger(TimeController.class.getSimpleName());
     private PriorityBlockingQueue<TimeTask> tasks = new PriorityBlockingQueue<>();
     private AtomicBoolean active = new AtomicBoolean(true);
     private Runnable loopCallBack;
@@ -59,16 +58,10 @@ public class TimeController {
      * 防止刚刚被添加进来时间就被剪掉
      */
     public  void post(Runnable toRun,double timeToRun){
-        if(TimeLogger.DEBUG_CLOCK){
-            logger.debug("post a runnable at %f",timeToRun);
-        }
         tasks.put(new TimeTask(timeToRun,toRun,TimeTask.COMMON_PRIORITY));
     }
 
     public  void post(Runnable toRun,double timeToRun,int priority){
-        if(TimeLogger.DEBUG_CLOCK){
-            logger.debug("post a runnable at %f",timeToRun);
-        }
         tasks.put(new TimeTask(timeToRun,toRun,priority));
     }
 
@@ -110,11 +103,12 @@ public class TimeController {
             //仿真过程积累相应的时间
 
             currentTime = PrecisionUtil.add(currentTime,time);
+            //检查点
             if(currentTime != PrecisionUtil.round(currentTime)){
-                System.out.println("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
+                logger.error("double add error");
             }
             if(time > 0){
-                logger.debug("");
+                logger.ln();
             }
 
             if(!statValve && currentTime >= Config.getInstance().getWarmUp()){

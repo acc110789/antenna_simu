@@ -150,10 +150,6 @@ public class Station extends AbstractRole{
         mDataFramesToSend.add(new DataFrame(getId(), targetId));
     }
 
-    public void putDataFrame(int targetId, long length, int dataFrameId) {
-        mDataFramesToSend.add(new DataFrame(getId(), targetId, dataFrameId));
-    }
-
     @Override
     public void onSendSuccess() {
         TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);

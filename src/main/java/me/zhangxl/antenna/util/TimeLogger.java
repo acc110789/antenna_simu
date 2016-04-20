@@ -14,9 +14,8 @@ import org.apache.logging.log4j.util.Supplier;
  */
 public class TimeLogger implements Logger {
 
-    public static boolean DEBUG_CLOCK = true;
-    public static boolean DEBUG_STATION = true;
-    public static boolean DEBUG_COLLISION = true;
+    public static boolean DEBUG_CLOCK = false;
+    public static boolean DEBUG_STATION = false;
     public static boolean DEBUG_FRAME = true;
     private final Logger mLogger;
     private final String mTag;
@@ -37,8 +36,8 @@ public class TimeLogger implements Logger {
 
     private String getHeader(){
         if(logHeader) {
-            String time = String.format("time : %#.14f  ", TimeController.getInstance().getCurrentTime());
-            String tag = String.format("%-15s  ", mTag);
+            String time = String.format("%#.14f  ", TimeController.getInstance().getCurrentTime());
+            String tag = String.format("%-10s ", mTag);
             return time + tag;
         } else {
             return "";

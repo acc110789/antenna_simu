@@ -106,11 +106,11 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
             } else {
                 //不是发给本Station的,这种情况下应当设置NAV向量
                 setCurrentStatus(Status.NAV);
-                logger.debug("%d set NAV",getId());
+                logger.info("%d set NAV",getId());
                 TimeController.getInstance().post(new Runnable() {
                     @Override
                     public void run() {
-                        logger.debug("%d NAV finish",getId());
+                        logger.info("%d NAV finish",getId());
                         endCommunication(false,false);
                     }
                 },frame.getNavDuration());

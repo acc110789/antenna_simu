@@ -58,10 +58,6 @@ public class DataFrame extends Frame {
         return ++serialNum;
     }
 
-    public int getSerialNum() {
-        return id;
-    }
-
     public void addCollitionTimes() {
         collisionTimes++;
         collision = true;
@@ -73,8 +69,8 @@ public class DataFrame extends Frame {
 
     public void unsetCollision() {
         collision = false;
-        if (TimeLogger.DEBUG_COLLISION) {
-            logger.debug("Station %d resolve collision data frame", srcId);
+        if (TimeLogger.DEBUG_FRAME) {
+            logger.debug("Station %d solve collision data frame", srcId);
         }
         updateBackOff();
     }
@@ -99,7 +95,7 @@ public class DataFrame extends Frame {
         //for Test
         //backOff = 1;
         if (TimeLogger.DEBUG_FRAME) {
-            logger.debug("station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);
+            logger.debug("source station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);
         }
     }
 
