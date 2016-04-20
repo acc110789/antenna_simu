@@ -1,5 +1,7 @@
 package me.zhangxl.antenna.infrastructure.clock;
 
+import me.zhangxl.antenna.util.PrecisionUtil;
+
 /**
  *  {@link TimeController} 持有的ClockTask
  * Created by zhangxiaolong on 16/3/30.
@@ -41,12 +43,8 @@ public class TimeTask implements Comparable<TimeTask> {
         }
     }
 
-    TimeTask(double timeToRun, Runnable toRun) {
-        this(timeToRun,toRun,COMMON_PRIORITY);
-    }
-
     TimeTask(double timeToRun , Runnable toRun , int priority){
-        this.mTimeToRun = timeToRun;
+        this.mTimeToRun = PrecisionUtil.round(timeToRun);
         if(toRun == null) throw new NullPointerException();
         this.mToRun = toRun;
         this.mPriority = priority;
@@ -58,7 +56,7 @@ public class TimeTask implements Comparable<TimeTask> {
     }
 
     void reduceTime(double time){
-        this.mTimeToRun -= time;
+        this.mTimeToRun = PrecisionUtil.sub(this.mTimeToRun,time);
     }
 
     void doTask(){

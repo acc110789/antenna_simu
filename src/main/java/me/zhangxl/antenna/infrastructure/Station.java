@@ -58,7 +58,19 @@ public class Station extends AbstractRole{
     void backOffDueToTimeout() {
         TimeController.getInstance().addCollitionTimes();
         mCurrentSendingFrame.addCollitionTimes();
-        mCurrentSendingFrame.setStartTimeNow();
+    }
+
+    @Override
+    void onFinish() {
+        Medium.getInstance().notify(this);
+        for(Frame frame : receivingFrames){
+            frame.setCollision();
+        }
+        if(receivingFrames.isEmpty()){
+            setCurrentStatus(Status.IDLE);
+        } else {
+            setCurrentStatus(Status.IDLE_RECEIVING);
+        }
     }
 
     @Override
@@ -71,7 +83,9 @@ public class Station extends AbstractRole{
             mCurrentSendingFrame.unsetCollision();
         }
         sendDataIfNeed();
-        scheduleSlotIfNeed();
+        if(getCurrentStatus() == Status.SLOTING){
+            scheduleSLOT();
+        }
     }
 
     private void scheduleSLOT() {
@@ -88,12 +102,6 @@ public class Station extends AbstractRole{
         }, Config.getInstance().getSlotLength());
     }
 
-    private void scheduleSlotIfNeed(){
-        if(getCurrentStatus() == Status.SLOTING){
-            scheduleSLOT();
-        }
-    }
-
     private void onPostSLOT() {
         logger.log("%d onPostSLOT", getId());
         assert getCurrentStatus() == Status.SLOTING;
@@ -104,7 +112,9 @@ public class Station extends AbstractRole{
             getDataFrameToSend();
         }
         sendDataIfNeed();
-        scheduleSlotIfNeed();
+        if(getCurrentStatus() == Status.SLOTING){
+            scheduleSLOT();
+        }
     }
 
     /**
@@ -128,6 +138,7 @@ public class Station extends AbstractRole{
             if (Logger.DEBUG_STATION) {
                 logger.log("%d start transmit data frame sendDataIfNeed", this.getId());
             }
+            mCurrentSendingFrame.setStartTimeNow();
             mSender.onPreSendRTS(mCurrentSendingFrame.generateRtsFrame());
             TimeController.getInstance().addSendTimes();
         }
@@ -202,7 +213,7 @@ public class Station extends AbstractRole{
                 }
                 //接收失败且当前状态不是处于IDLE_RECEIVING的状态的时候就当作没有什么都没有发生过,上层发现timeout之后会自行处理
             }
-        },frame.getTransmitDuration(),priority);
+        },frame.getEndDuration(),priority);
         return true;
     }
 

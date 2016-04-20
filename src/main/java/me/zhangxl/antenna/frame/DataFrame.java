@@ -3,6 +3,7 @@ package me.zhangxl.antenna.frame;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
+import me.zhangxl.antenna.util.PrecisionUtil;
 
 import java.util.Random;
 
@@ -39,10 +40,16 @@ public class DataFrame extends Frame {
         this.id = id;
     }
 
+    private static double dataTimeOut ;
+    static {
+        dataTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),
+                Config.getInstance().getDifs(),
+                PrecisionUtil.div(frameLength,Config.getInstance().getBandWidth()));
+        dataTimeOut = PrecisionUtil.sub(dataTimeOut,Config.getInstance().getDifs());
+    }
+
     public static double getDataTimeOut() {
-        double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
-                + Config.round(frameLength / Config.getInstance().getBandWidth());
-        return oldTimeout - Config.getInstance().getDifs();
+        return dataTimeOut;
     }
 
     private static int nextSerialNum() {

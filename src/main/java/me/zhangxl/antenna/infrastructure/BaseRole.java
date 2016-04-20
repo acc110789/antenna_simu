@@ -96,7 +96,7 @@ interface BaseRole {
      * @param success
      * @param fail
      */
-    void onPostCommunication(boolean success, boolean fail);
+    void endCommunication(boolean success, boolean fail);
 
     void setCommunicationTarget(int id);
 

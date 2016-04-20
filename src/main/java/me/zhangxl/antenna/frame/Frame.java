@@ -2,12 +2,13 @@ package me.zhangxl.antenna.frame;
 
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.PrecisionUtil;
 
 /**
  * 抽象类,各种Frame
  * Created by zhangxiaolong on 16/3/24.
  */
-public abstract class Frame {
+public abstract class Frame implements Cloneable{
     final int srcId;
     private final long length;
     private final int targetId;
@@ -39,6 +40,10 @@ public abstract class Frame {
      */
     public abstract double getNavDuration();
 
+    public double getEndDuration(){
+        return PrecisionUtil.sub(getEndTime(),TimeController.getInstance().getCurrentTime());
+    }
+
     /**
      * @return 将所有的桢数据从原始节点到目标节点所需要的时间
      */
@@ -46,11 +51,7 @@ public abstract class Frame {
         if(length <= 0){
             throw new IllegalArgumentException("length is negative");
         }
-        return Config.round(length / Config.getInstance().getBandWidth());
-    }
-
-    private long getLength(){
-        return this.length;
+        return PrecisionUtil.div(length,Config.getInstance().getBandWidth());
     }
 
     public int getTargetId(){
@@ -69,7 +70,7 @@ public abstract class Frame {
         if(this.startTime < 0){
             throw new IllegalArgumentException("startTime is less than 0");
         }
-        return this.startTime + getTransmitDuration();
+        return PrecisionUtil.add(this.startTime,getTransmitDuration());
     }
 
     public int getSrcId(){
@@ -94,4 +95,8 @@ public abstract class Frame {
         return new AckFrame(this.targetId,this.srcId);
     }
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 }

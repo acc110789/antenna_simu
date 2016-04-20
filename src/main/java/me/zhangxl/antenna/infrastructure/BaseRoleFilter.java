@@ -39,8 +39,8 @@ class BaseRoleFilter implements BaseRole {
     }
 
     @Override
-    public void onPostCommunication(boolean success, boolean fail) {
-        mBaseRole.onPostCommunication(success,fail);
+    public void endCommunication(boolean success, boolean fail) {
+        mBaseRole.endCommunication(success,fail);
     }
 
     @Override
@@ -54,8 +54,11 @@ class BaseRoleFilter implements BaseRole {
     }
 
     void sendFrame(Frame frame){
-        frame.setStartTimeNow();
-        Medium.getInstance().putFrame((Station) mBaseRole,frame);
+        try {
+            Medium.getInstance().putFrame((Station) mBaseRole, (Frame) frame.clone());
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     void onPostRecvMethod(Logger receiverLogger, String info, Frame frame,
@@ -74,7 +77,7 @@ class BaseRoleFilter implements BaseRole {
             }
         } else {
             receiverLogger.log("%d receive a unexpected frame,ignore this frame :%s :%s",
-                    getCurrentStatus().toString(),frame.getClass().getSimpleName());
+                    getId(),getCurrentStatus().toString(),frame.getClass().getSimpleName());
         }
     }
 

@@ -1,6 +1,7 @@
 package me.zhangxl.antenna.frame;
 
 import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.PrecisionUtil;
 
 /**
  * Created by zhangxiaolong on 16/3/24.
@@ -13,15 +14,27 @@ public class CtsFrame extends Frame {
         super(srcId, targetId, ctsLength);
     }
 
-    public static double getCtsTimeOut(){
-        double oldTimeout = Config.getInstance().getSifs() + Config.getInstance().getDifs()
-                + Config.round(ctsLength / Config.getInstance().getBandWidth());
-        return oldTimeout - Config.getInstance().getDifs();
+    private static double ctsTimeOut ;
+
+    static {
+        ctsTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),
+                Config.getInstance().getDifs(),
+                PrecisionUtil.div(ctsLength,Config.getInstance().getBandWidth()));
+
+        ctsTimeOut = PrecisionUtil.sub(ctsTimeOut,Config.getInstance().getDifs());
     }
+
+    public static double getCtsTimeOut(){
+        return ctsTimeOut;
+    }
+
+    private static double navDuration = PrecisionUtil.add(Config.getInstance().getSifs(),
+            PrecisionUtil.div(DataFrame.frameLength,Config.getInstance().getBandWidth()),
+            Config.getInstance().getSifs(),
+            PrecisionUtil.div(AckFrame.ackLength,Config.getInstance().getBandWidth()));
 
     @Override
     public double getNavDuration() {
-        return Config.getInstance().getSifs() + Config.round(DataFrame.frameLength/Config.getInstance().getBandWidth())
-                +Config.getInstance().getSifs() + Config.round(AckFrame.ackLength/Config.getInstance().getBandWidth());
+        return navDuration;
     }
 }

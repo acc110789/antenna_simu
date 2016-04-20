@@ -41,8 +41,10 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
     abstract void backOffDueToTimeout();
 
+    abstract void onFinish();
+
     @Override
-    public void onPostCommunication(boolean success, boolean fail){
+    public void endCommunication(boolean success, boolean fail){
         assert getCurrentStatus() != Status.IDLE;
         if(getCurrentStatus().isSender()) {
             //如果发送成功,则统计数据
@@ -55,7 +57,7 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
             }
         }
         setCommunicationTarget(defaultCommunicationTarget);
-        setCurrentStatus(Status.IDLE);
+        onFinish();
     }
 
 

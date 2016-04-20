@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.math.BigDecimal;
 import java.util.Properties;
 
 /**
@@ -52,10 +51,6 @@ public class Config {
     private double simulationDuration = -1;
     private double warmUp = -1;
     private long fixDataLength = -1;
-    /**
-     * 时间的精度(小数点之后)
-     */
-    private int timePrecision = 13;
 
     private Config() {
         try {
@@ -67,12 +62,6 @@ public class Config {
 
     public static Config getInstance() {
         return sInstance;
-    }
-
-    public static double round(double v) {
-        BigDecimal b = new BigDecimal(Double.toString(v));
-        BigDecimal one = new BigDecimal("1");
-        return b.divide(one, getInstance().getTimePrecision(), BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
     private void loadConfig() throws IOException {
@@ -87,20 +76,20 @@ public class Config {
             this.maxCW = Integer.valueOf(properties.getProperty("MAX_CW"));
 
             String currentVersion = properties.getProperty("CURRENT_VERSION");
-            this.slotLength = Double.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH"));
-            this.sifs = Double.valueOf(properties.getProperty(currentVersion + "_SIFS"));
+            this.slotLength = PrecisionUtil.round(Double.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH")));
+            this.sifs = PrecisionUtil.round(Double.valueOf(properties.getProperty(currentVersion + "_SIFS")));
             this.defaultCW = Integer.valueOf(properties.getProperty(currentVersion + "_DEFAULT_CW"));
 
-            this.bandWidth = Double.valueOf(properties.getProperty("BAND_WIDTH"));
+            this.bandWidth = PrecisionUtil.round(Double.valueOf(properties.getProperty("BAND_WIDTH")));
             this.phyHeader = Integer.valueOf(properties.getProperty("PHY_HEADER"));
             this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
             this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
 
-            this.simulationDuration = Double.valueOf(properties.getProperty("SIMULATION_DURATION"));
-            this.warmUp = Double.valueOf(properties.getProperty("WARM_UP"));
+            this.simulationDuration = PrecisionUtil.round(Double.valueOf(properties.getProperty("SIMULATION_DURATION")));
+            this.warmUp = PrecisionUtil.round(Double.valueOf(properties.getProperty("WARM_UP")));
             this.fixDataLength = Long.valueOf(properties.getProperty("FIX_DATA_LENGTH"));
 
-            difs = sifs + 2 * slotLength;
+            difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
             rtsLength = phyHeader + macRtsHeader;
             ctsLength = phyHeader + macHeader;
             ackLength = phyHeader + macHeader;
@@ -123,15 +112,15 @@ public class Config {
     }
 
     public double getDifs() {
-        return round(difs);
+        return difs;
     }
 
     public double getSifs() {
-        return round(sifs);
+        return sifs;
     }
 
     public double getSlotLength() {
-        return round(slotLength);
+        return slotLength;
     }
 
     public int getDefaultCW() {
@@ -172,10 +161,6 @@ public class Config {
 
     public double getSimulationDuration() {
         return simulationDuration;
-    }
-
-    private int getTimePrecision(){
-        return this.timePrecision;
     }
 
 }

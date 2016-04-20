@@ -2,6 +2,7 @@ package me.zhangxl.antenna.infrastructure.clock;
 
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Logger;
+import me.zhangxl.antenna.util.PrecisionUtil;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,15 +60,13 @@ public class TimeController {
         if(Logger.DEBUG_CLOCK){
             logger.log("post a runnable at %f",timeToRun);
         }
-        timeToRun = Config.round(timeToRun);
-        tasks.put(new TimeTask(timeToRun,toRun));
+        tasks.put(new TimeTask(timeToRun,toRun,TimeTask.COMMON_PRIORITY));
     }
 
     public  void post(Runnable toRun,double timeToRun,int priority){
         if(Logger.DEBUG_CLOCK){
             logger.log("post a runnable at %f",timeToRun);
         }
-        timeToRun = Config.round(timeToRun);
         tasks.put(new TimeTask(timeToRun,toRun,priority));
     }
 
@@ -107,7 +106,11 @@ public class TimeController {
                 task1.reduceTime(time);
             }
             //仿真过程积累相应的时间
-            currentTime += time;
+
+            currentTime = PrecisionUtil.add(currentTime,time);
+            if(currentTime != PrecisionUtil.round(currentTime)){
+                System.out.println("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
+            }
             if(time > 0){
                 logger.logln();
             }
@@ -147,7 +150,7 @@ public class TimeController {
         System.out.println();
         System.out.format("总的碰撞次数: %d",totalCollitionTimes);
         System.out.println();
-        System.out.format("碰撞发生的概率: %f",(totalCollitionTimes+0.0)/totalSendTimes);
+        System.out.format("碰撞发生的概率: %f",PrecisionUtil.div((totalCollitionTimes+0.0),totalSendTimes));
         System.out.println();
         System.out.println("*************************************************");
     }

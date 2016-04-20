@@ -51,13 +51,20 @@ public abstract class Medium {
      * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
      */
     public void putFrame(final Station station, final Frame frame) {
+        frame.setStartTimeNow();
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 for(Station station1 : getStationToReceive(station)){
-                    boolean accepted = station1.beginReceiveFrame(frame);
+                    Frame copy;
+                    try {
+                        copy = (Frame) frame.clone();
+                    } catch (CloneNotSupportedException e) {
+                        throw new IllegalStateException(e);
+                    }
+                    boolean accepted = station1.beginReceiveFrame(copy);
                     if(!accepted){
-                        putUnacceptedFrames(station1,frame);
+                        putUnacceptedFrames(station1,copy);
                     }
                 }
             }
@@ -77,18 +84,21 @@ public abstract class Medium {
                 List<Frame> frames1 = stationToFrames.get(station);
                 frames1.remove(frame);
             }
-        },frame.getTransmitDuration());
+        },frame.getEndDuration());
     }
 
     public void notify(Station station){
         List<Frame> frames = stationToFrames.get(station);
         if(frames != null && frames.size() > 0){
             for(Frame frame : frames){
-                double endTime = frame.getStartTime() + frame.getTransmitDuration();
+                double endTime = frame.getEndTime();
                 double currentTime = TimeController.getInstance().getCurrentTime();
                 if(endTime < currentTime){
                     //这个frame本来应该是已经消失的
-                    throw new IllegalStateException("impossible state");
+                    System.out.println();
+                    System.out.println((endTime-currentTime)<0);
+                    String info = String.format("endTime:%#.16f  currentTime:%#.16f",endTime,currentTime);
+                    throw new IllegalStateException(info);
                 } else if(frame.getStartTime() <= currentTime && currentTime < endTime){
                     //是否是一个残废的frame应该由Station自己去判断
                     station.beginReceiveFrame(frame);

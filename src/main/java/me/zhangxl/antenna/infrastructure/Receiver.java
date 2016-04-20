@@ -52,7 +52,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_DATA) {
                             logger.log("station :%d after onPostSendCTS(),wait data timeout", getId());
-                            onPostCommunication(false,true);
+                            endCommunication(false,true);
                         }
                     }
                 }, DataFrame.getDataTimeOut(),TimeTask.DATA_TIMEOUT);
@@ -85,7 +85,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
     public void onPostSendACK() {
         logger.log("%d onPostSendACK()", getId());
         assert getCurrentStatus() == Status.SENDING_ACK;
-        onPostCommunication(true,false);
+        endCommunication(true,false);
     }
 
 
@@ -105,7 +105,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                 TimeController.getInstance().post(new Runnable() {
                     @Override
                     public void run() {
-                        onPostCommunication(false,false);
+                        endCommunication(false,false);
                     }
                 },frame.getNavDuration());
             }
