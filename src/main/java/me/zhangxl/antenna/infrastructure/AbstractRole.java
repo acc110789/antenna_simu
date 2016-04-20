@@ -20,7 +20,6 @@ import me.zhangxl.antenna.util.Logger;
  */
 abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
-    // TODO: 16/4/10 暂时没有考虑两件事情在同一时间点发生的概率是0
     private static Logger logger = new Logger(AbstractRole.class);
     private final int id;
 
