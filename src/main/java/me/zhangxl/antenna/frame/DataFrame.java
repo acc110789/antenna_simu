@@ -96,6 +96,10 @@ public class DataFrame extends Frame {
         return backOff == 0;
     }
 
+    public int getBackOff(){
+        return backOff;
+    }
+
     private void checkBackOff() {
         if (backOff < 0) {
             throw new IllegalStateException("backOff is less than 0");

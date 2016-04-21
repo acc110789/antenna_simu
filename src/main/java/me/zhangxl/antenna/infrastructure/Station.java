@@ -87,6 +87,8 @@ public class Station extends AbstractRole{
         assert getCurrentStatus() == Status.SLOTING;
         if (mCurrentSendingFrame == null) {
             getDataFrameToSend();
+        } else {
+            logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
         }
         sendDataIfNeed();
         if(getCurrentStatus() == Status.SLOTING){
@@ -111,12 +113,9 @@ public class Station extends AbstractRole{
     private void onPostSLOT() {
         logger.debug("%d onPostSLOT", getId());
         assert getCurrentStatus() == Status.SLOTING;
-        if (mCurrentSendingFrame != null) {
-            mCurrentSendingFrame.countDownBackOff();
-        } else {
-            //mCurrentSendingFrame == null
-            getDataFrameToSend();
-        }
+        assert mCurrentSendingFrame != null;
+        mCurrentSendingFrame.countDownBackOff();
+        logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
         sendDataIfNeed();
         if(getCurrentStatus() == Status.SLOTING){
             scheduleSLOT();

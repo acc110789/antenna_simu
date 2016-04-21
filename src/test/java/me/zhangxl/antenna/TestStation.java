@@ -112,7 +112,7 @@ public class TestStation {
     @Test
     public void testThreeStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
-        for(int i=0;i<10;i++) {
+        for(int i=0;i<1;i++) {
             logger.unLogHeader();
             logger.info("第%d次仿真试验", i);
             logger.logHeader();
