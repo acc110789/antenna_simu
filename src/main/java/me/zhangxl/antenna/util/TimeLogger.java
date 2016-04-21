@@ -21,6 +21,7 @@ public class TimeLogger implements Logger {
     private final Logger mLogger;
     private final String mTag;
     private boolean logHeader = true;
+    public static final String headerFormatter = "%-20s%-12s";
 
     TimeLogger(Logger logger, String tag) {
         this.mLogger = logger;
@@ -37,9 +38,8 @@ public class TimeLogger implements Logger {
 
     private String getHeader(){
         if(logHeader) {
-            String time = String.format("%#.14f  ", TimeController.getInstance().getCurrentTime());
-            String tag = String.format("%-10s ", mTag);
-            return time + tag;
+            String time = String.format("%#.14f", TimeController.getInstance().getCurrentTime());
+            return String.format(headerFormatter,time,mTag);
         } else {
             return "";
         }

@@ -90,6 +90,36 @@ public class TimeController {
         }
     }
 
+    private void printTimeHint(double time){
+        if(time > 0){
+            logger.unLogHeader();
+            String text;
+            if(PrecisionUtil.sub(time,Config.getInstance().getDifs()) == 0){
+                text = "DIFS";
+            } else if(PrecisionUtil.sub(time,Config.getInstance().getSifs()) == 0){
+                text = "SIFS";
+            } else if(PrecisionUtil.sub(time,Config.getInstance().getSlotLength()) == 0){
+                text = "SLOT";
+            } else if(PrecisionUtil.sub(time,Config.getInstance().getEifs()) == 0){
+                text = "EIFS";
+            } else if(PrecisionUtil.sub(time, RtsFrame.getTimeLength()) == 0){
+                text = "RTS";
+            } else if(PrecisionUtil.sub(time, CtsFrame.getCtsTimeLength()) == 0){
+                text = "CTS/ACK";
+            } else if(PrecisionUtil.sub(time, DataFrame.getFrameTimeLength()) == 0){
+                text = "DATA";
+            } else if(PrecisionUtil.sub(time,RtsFrame.getRtsTimeOut()) == 0){
+                text = "RTS timeout";
+            } else if(PrecisionUtil.sub(time,CtsFrame.getCtsTimeOut()) == 0){
+                text = "CTS/ACK timeout";
+            } else {
+                text = String.format("%#.14f", time);
+            }
+            logger.trace(TimeLogger.headerFormatter,text,"passed");
+            logger.logHeader();
+        }
+    }
+
     public synchronized void loop() throws InterruptedException {
         preLoop();
         while (active.get() && this.currentTime < Config.getInstance().getSimulationDuration()) {
@@ -110,29 +140,7 @@ public class TimeController {
             if(currentTime != PrecisionUtil.round(currentTime)){
                 logger.error("double add error");
             }
-            if(time > 0){
-                logger.unLogHeader();
-                String text;
-                if(PrecisionUtil.sub(time,Config.getInstance().getDifs()) == 0){
-                    text = "DIFS";
-                } else if(PrecisionUtil.sub(time,Config.getInstance().getSifs()) == 0){
-                    text = "SIFS";
-                } else if(PrecisionUtil.sub(time,Config.getInstance().getSlotLength()) == 0){
-                    text = "SLOT";
-                } else if(PrecisionUtil.sub(time,Config.getInstance().getEifs()) == 0){
-                    text = "EIFS";
-                } else if(PrecisionUtil.sub(time, RtsFrame.getTimeLength()) == 0){
-                    text = "RTS";
-                } else if(PrecisionUtil.sub(time, CtsFrame.getCtsTimeLength()) == 0){
-                    text = "CTS OR ACK";
-                } else if(PrecisionUtil.sub(time, DataFrame.getFrameTimeLength()) == 0){
-                    text = "DATA";
-                } else {
-                    text = String.format("%#.14f", time);
-                }
-                logger.trace("%-16s  passed",text);
-                logger.logHeader();
-            }
+            printTimeHint(time);
 
             if(!statValve && currentTime >= Config.getInstance().getWarmUp()){
                 statValve = true;
