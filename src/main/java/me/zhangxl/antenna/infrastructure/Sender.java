@@ -32,7 +32,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                     public void run() {
                         onPostSendRTS();
                     }
-                }, frame.getTransmitDuration());
+                }, frame.getTransmitDuration(),TimeTask.SEND);
         setCommunicationTarget(frame.getTargetId());
         sendFrame(frame);
     }
@@ -44,7 +44,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_CTS) {
-                            logger.debug("%d after onPostSendRTS() wait CTS timeout",getId());
+                            logger.info("%d after onPostSendRTS() wait CTS timeout",getId());
                             endCommunication(false,true);
                         }
                     }
@@ -59,7 +59,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                     public void run() {
                         onPreSendData(getDataToSend());
                     }
-                }, Config.getInstance().getSifs());
+                }, Config.getInstance().getSifs(),TimeTask.SEND);
     }
 
     @Override
@@ -70,7 +70,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                     public void run() {
                         onPostSendDATA();
                     }
-                }, dataFrame.getTransmitDuration());
+                }, dataFrame.getTransmitDuration(),TimeTask.SEND);
         sendFrame(dataFrame);
     }
 
@@ -81,7 +81,7 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_ACK) {
-                            logger.debug("%d after onPostSendDATA(),wait ack timeout",getId());
+                            logger.info("%d after onPostSendDATA(),wait ack timeout",getId());
                             endCommunication(false,true);
                         }
 

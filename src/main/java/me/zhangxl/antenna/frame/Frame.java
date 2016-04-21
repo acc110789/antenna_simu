@@ -12,7 +12,7 @@ public abstract class Frame implements Cloneable{
     final int srcId;
     private final long length;
     private final int targetId;
-    private boolean collision = false;
+    private boolean dirty = false;
     private double startTime = -1;
 
     Frame(int srcId, int targetId, long length){
@@ -24,12 +24,12 @@ public abstract class Frame implements Cloneable{
         }
     }
 
-    public void setCollision(){
-        this.collision = true;
+    public void setDirty(){
+        this.dirty = true;
     }
 
-    public boolean collision(){
-        return collision;
+    public boolean isDirty(){
+        return dirty;
     }
 
     /**

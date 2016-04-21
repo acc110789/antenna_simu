@@ -24,7 +24,8 @@ interface BaseRole {
     }
 
     enum Status {
-        IDLE(false,Mode.READ_MODE), //可以假设成为 WAITING_RTS的timeout是DIFS,超时的话就进入SLOTING
+        IDLE1(false,Mode.READ_MODE), //可以假设成为 WAITING_RTS的timeout是DIFS,超时的话就进入SLOTING
+        IDLE2(false,Mode.READ_MODE),//IDLE1 需要等待DIFS,IDLE2需要等待EIFS
         IDLE_RECEIVING(false,Mode.READ_MODE),
 
         SLOTING(false,Mode.READ_MODE),

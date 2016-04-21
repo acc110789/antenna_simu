@@ -66,10 +66,16 @@ public class Station extends AbstractRole{
     void onFinish() {
         Medium.getInstance().notify(this);
         for(Frame frame : receivingFrames){
-            frame.setCollision();
+            frame.setDirty();
         }
         if(receivingFrames.isEmpty()){
-            setCurrentStatus(Status.IDLE);
+            if(getCurrentStatus() == Status.WAITING_ACK ||
+                    getCurrentStatus() == Status.WAITING_CTS ||
+                    getCurrentStatus() == Status.WAITING_DATA) {
+                setCurrentStatus(Status.IDLE2);
+            } else {
+                setCurrentStatus(Status.IDLE1);
+            }
         } else {
             setCurrentStatus(Status.IDLE_RECEIVING);
         }
@@ -81,8 +87,6 @@ public class Station extends AbstractRole{
         assert getCurrentStatus() == Status.SLOTING;
         if (mCurrentSendingFrame == null) {
             getDataFrameToSend();
-        } else if (mCurrentSendingFrame.isCollision()) {
-            mCurrentSendingFrame.unsetCollision();
         }
         sendDataIfNeed();
         if(getCurrentStatus() == Status.SLOTING){
@@ -152,9 +156,15 @@ public class Station extends AbstractRole{
 
     @Override
     public void onSendSuccess() {
+        logger.info("%d send a data successfully",getId());
         TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
         mDataFrameSent.add(mCurrentSendingFrame);
         mCurrentSendingFrame = null;
+    }
+
+    @Override
+    void assertNoReceivingFrameOnWriteMode() {
+        assert receivingFrames.isEmpty();
     }
 
     /**
@@ -170,12 +180,14 @@ public class Station extends AbstractRole{
         }
         for(Frame frame1 : receivingFrames){
             if(StationUtil.hasIntersection(frame1,frame)){
-                frame.setCollision();
-                frame1.setCollision();
+                frame.setDirty();
+                frame1.setDirty();
             }
         }
         receivingFrames.add(frame);
-        if(getCurrentStatus() == Status.SLOTING || getCurrentStatus() == Status.IDLE){
+        if(getCurrentStatus() == Status.SLOTING ||
+                getCurrentStatus() == Status.IDLE1 ||
+                getCurrentStatus() == Status.IDLE2){
             setCurrentStatus(Status.IDLE_RECEIVING);
         }
         int priority = TimeTask.COMMON_PRIORITY;
@@ -189,10 +201,11 @@ public class Station extends AbstractRole{
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                assert getCurrentStatus() != Status.IDLE;
+                assert getCurrentStatus() != Status.IDLE2;
+                assert getCurrentStatus() != Status.IDLE1;
                 assert getCurrentStatus() != Status.SLOTING;
                 receivingFrames.remove(frame);
-                if(!frame.collision()) {
+                if(!frame.isDirty()) {
                     //接收成功
                     if (frame instanceof RtsFrame) {
                         mReceiver.onPostRecvRTS((RtsFrame) frame);
@@ -207,7 +220,7 @@ public class Station extends AbstractRole{
                     }
                 } else if(getCurrentStatus() == Status.IDLE_RECEIVING && receivingFrames.isEmpty()) {
                     //接收失败且当前状态处于IDLE_RECEIVING状态
-                    setCurrentStatus(Status.IDLE);
+                    setCurrentStatus(Status.IDLE2);
                 }
                 //接收失败且当前状态不是处于IDLE_RECEIVING的状态的时候就当作没有什么都没有发生过,上层发现timeout之后会自行处理
             }

@@ -45,7 +45,8 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
     @Override
     public void endCommunication(boolean success, boolean fail){
-        assert getCurrentStatus() != Status.IDLE;
+        assert getCurrentStatus() != Status.IDLE1;
+        assert getCurrentStatus() != Status.IDLE2;
         if(getCurrentStatus().isSender()) {
             //如果发送成功,则统计数据
             if (success) {
@@ -78,36 +79,39 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
     abstract void onPostDIFS();
 
+    abstract void assertNoReceivingFrameOnWriteMode();
+
     @Override
     public void setCurrentStatus(Status status) {
-        Status previous = this.currentStatus;
+        //Status previous = this.currentStatus;
         this.currentStatus = status;
         if(this.currentStatus.isReadMode()){
             Medium.getInstance().notify((Station)this);
         }
-        if(previous.isReadMode() && this.currentStatus.isWriteMode()){
-            // TODO: 16/4/19 要将正在接收的frame push到Medium的缓冲区
+        if(this.currentStatus.isWriteMode()){
+            //保证在writeMode的时候没有正在接受的frame
+            assertNoReceivingFrameOnWriteMode();
         }
-        if(getCurrentStatus() == Status.IDLE) {
+        if(getCurrentStatus() == Status.IDLE1) {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    TimeController.getInstance().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            TimeController.getInstance().post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if(getCurrentStatus() == Status.IDLE){
-                                        setCurrentStatus(Status.SLOTING);
-                                    }
-                                }
-                            },0);
-                        }
-                    },0);
+                    if(getCurrentStatus() == Status.IDLE1){
+                        setCurrentStatus(Status.SLOTING);
+                    }
                 }
             }, Config.getInstance().getDifs());
-        } else if(getCurrentStatus() == Status.SLOTING){
+        } else if(getCurrentStatus() == Status.IDLE2){
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    if(getCurrentStatus() == Status.IDLE2){
+                        setCurrentStatus(Status.SLOTING);
+                    }
+                }
+            },Config.getInstance().getEifs());
+        }
+        else if(getCurrentStatus() == Status.SLOTING){
             onPostDIFS();
         }
     }

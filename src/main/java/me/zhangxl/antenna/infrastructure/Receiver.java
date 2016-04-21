@@ -33,7 +33,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     public void run() {
                         onPreSendCTS(frame.generateCtsFrame());
                     }
-                }, Config.getInstance().getSifs());
+                }, Config.getInstance().getSifs(),TimeTask.SEND);
     }
 
     @Override
@@ -44,7 +44,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     public void run() {
                         onPostSendCTS();
                     }
-                }, frame.getTransmitDuration());
+                }, frame.getTransmitDuration(),TimeTask.SEND);
         sendFrame(frame);
     }
 
@@ -55,7 +55,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     @Override
                     public void run() {
                         if (getCurrentStatus() == Status.WAITING_DATA) {
-                            logger.debug("station :%d after onPostSendCTS(),wait data timeout", getId());
+                            logger.info("station :%d after onPostSendCTS(),wait data timeout", getId());
                             endCommunication(false,true);
                         }
                     }
@@ -70,7 +70,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     public void run() {
                         onPreSendAck(frame);
                     }
-                }, Config.getInstance().getSifs());
+                }, Config.getInstance().getSifs(),TimeTask.SEND);
     }
 
     @Override
@@ -81,7 +81,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     public void run() {
                         onPostSendACK();
                     }
-                }, frame.getTransmitDuration());
+                }, frame.getTransmitDuration(),TimeTask.SEND);
         sendFrame(frame);
     }
 

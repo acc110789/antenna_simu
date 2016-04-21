@@ -14,7 +14,7 @@ public class StationUtil {
 
     private static Random random = new Random(System.currentTimeMillis());
 
-    public static final List<Station> stationList = new ArrayList<>();
+    static final List<Station> stationList = new ArrayList<>();
 
     //保证每个Station有足够的数据待发送,使之饱和
     public static void guaranteeEnoughFrame(Station station) {

@@ -15,6 +15,7 @@ public class TimeTask implements Comparable<TimeTask> {
     private final int mPriority;
 
     /**
+     * 一个原则是在同一个时刻的发送和接受,要保证发送的执行比接受的执行更快
      * 优先级的数值越小,代表优先级越高,则越先被执行
      */
     public static int COMMON_PRIORITY = 0;
@@ -26,6 +27,9 @@ public class TimeTask implements Comparable<TimeTask> {
 
     public static int POST_SEND_ACK = COMMON_PRIORITY;
     public static int ACK_TIMEOUT = POST_SEND_ACK + 1;
+
+    public static int SEND = COMMON_PRIORITY;
+    public static int RECEIVE = SEND + 1;
 
     @Override
     public int compareTo(TimeTask o) {

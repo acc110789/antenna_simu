@@ -138,23 +138,37 @@ public class TimeController {
     }
 
     private void postLoop(){
-        System.out.println("*************************************************");
-        System.out.println("*************************************************");
-        System.out.format("总的数据传输量(bytes): %d", totalDataAmount);
-        System.out.println();
-        System.out.format("总的发送次数: %d",totalSendTimes);
-        System.out.println();
-        System.out.format("总的碰撞次数: %d",totalCollitionTimes);
-        System.out.println();
-        System.out.format("碰撞发生的概率: %f",PrecisionUtil.div((totalCollitionTimes+0.0),totalSendTimes));
-        System.out.println();
-        System.out.println("*************************************************");
+        logger.unLogHeader();
+        logger.ln();
+        logger.ln();
+        logger.info("*************************************************");
+        logger.info("*************************************************");
+        logger.info("成功的数据传输量(bytes): %d", totalDataAmount);
+        logger.ln();
+        logger.info("总的发送次数: %d",totalSendTimes);
+        logger.ln();
+        logger.info("总的碰撞次数: %d",totalCollitionTimes);
+        logger.ln();
+        logger.info("碰撞发生的概率: %f",PrecisionUtil.div((totalCollitionTimes+0.0),totalSendTimes));
+        logger.ln();
+        logger.info("*************************************************");
+        logger.info("*************************************************");
+        logger.logHeader();
     }
 
     private void preLoop(){
         if(loopCallBack != null){
             loopCallBack.run();
         }
+    }
+
+    public void clear(){
+        tasks.clear();
+        currentTime = 0.0;
+        statValve = false;
+        totalDataAmount = 0;
+        totalCollitionTimes = 0;
+        totalSendTimes = 0;
     }
 
     public void setLoopCallBack(Runnable callBack){

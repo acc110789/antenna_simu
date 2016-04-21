@@ -16,22 +16,18 @@ import java.util.Random;
  */
 public class DataFrame extends Frame {
 
+    private static Logger logger = SimuLoggerManager.getLogger(DataFrame.class.getSimpleName());
     static long frameLength = Config.getInstance().getFixDataLength()
             + Config.getInstance().getPhyHeader()
             + Config.getInstance().getMacHeader();
-    private static Logger logger = SimuLoggerManager.getLogger(DataFrame.class.getSimpleName());
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
     //数据部分的长度
     private static long dataLength = Config.getInstance().getFixDataLength();
     private double startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
-    private int collisionTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
+    private int failTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
     private int backOff;
     private int id;
-    /**
-     * 表明当前正在发生碰撞
-     */
-    private boolean collision = false;
 
     public DataFrame(int srcId, int targetId) {
         this(srcId, targetId, nextSerialNum());
@@ -59,18 +55,9 @@ public class DataFrame extends Frame {
     }
 
     public void addCollitionTimes() {
-        collisionTimes++;
-        collision = true;
-    }
-
-    public boolean isCollision() {
-        return collision;
-    }
-
-    public void unsetCollision() {
-        collision = false;
+        failTimes++;
         if (TimeLogger.DEBUG_FRAME) {
-            logger.debug("Station %d solve collision data frame", srcId);
+            logger.info("Station %d send data frame fail,update backoff", srcId);
         }
         updateBackOff();
     }
@@ -82,20 +69,18 @@ public class DataFrame extends Frame {
         if (this.startTime == Config.DEFAULT_DATA_FRAME_START_TIME) {
             this.startTime = TimeController.getInstance().getCurrentTime();
         }
-        if (this.collisionTimes == Config.DEFAULT_DATA_FRAME_COLLISION_TIME) {
-            this.collisionTimes = 0;
+        if (this.failTimes == Config.DEFAULT_DATA_FRAME_COLLISION_TIME) {
+            this.failTimes = 0;
         }
         updateBackOff();
     }
 
     private void updateBackOff() {
-        int contentionWindow = Math.min(Config.getInstance().getDefaultCW() + this.collisionTimes, Config.getInstance().getMaxCW());
+        int contentionWindow = Math.min(Config.getInstance().getDefaultCW() + this.failTimes, Config.getInstance().getMaxCW());
         int window = (int) Math.pow(2, contentionWindow);
         backOff = random.nextInt(window);
-        //for Test
-        //backOff = 1;
         if (TimeLogger.DEBUG_FRAME) {
-            logger.debug("source station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);
+            logger.info("source station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);
         }
     }
 

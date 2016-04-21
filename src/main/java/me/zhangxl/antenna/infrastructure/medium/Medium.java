@@ -3,6 +3,7 @@ package me.zhangxl.antenna.infrastructure.medium;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
+import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +33,11 @@ public abstract class Medium {
                 }
             }
         });
+    }
+
+    public void clear(){
+        stationToFrames.clear();
+        stationList.clear();
     }
 
     public void register(Station station){
@@ -68,7 +74,7 @@ public abstract class Medium {
                     }
                 }
             }
-        },0);
+        },0, TimeTask.RECEIVE);
     }
 
     private void putUnacceptedFrames(final Station station , final Frame frame){

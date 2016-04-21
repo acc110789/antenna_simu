@@ -94,7 +94,7 @@ public class Config {
             rtsLength = phyHeader + macRtsHeader;
             ctsLength = phyHeader + macHeader;
             ackLength = phyHeader + macHeader;
-            eifs = sifs + PrecisionUtil.div(ackLength,bandWidth);
+            eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
         } finally {
             IOUtils.closeQuietly(reader);
         }
@@ -115,6 +115,10 @@ public class Config {
 
     public double getDifs() {
         return difs;
+    }
+
+    public double getEifs(){
+        return this.eifs;
     }
 
     public double getSifs() {
