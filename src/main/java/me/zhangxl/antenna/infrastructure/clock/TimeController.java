@@ -1,5 +1,8 @@
 package me.zhangxl.antenna.infrastructure.clock;
 
+import me.zhangxl.antenna.frame.CtsFrame;
+import me.zhangxl.antenna.frame.DataFrame;
+import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
 import me.zhangxl.antenna.util.SimuLoggerManager;
@@ -108,7 +111,27 @@ public class TimeController {
                 logger.error("double add error");
             }
             if(time > 0){
-                logger.ln();
+                logger.unLogHeader();
+                String text;
+                if(PrecisionUtil.sub(time,Config.getInstance().getDifs()) == 0){
+                    text = "DIFS";
+                } else if(PrecisionUtil.sub(time,Config.getInstance().getSifs()) == 0){
+                    text = "SIFS";
+                } else if(PrecisionUtil.sub(time,Config.getInstance().getSlotLength()) == 0){
+                    text = "SLOT";
+                } else if(PrecisionUtil.sub(time,Config.getInstance().getEifs()) == 0){
+                    text = "EIFS";
+                } else if(PrecisionUtil.sub(time, RtsFrame.getTimeLength()) == 0){
+                    text = "RTS";
+                } else if(PrecisionUtil.sub(time, CtsFrame.getCtsTimeLength()) == 0){
+                    text = "CTS OR ACK";
+                } else if(PrecisionUtil.sub(time, DataFrame.getFrameTimeLength()) == 0){
+                    text = "DATA";
+                } else {
+                    text = String.format("%#.14f", time);
+                }
+                logger.trace("%-16s  passed",text);
+                logger.logHeader();
             }
 
             if(!statValve && currentTime >= Config.getInstance().getWarmUp()){

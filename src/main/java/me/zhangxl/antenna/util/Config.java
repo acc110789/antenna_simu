@@ -42,7 +42,7 @@ public class Config {
     //bits 物理层的长度
     private int phyHeader = -1;
     //ACK,CTS
-    private int macHeader = -1;
+    private int macCtsOrAckHeader = -1;
     private int macRtsHeader = -1;
     private int rtsLength = -1;
     private int ctsLength = -1;
@@ -66,6 +66,7 @@ public class Config {
         return sInstance;
     }
 
+    @Deprecated
     private void loadConfigProperties() throws IOException {
         Properties properties = new Properties();
         Reader reader = null;
@@ -84,7 +85,7 @@ public class Config {
 
             this.bandWidth = PrecisionUtil.round(Double.valueOf(properties.getProperty("BAND_WIDTH")));
             this.phyHeader = Integer.valueOf(properties.getProperty("PHY_HEADER"));
-            this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
+            this.macCtsOrAckHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
             this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
 
             this.simulationDuration = PrecisionUtil.round(Double.valueOf(properties.getProperty("SIMULATION_DURATION")));
@@ -93,8 +94,8 @@ public class Config {
 
             difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
             rtsLength = phyHeader + macRtsHeader;
-            ctsLength = phyHeader + macHeader;
-            ackLength = phyHeader + macHeader;
+            ctsLength = phyHeader + macCtsOrAckHeader;
+            ackLength = phyHeader + macCtsOrAckHeader;
             eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
         } finally {
             IOUtils.closeQuietly(reader);
@@ -119,7 +120,7 @@ public class Config {
 
             this.bandWidth = PrecisionUtil.round(object.getDouble("BAND_WIDTH"));
             this.phyHeader = object.getInt("PHY_HEADER");
-            this.macHeader = object.getInt("MAC_HEADER");
+            this.macCtsOrAckHeader = object.getInt("MAC_HEADER");
             this.macRtsHeader = object.getInt("MAC_RTS_HEADER");
 
             this.simulationDuration = PrecisionUtil.round(object.getDouble("SIMULATION_DURATION"));
@@ -128,8 +129,8 @@ public class Config {
 
             difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
             rtsLength = phyHeader + macRtsHeader;
-            ctsLength = phyHeader + macHeader;
-            ackLength = phyHeader + macHeader;
+            ctsLength = phyHeader + macCtsOrAckHeader;
+            ackLength = phyHeader + macCtsOrAckHeader;
             eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
         } catch (JSONException e){
             throw new IOException(e);
@@ -179,8 +180,8 @@ public class Config {
         return phyHeader;
     }
 
-    public int getMacHeader() {
-        return macHeader;
+    public int getMacCtsOrAckHeader() {
+        return macCtsOrAckHeader;
     }
 
     public int getMacRtsHeader() {

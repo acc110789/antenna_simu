@@ -55,7 +55,7 @@ public class Main {
         if(Config.getInstance().getPhyHeader() <= 0){
             errInfo += "    phyHeader is less than or equal 0";
         }
-        if(Config.getInstance().getMacHeader() <= 0){
+        if(Config.getInstance().getMacCtsOrAckHeader() <= 0){
             errInfo += "    macHeader is less than or equal 0";
         }
         if(Config.getInstance().getMacRtsHeader() <= 0){

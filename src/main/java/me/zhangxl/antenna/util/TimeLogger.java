@@ -14,6 +14,7 @@ import org.apache.logging.log4j.util.Supplier;
  */
 public class TimeLogger implements Logger {
 
+    private static final String sFormatter = "%s%s";
     public static boolean DEBUG_CLOCK = false;
     public static boolean DEBUG_STATION = false;
     public static boolean DEBUG_FRAME = true;
@@ -169,13 +170,13 @@ public class TimeLogger implements Logger {
 
     @Override
     public void debug(String message) {
-        String formatter = String.format("%s %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.debug(formatter);
     }
 
     @Override
     public void debug(String message, Object... params) {
-        String formatter = String.format("%s %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.debug(formatter, params);
     }
 
@@ -325,13 +326,13 @@ public class TimeLogger implements Logger {
 
     @Override
     public void error(String message) {
-        String formatter = String.format("%s %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.error(formatter);
     }
 
     @Override
     public void error(String message, Object... params) {
-        String formatter = String.format("%s %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.error(formatter, params);
     }
 
@@ -480,13 +481,13 @@ public class TimeLogger implements Logger {
 
     @Override
     public void fatal(String message) {
-        String formatter = String.format("%s  %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.fatal(formatter);
     }
 
     @Override
     public void fatal(String message, Object... params) {
-        String formatter = String.format("%s  %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.fatal(formatter, params);
     }
 
@@ -639,13 +640,13 @@ public class TimeLogger implements Logger {
 
     @Override
     public void info(String message) {
-        String formatter = String.format("%s  %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.info(formatter);
     }
 
     @Override
     public void info(String message, Object... params) {
-        String formatter = String.format("%s  %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.info(formatter, params);
     }
 
@@ -1019,13 +1020,13 @@ public class TimeLogger implements Logger {
 
     @Override
     public void trace(String message) {
-        String formatter = String.format("%s %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.trace(formatter);
     }
 
     @Override
     public void trace(String message, Object... params) {
-        String formatter = String.format("%s %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.trace(formatter, params);
     }
 
@@ -1163,13 +1164,13 @@ public class TimeLogger implements Logger {
 
     @Override
     public void warn(String message) {
-        String formatter = String.format("%s  %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.warn(formatter);
     }
 
     @Override
     public void warn(String message, Object... params) {
-        String formatter = String.format("%s  %s",getHeader(),message);
+        String formatter = String.format(sFormatter,getHeader(),message);
         mLogger.warn(formatter, params);
     }
 

@@ -9,6 +9,7 @@ import me.zhangxl.antenna.util.PrecisionUtil;
 public class CtsFrame extends Frame {
 
     static final int ctsLength = Config.getInstance().getCtsLength();
+    private static final double ctsTimeLength;
 
     CtsFrame(int srcId, int targetId) {
         super(srcId, targetId, ctsLength);
@@ -17,9 +18,10 @@ public class CtsFrame extends Frame {
     private static double ctsTimeOut ;
 
     static {
+        ctsTimeLength = PrecisionUtil.div(ctsLength,Config.getInstance().getBandWidth());
         ctsTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),
                 Config.getInstance().getDifs(),
-                PrecisionUtil.div(ctsLength,Config.getInstance().getBandWidth()));
+                ctsTimeLength);
 
         ctsTimeOut = PrecisionUtil.sub(ctsTimeOut,Config.getInstance().getDifs());
     }
@@ -36,5 +38,9 @@ public class CtsFrame extends Frame {
     @Override
     public double getNavDuration() {
         return navDuration;
+    }
+
+    public static double getCtsTimeLength(){
+        return ctsTimeLength;
     }
 }

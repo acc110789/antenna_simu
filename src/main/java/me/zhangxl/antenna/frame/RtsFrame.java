@@ -9,13 +9,15 @@ import me.zhangxl.antenna.util.PrecisionUtil;
 public class RtsFrame extends Frame {
 
     private static final int rtsLength = Config.getInstance().getRtsLength();
+    private static final double rtsTimeLength;
 
     private static double rtsTimeOut;
 
     static {
+        rtsTimeLength = PrecisionUtil.div(rtsLength,Config.getInstance().getBandWidth());
         rtsTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),
                 Config.getInstance().getDifs(),
-                PrecisionUtil.div(rtsLength , Config.getInstance().getBandWidth()));
+                rtsTimeLength);
 
         rtsTimeOut = PrecisionUtil.sub(rtsTimeOut ,Config.getInstance().getDifs());
     }
@@ -38,5 +40,9 @@ public class RtsFrame extends Frame {
     @Override
     public double getNavDuration() {
         return navDuration;
+    }
+
+    public static double getTimeLength(){
+        return rtsTimeLength;
     }
 }

@@ -17,9 +17,10 @@ import java.util.Random;
 public class DataFrame extends Frame {
 
     private static Logger logger = SimuLoggerManager.getLogger(DataFrame.class.getSimpleName());
-    static long frameLength = Config.getInstance().getFixDataLength()
+    static final long frameLength = Config.getInstance().getFixDataLength()
             + Config.getInstance().getPhyHeader()
-            + Config.getInstance().getMacHeader();
+            + Config.getInstance().getMacCtsOrAckHeader();
+    private static final double frameTimeLength;
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
     //数据部分的长度
@@ -40,9 +41,10 @@ public class DataFrame extends Frame {
 
     private static double dataTimeOut ;
     static {
+        frameTimeLength = PrecisionUtil.div(frameLength,Config.getInstance().getBandWidth());
         dataTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),
                 Config.getInstance().getDifs(),
-                PrecisionUtil.div(frameLength,Config.getInstance().getBandWidth()));
+                frameTimeLength);
         dataTimeOut = PrecisionUtil.sub(dataTimeOut,Config.getInstance().getDifs());
     }
 
@@ -107,6 +109,10 @@ public class DataFrame extends Frame {
 
     public long getLength() {
         return dataLength;
+    }
+
+    public static double getFrameTimeLength(){
+        return frameTimeLength;
     }
 
 }
