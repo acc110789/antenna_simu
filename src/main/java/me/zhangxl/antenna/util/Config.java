@@ -1,11 +1,11 @@
 package me.zhangxl.antenna.util;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.Properties;
 
 /**
@@ -55,7 +55,8 @@ public class Config {
 
     private Config() {
         try {
-            loadConfig();
+//            loadConfigProperties();
+            loadConfigJSON();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,7 +66,7 @@ public class Config {
         return sInstance;
     }
 
-    private void loadConfig() throws IOException {
+    private void loadConfigProperties() throws IOException {
         Properties properties = new Properties();
         Reader reader = null;
         try {
@@ -97,6 +98,43 @@ public class Config {
             eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
         } finally {
             IOUtils.closeQuietly(reader);
+        }
+    }
+
+    private void loadConfigJSON() throws IOException {
+        InputStream input = null;
+        try {
+            input = Config.class.getClassLoader().getResourceAsStream("antenna_config.json");
+            JSONObject object = new JSONObject(new JSONTokener(input));
+
+            this.stationNum = object.getInt("STATION_NUM");
+            this.maxCW = object.getInt("MAX_CW");
+
+            String currentVersion = object.getString("CURRENT_VERSION");
+            JSONObject subObj = object.getJSONObject(currentVersion);
+
+            this.slotLength = PrecisionUtil.round(subObj.getDouble("SLOT_LENGTH"));
+            this.sifs = PrecisionUtil.round(subObj.getDouble("SIFS"));
+            this.defaultCW = subObj.getInt("DEFAULT_CW");
+
+            this.bandWidth = PrecisionUtil.round(object.getDouble("BAND_WIDTH"));
+            this.phyHeader = object.getInt("PHY_HEADER");
+            this.macHeader = object.getInt("MAC_HEADER");
+            this.macRtsHeader = object.getInt("MAC_RTS_HEADER");
+
+            this.simulationDuration = PrecisionUtil.round(object.getDouble("SIMULATION_DURATION"));
+            this.warmUp = PrecisionUtil.round(object.getDouble("WARM_UP"));
+            this.fixDataLength = object.getLong("FIX_DATA_LENGTH");
+
+            difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
+            rtsLength = phyHeader + macRtsHeader;
+            ctsLength = phyHeader + macHeader;
+            ackLength = phyHeader + macHeader;
+            eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
+        } catch (JSONException e){
+            throw new IOException(e);
+        } finally {
+            IOUtils.closeQuietly(input);
         }
 
     }

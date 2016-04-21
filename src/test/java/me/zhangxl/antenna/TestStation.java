@@ -90,8 +90,6 @@ public class TestStation {
         }
     }
 
-
-
     private void printConfig(){
         logger.unLogHeader();
         logger.info("**************************************");
@@ -128,7 +126,21 @@ public class TestStation {
     @Test
     public void testFourStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
-        testStations(4,0,0.05);
+        for(int i=0;i<10;i++) {
+            logger.unLogHeader();
+            logger.info("第%d次仿真试验", i);
+            logger.logHeader();
+            logger.ln();
+            TimeController.getInstance().clear();
+            Medium.getInstance().clear();
+            testStations(4, 0, 0.05);
+        }
+    }
+
+    @Test
+    public void testFourStationLong() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
+        printConfig();
+        testStations(4,0,100);
     }
 
     @Test

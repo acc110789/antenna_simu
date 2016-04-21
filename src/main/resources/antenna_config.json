@@ -1,0 +1,32 @@
+{
+  "STATION_NUM": 60,
+  "MAX_CW": 4,
+  "CURRENT_VERSION": "802.11CUSTOM",
+  "802.11CUSTOM": {
+    "SLOT_LENGTH": 20e-6,
+    "SIFS": 10e-6,
+    "DEFAULT_CW": 2
+  },
+  "802.11B": {
+    "SLOT_LENGTH": 20e-6,
+    "SIFS": 10e-6,
+    "DEFAULT_CW": 5
+  },
+  "802.11A": {
+    "SLOT_LENGTH": 9e-6,
+    "SIFS": 16e-6,
+    "DEFAULT_CW": 4
+  },
+  "802.11G": {
+    "SLOT_LENGTH": 20e-6,
+    "SIFS": 10e-6,
+    "DEFAULT_CW": 5
+  },
+  "BAND_WIDTH": 1048576,
+  "PHY_HEADER": 192,
+  "MAC_HEADER": 112,
+  "MAC_RTS_HEADER": 190,
+  "SIMULATION_DURATION": 9,
+  "WARM_UP": 4,
+  "FIX_DATA_LENGTH": 8000
+}
