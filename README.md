@@ -15,4 +15,4 @@
 <br/>
 > LAN/MAN standards Committee. Part 11: Wireless lan medium access
  control (mac) and physical layer (phy) specifications[J].
- IEEE-SA Standards Board, 20012.
+ IEEE-SA Standards Board, 2012.
