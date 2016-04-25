@@ -57,7 +57,6 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
                 backOffDueToTimeout();
             }
         }
-        setCommunicationTarget(defaultCommunicationTarget);
         onFinish();
     }
 

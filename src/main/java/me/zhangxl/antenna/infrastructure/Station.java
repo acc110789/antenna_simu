@@ -64,18 +64,13 @@ public class Station extends AbstractRole{
 
     @Override
     void onFinish() {
+        setCommunicationTarget(defaultCommunicationTarget);
         Medium.getInstance().notify(this);
         for(Frame frame : receivingFrames){
             frame.setDirty();
         }
         if(receivingFrames.isEmpty()){
-            if(getCurrentStatus() == Status.WAITING_ACK ||
-                    getCurrentStatus() == Status.WAITING_CTS ||
-                    getCurrentStatus() == Status.WAITING_DATA) {
-                setCurrentStatus(Status.IDLE2);
-            } else {
-                setCurrentStatus(Status.IDLE1);
-            }
+            setCurrentStatus(Status.IDLE1);
         } else {
             setCurrentStatus(Status.IDLE_RECEIVING);
         }
