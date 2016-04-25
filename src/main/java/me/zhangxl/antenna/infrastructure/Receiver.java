@@ -113,7 +113,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                         logger.info("%d NAV finish",getId());
                         endCommunication(false,false);
                     }
-                },frame.getNavDuration());
+                },frame.getNavDuration(),TimeTask.RECEIVE);
             }
         } else {
             logger.debug("%d ignore RTS because currentStatus is :%s",getId(),getCurrentStatus().toString());
