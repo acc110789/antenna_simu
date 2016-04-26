@@ -94,7 +94,7 @@ public class TestStation {
      * @throws NoSuchFieldException
      */
     @Test
-    public void twoDirectStation() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
+    public void threeDirectStation() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
         setDirectionMode(Medium.DIRECT_MODE);
         setSimulationDuration(0.02);
