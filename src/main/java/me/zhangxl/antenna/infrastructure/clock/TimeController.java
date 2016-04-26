@@ -180,8 +180,10 @@ public class TimeController {
         logger.ln();
         logger.info("总的碰撞次数: %d",totalCollitionTimes);
         logger.ln();
-        logger.info("碰撞发生的概率: %f",PrecisionUtil.div((totalCollitionTimes+0.0),totalSendTimes));
-        logger.ln();
+        if(totalSendTimes > 0) {
+            logger.info("碰撞发生的概率: %f", PrecisionUtil.div((totalCollitionTimes + 0.0), totalSendTimes));
+            logger.ln();
+        }
         logger.info("*************************************************");
         logger.info("*************************************************");
         logger.logHeader();

@@ -4,6 +4,9 @@ import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
+import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.SimuLoggerManager;
+import me.zhangxl.antenna.util.TimeLogger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +19,10 @@ import java.util.Map;
  */
 public abstract class Medium {
 
+    static final TimeLogger logger = SimuLoggerManager.getLogger(Medium.class.getSimpleName());
+    public static final int DIRECT_MODE = 1;
+    public static final int OMNI_MODE = 2;
+
     static final List<Station> stationList = new ArrayList<>();
     /**
      * 把station没有接受(由于station)的frame暂时放置在这里
@@ -24,10 +31,17 @@ public abstract class Medium {
     static  Medium sMedium ;
 
     Medium() {
+        logger.unLogHeader();
         TimeController.getInstance().setLoopCallBack(new Runnable() {
             @Override
             public void run() {
                 //触发所有的节点
+                if(sMedium instanceof DirectMedium){
+                    logger.info("定向天线模式,分析所有Station的位置信息......");
+                    ((DirectMedium) sMedium).analysisStationLocation();
+                } else {
+                    logger.info("全向天线模式");
+                }
                 for(Station station : stationList){
                     station.onPostDIFS();
                 }
@@ -35,33 +49,38 @@ public abstract class Medium {
         });
     }
 
-    public void clear(){
-        stationToFrames.clear();
-        stationList.clear();
-    }
-
     public void register(Station station){
         stationList.add(station);
     }
 
     public static Medium getInstance() {
-        try {
-            Class.forName("me.zhangxl.antenna.infrastructure.medium.OmniMedium");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e);
+        if(sMedium == null){
+            if(Config.getInstance().getAntennaMode() == DIRECT_MODE){
+                sMedium = new DirectMedium();
+            } else if(Config.getInstance().getAntennaMode() == OMNI_MODE){
+                sMedium = new OmniMedium();
+            } else {
+                throw new RuntimeException();
+            }
         }
         return sMedium;
+    }
+
+    public static void reset(){
+        sMedium = null;
+        stationToFrames.clear();
+        stationList.clear();
     }
 
     /**
      * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
      */
-    public void putFrame(final Station station, final Frame frame) {
+    public void putFrame(final Station source, final Frame frame) {
         frame.setStartTimeNow();
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                for(Station station1 : getStationToReceive(station)){
+                for(Station station1 : getStationToReceive(source, frame)){
                     Frame copy;
                     try {
                         copy = (Frame) frame.clone();
@@ -117,7 +136,7 @@ public abstract class Medium {
         }
     }
 
-    abstract List<Station> getStationToReceive(Station station);
+    abstract List<Station> getStationToReceive(Station station, Frame frame);
 
 
 }

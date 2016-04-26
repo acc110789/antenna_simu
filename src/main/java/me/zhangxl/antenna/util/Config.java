@@ -52,6 +52,8 @@ public class Config {
     private double warmUp = -1;
     private long fixDataLength = -1;
     private double eifs= -1;
+    private int antennaMode = -1;
+    private int part = -1;
 
     private Config() {
         try {
@@ -126,6 +128,9 @@ public class Config {
             this.simulationDuration = PrecisionUtil.round(object.getDouble("SIMULATION_DURATION"));
             this.warmUp = PrecisionUtil.round(object.getDouble("WARM_UP"));
             this.fixDataLength = object.getLong("FIX_DATA_LENGTH");
+            this.antennaMode = object.getInt("ANTENNA_MODE");
+            //part的含义:具体将一个圆周分成多少份
+            this.part = object.getInt("PART");
 
             difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
             rtsLength = phyHeader + macRtsHeader;
@@ -206,6 +211,17 @@ public class Config {
 
     public double getSimulationDuration() {
         return simulationDuration;
+    }
+
+    public int getAntennaMode(){
+        return this.antennaMode;
+    }
+
+    /**
+     * @return 定向天线将一个圆周分成多少份
+     */
+    public int getPart(){
+        return this.part;
     }
 
 }

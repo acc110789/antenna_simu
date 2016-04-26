@@ -1,6 +1,7 @@
 package me.zhangxl.antenna;
 
 
+import me.zhangxl.antenna.util.PrecisionUtil;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -8,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -148,6 +150,51 @@ public class TestJavaFunction {
         list.add(new C());
     }
 
+    @Test
+    public void testDoubleCompare(){
+        double a = 0;
+        double b = PrecisionUtil.round(1/7);
+        a += b;
+        double c = PrecisionUtil.round(1/11);
+        a += c;
+        System.out.println(a==(b+c));
+        System.out.println(0.05 + 0.01);
+        System.out.println(PrecisionUtil.add(0.05,0.01));
+        System.out.println(1.0 - 0.42);
+        System.out.println(PrecisionUtil.sub(1.0,0.42));
+        System.out.println(4.015 * 100);
+        System.out.println(PrecisionUtil.mul(4.015,100.0));
+        System.out.println(123.3 / 100);
+        System.out.println(PrecisionUtil.div(123.3,100.0));
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        BigDecimal big = new BigDecimal("12.22");
+        BigDecimal big1 = new BigDecimal("12.23");
+        big.add(big1);
+        System.out.println("big :" + big);
+    }
+
+    @Test
+    public void testTan(){
+        double angle = PrecisionUtil.mul(PrecisionUtil.div(45,180),Math.PI);
+        System.out.println("45 degree :" + PrecisionUtil.round(Math.tan(angle)));
+
+        angle = PrecisionUtil.mul(PrecisionUtil.div(15,180),Math.PI);
+        System.out.println("15 degree :" + PrecisionUtil.round(Math.tan(angle)));
+
+        angle = PrecisionUtil.mul(PrecisionUtil.div(75,180),Math.PI);
+        System.out.println("75 degree :" + PrecisionUtil.round(Math.tan(angle)));
+
+        angle = PrecisionUtil.mul(PrecisionUtil.div(10,180),Math.PI);
+        System.out.println("5 degree :" + PrecisionUtil.round(Math.tan(angle)));
+
+        angle = PrecisionUtil.mul(PrecisionUtil.div(80,180),Math.PI);
+        System.out.println("80 degree :" + PrecisionUtil.round(Math.tan(angle)));
+
+        System.out.println("negative degree: " + PrecisionUtil.round(Math.atan(-1)));
+    }
 
 
 

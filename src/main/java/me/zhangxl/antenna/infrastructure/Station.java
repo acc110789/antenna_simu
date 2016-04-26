@@ -44,9 +44,13 @@ public class Station extends AbstractRole{
         Medium.getInstance().register(this);
     }
 
-    public Station(int id, Double xAxis, Double yAxis) {
+    public Station(int id, double xAxis, double yAxis) {
         this(id);
         this.mLocation = new Pair<>(xAxis, yAxis);
+    }
+
+    public Pair<Double,Double> getAxis(){
+        return this.mLocation;
     }
 
     int getWaitingRequestNum() {

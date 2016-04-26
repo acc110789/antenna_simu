@@ -16,6 +16,10 @@ public class StationUtil {
 
     static final List<Station> stationList = new ArrayList<>();
 
+    public static void clear(){
+        stationList.clear();
+    }
+
     //保证每个Station有足够的数据待发送,使之饱和
     public static void guaranteeEnoughFrame(Station station) {
         for (int i = station.getWaitingRequestNum(); i < 100; i++) {

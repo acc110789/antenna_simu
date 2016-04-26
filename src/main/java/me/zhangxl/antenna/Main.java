@@ -3,6 +3,7 @@ package me.zhangxl.antenna;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
+import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Config;
 
 import java.util.ArrayList;
@@ -17,10 +18,9 @@ public class Main {
 
         //新建站点
         List<Station> stationList = new ArrayList<>();
-        for (int i = 0; i < Config.getInstance().getStationNum(); i++) {
-            Station station = new Station(i);
-            stationList.add(station);
-        }
+        stationList.add(new Station(1,1,0));
+        stationList.add(new Station(2,0,1));
+        stationList.add(new Station(3,-1,0));
 
         //激活所有的站点
         for (Station station : stationList) {
@@ -85,6 +85,14 @@ public class Main {
         }
         if(Config.getInstance().getFixDataLength() <= 0){
             errInfo += "    fix data length is less than 0";
+        }
+        if(Config.getInstance().getAntennaMode() != Medium.DIRECT_MODE
+                && Config.getInstance().getAntennaMode() != Medium.OMNI_MODE){
+            throw new RuntimeException("incorrect mode");
+        }
+        int part = Config.getInstance().getPart();
+        if(part <= 1 || part == 7 || part == 11 || part > 12){
+            throw new RuntimeException("incorrect part num");
         }
         if(!errInfo.isEmpty()){
             throw new IllegalArgumentException(errInfo);

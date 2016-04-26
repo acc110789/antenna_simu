@@ -13,7 +13,6 @@ import me.zhangxl.antenna.util.TimeLogger;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +43,14 @@ public class TestStation {
         field1.setDouble(Config.getInstance(), time);
     }
 
+    private void setDirectionMode(int mode) throws NoSuchFieldException, IllegalAccessException {
+        Config.getInstance();
+        Class<Config> configClass = Config.class;
+        Field field1 = configClass.getDeclaredField("antennaMode");
+        field1.setAccessible(true);
+        field1.setInt(Config.getInstance(), mode);
+    }
+
     private List<Station> getStations(int num) {
         List<Station> result = new ArrayList<>();
         for (int i = 1; i <= num; i++) {
@@ -52,55 +59,77 @@ public class TestStation {
         return result;
     }
 
-    private void testStations(int num,double warmUp,double duration)
+    private void testStations(int num, double warmUp, double duration)
             throws NoSuchFieldException, IllegalAccessException, InterruptedException {
-        for(Station station : getStations(num)){
-            StationUtil.guaranteeEnoughFrame(station);
-        }
+
+        setDirectionMode(Medium.OMNI_MODE);
         setSimulationDuration(duration);
         setWarmUpTime(warmUp);
+        Medium.reset();
+        StationUtil.clear();
+        TimeController.getInstance().clear();
+        for (Station station : getStations(num)) {
+            StationUtil.guaranteeEnoughFrame(station);
+        }
         TimeController.getInstance().loop();
     }
+
 
     @Test
     public void twoStation() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
         printConfig();
-        for(int i=0;i<10;i++) {
+        for (int i = 0; i < 10; i++) {
             logger.unLogHeader();
             logger.info("第%d次仿真试验", i);
             logger.logHeader();
             logger.ln();
-            TimeController.getInstance().clear();
-            Medium.getInstance().clear();
             testStations(2, 0, 0.02);
         }
     }
 
     @Test
+    public void twoDirectStation() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
+        printConfig();
+        setDirectionMode(Medium.DIRECT_MODE);
+        setSimulationDuration(0.02);
+        setWarmUpTime(0);
+        Medium.reset();
+        TimeController.getInstance().clear();
+
+        Station station1 = new Station(1, 1, 0);
+        Station station2 = new Station(2, 0, 1);
+        Station station3 = new Station(3, -1, 0);
+
+        StationUtil.guaranteeEnoughFrame(station1);
+        StationUtil.guaranteeEnoughFrame(station2);
+        StationUtil.guaranteeEnoughFrame(station3);
+
+        TimeController.getInstance().loop();
+    }
+
+    @Test
     public void twoStationLong() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
-        for(int i=0;i<10;i++) {
+        for (int i = 0; i < 10; i++) {
             logger.unLogHeader();
             logger.info("第%d次仿真试验", i);
             logger.logHeader();
             logger.ln();
-            TimeController.getInstance().clear();
-            Medium.getInstance().clear();
             testStations(2, 0, 10);
         }
     }
 
-    private void printConfig(){
+    private void printConfig() {
         logger.unLogHeader();
         logger.info("**************************************");
         logger.info("***************config*****************");
         logger.ln();
-        logger.info("%-13s%#.14f","slot length",Config.getInstance().getSlotLength());
-        logger.info("%-13s%#.14f","rts  length",new RtsFrame(-1,-1).getTransmitDuration());
-        logger.info("%-13s%#.14f","difs length",Config.getInstance().getDifs());
-        logger.info("%-13s%#.14f","cts  timeout",CtsFrame.getCtsTimeOut());
-        logger.info("%-13s%#.14f","rts  timeout",RtsFrame.getRtsTimeOut());
-        logger.info("%-13s%#.14f","eifs length",Config.getInstance().getEifs());
+        logger.info("%-13s%#.14f", "slot length", Config.getInstance().getSlotLength());
+        logger.info("%-13s%#.14f", "rts  length", new RtsFrame(-1, -1).getTransmitDuration());
+        logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
+        logger.info("%-13s%#.14f", "cts  timeout", CtsFrame.getCtsTimeOut());
+        logger.info("%-13s%#.14f", "rts  timeout", RtsFrame.getRtsTimeOut());
+        logger.info("%-13s%#.14f", "eifs length", Config.getInstance().getEifs());
         logger.ln();
         logger.info("**************************************");
         logger.info("**************************************");
@@ -112,13 +141,11 @@ public class TestStation {
     @Test
     public void testThreeStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
-        for(int i=0;i<1;i++) {
+        for (int i = 0; i < 1; i++) {
             logger.unLogHeader();
             logger.info("第%d次仿真试验", i);
             logger.logHeader();
             logger.ln();
-            TimeController.getInstance().clear();
-            Medium.getInstance().clear();
             testStations(3, 0, 0.05);
         }
     }
@@ -126,13 +153,11 @@ public class TestStation {
     @Test
     public void testFourStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
-        for(int i=0;i<10;i++) {
+        for (int i = 0; i < 10; i++) {
             logger.unLogHeader();
             logger.info("第%d次仿真试验", i);
             logger.logHeader();
             logger.ln();
-            TimeController.getInstance().clear();
-            Medium.getInstance().clear();
             testStations(4, 0, 0.05);
         }
     }
@@ -140,38 +165,12 @@ public class TestStation {
     @Test
     public void testFourStationLong() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
-        testStations(4,0,100);
+        testStations(4, 0, 100);
     }
 
     @Test
-    public void testDouble(){
+    public void testDouble() {
         System.out.println(PrecisionUtil.round(Math.PI));
-    }
-
-    @Test
-    public void testDoubleCompare(){
-        double a = 0;
-        double b = PrecisionUtil.round(1/7);
-        a += b;
-        double c = PrecisionUtil.round(1/11);
-        a += c;
-        System.out.println(a==(b+c));
-        System.out.println(0.05 + 0.01);
-        System.out.println(PrecisionUtil.add(0.05,0.01));
-        System.out.println(1.0 - 0.42);
-        System.out.println(PrecisionUtil.sub(1.0,0.42));
-        System.out.println(4.015 * 100);
-        System.out.println(PrecisionUtil.mul(4.015,100.0));
-        System.out.println(123.3 / 100);
-        System.out.println(PrecisionUtil.div(123.3,100.0));
-
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        BigDecimal big = new BigDecimal("12.22");
-        BigDecimal big1 = new BigDecimal("12.23");
-        big.add(big1);
-        System.out.println("big :" + big);
     }
 
 }
