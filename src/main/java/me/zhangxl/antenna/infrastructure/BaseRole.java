@@ -16,16 +16,20 @@ interface BaseRole {
         WRITE_MODE
     }
 
-    enum EndReason{
-        SUCCESS,
-        COLLISION,
-        TIMEOUT,
-        NAV_OVER
-    }
-
     enum Status {
+        /**
+         * 需要等待DIFS才能进入backoff时的状态
+         */
         IDLE1(false,Mode.READ_MODE), //可以假设成为 WAITING_RTS的timeout是DIFS,超时的话就进入SLOTING
+        /**
+         * 需要等待EIFS才能进入backoff的状态
+         */
         IDLE2(false,Mode.READ_MODE),//IDLE1 需要等待DIFS,IDLE2需要等待EIFS
+        /**
+         * 此时节点没有通信者,但是正在接受数据,有可能这个数据是无效数据
+         * 如果是无效数据,则进入IDLE2状态,如果是一个有效的RTS数据
+         * 则进入RECEIVING_RTS
+         */
         IDLE_RECEIVING(false,Mode.READ_MODE),
 
         SLOTING(false,Mode.READ_MODE),

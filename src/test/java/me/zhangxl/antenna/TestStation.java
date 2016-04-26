@@ -87,6 +87,12 @@ public class TestStation {
         }
     }
 
+    /**
+     * 定向天线测试
+     * @throws IllegalAccessException
+     * @throws InterruptedException
+     * @throws NoSuchFieldException
+     */
     @Test
     public void twoDirectStation() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
