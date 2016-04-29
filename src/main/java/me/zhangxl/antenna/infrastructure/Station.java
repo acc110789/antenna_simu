@@ -144,7 +144,6 @@ public class Station extends AbstractRole{
             }
             mCurrentSendingFrame.setStartTimeNow();
             mSender.onPreSendRTS(mCurrentSendingFrame.generateRtsFrame());
-            TimeController.getInstance().addSendTimes();
         }
     }
 
@@ -155,6 +154,7 @@ public class Station extends AbstractRole{
     @Override
     public void onSendSuccess() {
         logger.info("%d send a data successfully",getId());
+        TimeController.getInstance().addSuccessTimes();
         TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
         mDataFrameSent.add(mCurrentSendingFrame);
         mCurrentSendingFrame = null;

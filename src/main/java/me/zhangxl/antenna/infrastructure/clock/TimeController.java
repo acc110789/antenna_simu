@@ -44,7 +44,7 @@ public class TimeController {
     /**
      * 总的发送次数
      */
-    private long totalSendTimes = 0;
+    private long totalSuccessTimes = 0;
 
     private TimeController(){}
 
@@ -78,9 +78,9 @@ public class TimeController {
         }
     }
 
-    public void addSendTimes(){
+    public void addSuccessTimes(){
         if(statValve){
-            totalSendTimes ++;
+            totalSuccessTimes++;
         }
     }
 
@@ -176,12 +176,13 @@ public class TimeController {
         logger.info("*************************************************");
         logger.info("成功的数据传输量(bytes): %d", totalDataAmount);
         logger.ln();
-        logger.info("总的发送次数: %d",totalSendTimes);
+        long totalAmount = totalSuccessTimes + totalCollitionTimes;
+        logger.info("总的发送次数: %d", totalAmount);
         logger.ln();
         logger.info("总的碰撞次数: %d",totalCollitionTimes);
         logger.ln();
-        if(totalSendTimes > 0) {
-            logger.info("碰撞发生的概率: %f", PrecisionUtil.div((totalCollitionTimes + 0.0), totalSendTimes));
+        if(totalSuccessTimes > 0) {
+            logger.info("碰撞发生的概率: %f", PrecisionUtil.div(totalCollitionTimes, totalAmount));
             logger.ln();
         }
         logger.info("*************************************************");
@@ -201,7 +202,7 @@ public class TimeController {
         statValve = false;
         totalDataAmount = 0;
         totalCollitionTimes = 0;
-        totalSendTimes = 0;
+        totalSuccessTimes = 0;
     }
 
     public void setLoopCallBack(Runnable callBack){
