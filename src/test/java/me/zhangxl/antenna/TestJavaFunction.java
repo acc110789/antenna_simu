@@ -1,6 +1,7 @@
 package me.zhangxl.antenna;
 
 
+import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.PrecisionUtil;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -194,6 +195,18 @@ public class TestJavaFunction {
         System.out.println("80 degree :" + PrecisionUtil.round(Math.tan(angle)));
 
         System.out.println("negative degree: " + PrecisionUtil.round(Math.atan(-1)));
+    }
+
+    @Test
+    public void mod(){
+        System.out.format("5 mod 3 : %d",5%3);
+    }
+
+    @Test
+    public void subClass(){
+        Pair[] pairs = new Pair[5];
+        Object[] objects = pairs;
+        System.out.println(pairs instanceof Object[]);
     }
 
 

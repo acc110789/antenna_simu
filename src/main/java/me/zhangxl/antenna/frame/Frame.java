@@ -14,6 +14,10 @@ public abstract class Frame implements Cloneable{
     private final int targetId;
     private boolean dirty = false;
     private double startTime = -1;
+    /**
+     * 默认的
+     */
+    private int sectorOffset = 0;
 
     Frame(int srcId, int targetId, long length){
         this.srcId = srcId;
@@ -34,6 +38,17 @@ public abstract class Frame implements Cloneable{
 
     public double getEndDuration(){
         return PrecisionUtil.sub(getEndTime(),TimeController.getInstance().getCurrentTime());
+    }
+
+    public void setSectorOffset(int offset){
+        if(offset >= Config.getInstance().getPart()){
+            throw new RuntimeException("overflow offset");
+        }
+        this.sectorOffset = offset;
+    }
+
+    public int getSectorOffset(){
+        return this.sectorOffset;
     }
 
     /**

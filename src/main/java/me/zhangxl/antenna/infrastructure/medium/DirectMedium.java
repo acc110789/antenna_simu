@@ -16,7 +16,9 @@ public class DirectMedium extends Medium {
 
     @Override
     List<Station> getStationToReceive(Station source, Frame frame) {
-        //先计算粗frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
+        //先计算出frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
+
+        //找到target Station
         int targetId = frame.getTargetId();
         Station target = null;
         for(Station station : stationList){
@@ -24,11 +26,13 @@ public class DirectMedium extends Medium {
                 target = station;
             }
         }
+        //找到target Station的坐标
         double angle = getAngle(target.getAxis(), source.getAxis());
-        //每隔unit设置一个跨度
-        double unit = PrecisionUtil.div(360, Config.getInstance().getPart());
+        double unit = PrecisionUtil.div(360, Config.getInstance().getPart());//每隔unit设置一个跨度
         double d_index = PrecisionUtil.div(angle, unit);
         int index = ((int) Math.floor(d_index));
+        index += frame.getSectorOffset();
+        index %= Config.getInstance().getPart();
         return sMap.get(source).getStations(index);
     }
 
