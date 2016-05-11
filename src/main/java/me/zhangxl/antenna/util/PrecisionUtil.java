@@ -16,6 +16,12 @@ public class PrecisionUtil {
         return timePrecision;
     }
 
+    public static boolean equal(double v1,double v2){
+        BigDecimal b1 = new BigDecimal(Double.toString(v1));
+        BigDecimal b2 = new BigDecimal(Double.toString(v2));
+        return b1.compareTo(b2) == 0;
+    }
+
     public static double round(double v) {
         BigDecimal b = new BigDecimal(Double.toString(v));
         BigDecimal one = new BigDecimal("1");

@@ -1,11 +1,12 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.PostDifsLogic;
-import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.base.ChannelManager;
+import me.zhangxl.antenna.infrastructure.base.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.infrastructure.pcp.PcpStation;
+import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
 
@@ -18,18 +19,20 @@ import java.util.Map;
  * 代表传输的介质(信道)
  * Created by zhangxiaolong on 16/3/24.
  */
-public abstract class Medium {
+public class Medium {
 
     static final TimeLogger logger = SimuLoggerManager.getLogger(Medium.class.getSimpleName());
     public static final int DIRECT_MODE = 1;
     public static final int OMNI_MODE = 2;
 
-    static final List<Station> stationList = new ArrayList<>();
+    static final List<Locatable> stationList = new ArrayList<>();
     /**
      * 把station没有接受(由于station)的frame暂时放置在这里
      */
-    static final Map<Station,List<Frame>> stationToFrames = new HashMap<>();
-    static  Medium sMedium ;
+    static final Map<Locatable, List<Frame>> stationToFrames = new HashMap<>();
+    private static DirectMedium directMedium;
+    private static OmniMedium omniMedium;
+    private static Medium sInstance;
 
     Medium() {
         logger.unLogHeader();
@@ -37,38 +40,40 @@ public abstract class Medium {
             @Override
             public void run() {
                 //触发所有的节点
-                if(sMedium instanceof DirectMedium){
-                    logger.info("定向天线模式,分析所有Station的位置信息......");
-                    ((DirectMedium) sMedium).analysisStationLocation();
-                } else {
-                    logger.info("全向天线模式");
-                }
-                for(Station station : stationList){
-                    new PostDifsLogic(station).process();
-                }
+                logger.info("定向天线模式,分析所有Station的位置信息......");
+                directMedium.analysisStationLocation();
+                //作为程序开始的起点,让Pcp节点率先发出一个NextRoundFrame
+                PcpStation.getInstance().sendNextRoundFrame();
             }
         });
     }
 
-    public void register(Station station){
+    public void register(Locatable station) {
         stationList.add(station);
     }
 
     public static Medium getInstance() {
-        if(sMedium == null){
-            if(Config.getInstance().getAntennaMode() == DIRECT_MODE){
-                sMedium = new DirectMedium();
-            } else if(Config.getInstance().getAntennaMode() == OMNI_MODE){
-                sMedium = new OmniMedium();
-            } else {
-                throw new RuntimeException();
-            }
+        if (directMedium == null) {
+            directMedium = new DirectMedium();
         }
-        return sMedium;
+        if (omniMedium == null) {
+            omniMedium = new OmniMedium();
+        }
+        if (sInstance == null) {
+            sInstance = new Medium();
+        }
+        return sInstance;
     }
 
-    public static void reset(){
-        sMedium = null;
+    /**
+     * @return 返回节点数量
+     */
+    public int getPeerNum(){
+        return stationList.size() -1;
+    }
+
+    public static void reset() {
+        directMedium = null;
         stationToFrames.clear();
         stationList.clear();
     }
@@ -76,12 +81,23 @@ public abstract class Medium {
     /**
      * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
      */
-    public void putFrame(final Station source, final Frame frame) {
+    public void putFrame(final Locatable source, final Frame frame) {
         frame.setStartTimeNow();
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                for(Station station1 : getStationToReceive(source, frame)){
+                List<Locatable> targets;
+                if (ChannelManager.getInstance().isOmniChannel(frame.getFre())) {
+                    //全向频率
+                    targets = omniMedium.getStationToReceive(source, frame);
+                } else if (ChannelManager.getInstance().isDirectChannel(frame.getFre())) {
+                    //定向频率
+                    targets = directMedium.getStationToReceive(source, frame);
+                } else {
+                    throw new IllegalStateException("不可能的频率");
+                }
+
+                for (Locatable station1 : targets) {
                     Frame copy;
                     try {
                         copy = (Frame) frame.clone();
@@ -89,19 +105,19 @@ public abstract class Medium {
                         throw new IllegalStateException(e);
                     }
                     boolean accepted = station1.beginReceiveFrame(copy);
-                    if(!accepted){
-                        putUnacceptedFrames(station1,copy);
+                    if (!accepted) {
+                        putUnacceptedFrames(station1, copy);
                     }
                 }
             }
-        },0, TimeTask.RECEIVE);
+        }, 0, TimeTask.RECEIVE);
     }
 
-    private void putUnacceptedFrames(final Station station , final Frame frame){
+    private void putUnacceptedFrames(final Locatable station, final Frame frame) {
         List<Frame> frames = stationToFrames.get(station);
-        if(frames == null){
+        if (frames == null) {
             frames = new ArrayList<>();
-            stationToFrames.put(station,frames);
+            stationToFrames.put(station, frames);
         }
         frames.add(frame);
         TimeController.getInstance().post(new Runnable() {
@@ -110,25 +126,25 @@ public abstract class Medium {
                 List<Frame> frames1 = stationToFrames.get(station);
                 frames1.remove(frame);
             }
-        },frame.getEndDuration());
+        }, frame.getEndDuration());
     }
 
-    public void notify(Station station){
+    public void notify(Station station) {
         List<Frame> frames = stationToFrames.get(station);
-        if(frames != null && frames.size() > 0){
-            for(Frame frame : frames){
+        if (frames != null && frames.size() > 0) {
+            for (Frame frame : frames) {
                 double endTime = frame.getEndTime();
                 double currentTime = TimeController.getInstance().getCurrentTime();
-                if(endTime < currentTime){
+                if (endTime < currentTime) {
                     //这个frame本来应该是已经消失的
                     System.out.println();
-                    System.out.println((endTime-currentTime)<0);
-                    String info = String.format("endTime:%#.16f  currentTime:%#.16f",endTime,currentTime);
+                    System.out.println((endTime - currentTime) < 0);
+                    String info = String.format("endTime:%#.16f  currentTime:%#.16f", endTime, currentTime);
                     throw new IllegalStateException(info);
-                } else if(frame.getStartTime() <= currentTime && currentTime < endTime){
+                } else if (frame.getStartTime() <= currentTime && currentTime < endTime) {
                     //是否是一个残废的frame应该由Station自己去判断
                     station.beginReceiveFrame(frame);
-                } else if(currentTime < frame.getStartTime()){
+                } else if (currentTime < frame.getStartTime()) {
                     throw new IllegalStateException();
                 }
                 //当endTime == currentTime时 可以认为数据已经传输完毕,此处不再进行数据的传输了
@@ -137,7 +153,7 @@ public abstract class Medium {
         }
     }
 
-    abstract List<Station> getStationToReceive(Station station, Frame frame);
-
-
+    List<Locatable> getStationToReceive(Locatable station, Frame frame) {
+        throw new IllegalStateException();
+    }
 }

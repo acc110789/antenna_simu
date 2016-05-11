@@ -1,0 +1,25 @@
+package me.zhangxl.antenna.infrastructure.station;
+
+import me.zhangxl.antenna.infrastructure.base.ChannelManager;
+import me.zhangxl.antenna.infrastructure.base.FreFilter;
+
+/**
+ * Created by zhangxiaolong on 16/5/13.
+ */
+public class StationFreFilter implements FreFilter {
+
+    private int fre = ChannelManager.getInstance().getPcpChannel();
+
+    public void setFre(int fre){
+        this.fre = fre;
+    }
+
+    int getFre(){
+        return this.fre;
+    }
+
+    @Override
+    public boolean canReceive(int fre) {
+        return this.fre == fre;
+    }
+}

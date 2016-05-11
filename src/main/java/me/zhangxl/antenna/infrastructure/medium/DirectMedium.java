@@ -1,29 +1,44 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.frame.RtsFrame;
+import me.zhangxl.antenna.infrastructure.base.Locatable;
+import me.zhangxl.antenna.infrastructure.pcp.PcpStation;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.PrecisionUtil;
 
-import java.util.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by zhangxiaolong on 16/4/10.
  */
 public class DirectMedium extends Medium {
-    private static final Map<Station, Info> sMap = new HashMap<>();
+    /**
+     * 保存着每一个节点的扇区信息
+     */
+    private static final Map<Locatable, Info> sMap = new HashMap<>();
 
+    //先计算出frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
     @Override
-    List<Station> getStationToReceive(Station source, Frame frame) {
-        //先计算粗frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
-        int targetId = frame.getTargetId();
-        Station target = null;
-        for(Station station : stationList){
-            if(station.getId() == targetId){
-                target = station;
+    List<Locatable> getStationToReceive(Locatable source, Frame frame) {
+        //根据frame中提供的station的id找到具体的station
+        Locatable target = null;
+        if(frame instanceof RtsFrame){
+            target = PcpStation.getInstance();
+        } else {
+            int targetId = frame.getTargetId();
+            for (Locatable station : stationList) {
+                if (station.getId() == targetId) {
+                    target = station;
+                }
             }
         }
+        assert target != null;
         double angle = getAngle(target.getAxis(), source.getAxis());
         //每隔unit设置一个跨度
         double unit = PrecisionUtil.div(360, Config.getInstance().getPart());
@@ -32,19 +47,19 @@ public class DirectMedium extends Medium {
         return sMap.get(source).getStations(index);
     }
 
-    public static Map<Station, Info> getMap() {
+    public static Map<Locatable, Info> getMap() {
         return sMap;
     }
 
     void analysisStationLocation() {
-        for (Station station : stationList) {
+        for (Locatable station : stationList) {
             sMap.put(station, new Info());
         }
-        for (Station station : stationList) {
+        for (Locatable station : stationList) {
             //分析每一个station的位置信息
-            List<Station> neighbors = new ArrayList<>(stationList);
+            List<Locatable> neighbors = new ArrayList<>(stationList);
             neighbors.remove(station);
-            for (Station neighbor : neighbors) {
+            for (Locatable neighbor : neighbors) {
                 double angle = getAngle(neighbor.getAxis(), station.getAxis());
                 //每隔unit设置一个跨度
                 double unit = PrecisionUtil.div(360, Config.getInstance().getPart());
@@ -115,7 +130,8 @@ public class DirectMedium extends Medium {
 
     //区域的编号从0开始算
     public class Info {
-        private ArrayList[] data = new ArrayList[Config.getInstance().getPart()];
+        private ArrayList<Locatable>[] data = (ArrayList<Locatable>[]) Array.newInstance(
+                ArrayList.class,Config.getInstance().getPart());
 
         {
             for (int i = 0; i < data.length; i++) {
@@ -125,12 +141,12 @@ public class DirectMedium extends Medium {
             }
         }
 
-        void add(int index, Station station) {
+        void add(int index, Locatable station) {
             data[index].add(station);
         }
 
-        public List<Station> getStations(int index) {
-            return new ArrayList<Station>(data[index]);
+        public List<Locatable> getStations(int index) {
+            return new ArrayList<>(data[index]);
         }
     }
 }

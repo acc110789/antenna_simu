@@ -1,10 +1,13 @@
 package me.zhangxl.antenna;
 
-import me.zhangxl.antenna.infrastructure.Station;
-import me.zhangxl.antenna.util.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
-import me.zhangxl.antenna.infrastructure.medium.Medium;
+import me.zhangxl.antenna.infrastructure.pcp.PcpStation;
+import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.station.StationUtil;
 import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.CoordinateGenerator;
+import me.zhangxl.antenna.util.Generator;
+import me.zhangxl.antenna.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,23 +16,20 @@ import java.util.List;
  * 暂时先做计算机局域网络的仿真(即单信道,全方向发送,全方向接受)
  */
 public class Main {
+
     public static void main(String[] args) throws InterruptedException {
         checkConfig();
-
         //新建站点
+        Generator<Pair<Double,Double>> generator = CoordinateGenerator.getInstance();
         List<Station> stationList = new ArrayList<>();
-//        stationList.add(new Station(1,1,0));
-//        stationList.add(new Station(2,0,1));
-//        stationList.add(new Station(3,-1,0));
-        for (int i = 1; i <= Config.getInstance().getStationNum(); i++) {
-            stationList.add(new Station(i));
+        PcpStation.getInstance();
+        for(int i=1;i<11;i++){
+            stationList.add(new Station(i,generator.next()));
         }
-
         //激活所有的站点
         for (Station station : stationList) {
             StationUtil.guaranteeEnoughFrame(station);
         }
-
         //时间片在主线程中开始流动
         TimeController.getInstance().loop();
     }

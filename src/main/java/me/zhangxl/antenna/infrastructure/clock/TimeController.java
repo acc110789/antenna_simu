@@ -69,6 +69,10 @@ public class TimeController {
                 text = "DATA";
             }  else if(PrecisionUtil.sub(time,Constant.getCtsTimeOut()) == 0){
                 text = "CTS/ACK timeout";
+            } else if(PrecisionUtil.sub(time, NextRoundFrame.getFrameTimeLength()) == 0){
+                text = "NextRound";
+            } else if(PrecisionUtil.sub(time, PairFrame.getFrameTimeLength()) == 0){
+                text = "Pair";
             } else {
                 text = String.format("%#.14f", time);
             }
