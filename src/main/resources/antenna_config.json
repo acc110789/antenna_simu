@@ -1,4 +1,7 @@
 {
+  "RTS_FRE_COUNT":3,
+  "DATA_FRE_COUNT":3,
+  "PCP_MODE": true,
   "STATION_NUM": 60,
   "MAX_CW": 4,
   "CURRENT_VERSION": "802.11CUSTOM",

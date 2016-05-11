@@ -1,7 +1,9 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
+import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.frame.RtsFrame;
+import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.PrecisionUtil;
@@ -14,16 +16,23 @@ import java.util.*;
 public class DirectMedium extends Medium {
     private static final Map<Station, Info> sMap = new HashMap<>();
 
+    //先计算出frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
     @Override
     List<Station> getStationToReceive(Station source, Frame frame) {
-        //先计算粗frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
-        int targetId = frame.getTargetId();
+        //根据frame中提供的station的id找到具体的station
         Station target = null;
-        for(Station station : stationList){
-            if(station.getId() == targetId){
-                target = station;
+        if(Config.getInstance().isPcpMode() &&
+                (frame instanceof RtsFrame || frame instanceof CtsFrame)){
+            target = null; // TODO: 16/5/9 target = pcpPeer ;//设置目标节点为PCP节点
+        } else {
+            int targetId = frame.getTargetId();
+            for (Station station : stationList) {
+                if (station.getId() == targetId) {
+                    target = station;
+                }
             }
         }
+        assert target != null;
         double angle = getAngle(target.getAxis(), source.getAxis());
         //每隔unit设置一个跨度
         double unit = PrecisionUtil.div(360, Config.getInstance().getPart());

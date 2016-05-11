@@ -1,6 +1,6 @@
 package me.zhangxl.antenna;
 
-import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.DirectMedium;
 import me.zhangxl.antenna.infrastructure.medium.Medium;

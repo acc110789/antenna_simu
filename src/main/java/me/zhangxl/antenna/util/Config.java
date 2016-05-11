@@ -32,7 +32,7 @@ public class Config {
      * RTS(2) + DIFS
      *
      */
-
+    private boolean pcpMode = false;
     private double difs = -1;
     private double sifs = -1;
     private double slotLength = -1;
@@ -54,6 +54,8 @@ public class Config {
     private double eifs= -1;
     private int antennaMode = -1;
     private int part = -1;
+    private int rtsFreCount = -1;
+    private int dataFreCount = -1;
 
     private Config() {
         try {
@@ -110,6 +112,7 @@ public class Config {
             input = Config.class.getClassLoader().getResourceAsStream("antenna_config.json");
             JSONObject object = new JSONObject(new JSONTokener(input));
 
+            this.pcpMode = object.getBoolean("PCP_MODE");
             this.stationNum = object.getInt("STATION_NUM");
             this.maxCW = object.getInt("MAX_CW");
 
@@ -131,6 +134,8 @@ public class Config {
             this.antennaMode = object.getInt("ANTENNA_MODE");
             //part的含义:具体将一个圆周分成多少份
             this.part = object.getInt("PART");
+            this.rtsFreCount = object.getInt("RTS_FRE_COUNT");
+            this.dataFreCount = object.getInt("DATA_FRE_COUNT");
 
             difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
             rtsLength = phyHeader + macRtsHeader;
@@ -143,6 +148,14 @@ public class Config {
             IOUtils.closeQuietly(input);
         }
 
+    }
+
+    public int getRtsFreCount(){
+        return this.rtsFreCount;
+    }
+
+    public int getDataFreCount(){
+        return this.dataFreCount;
     }
 
     public long getFixDataLength() {
@@ -222,6 +235,10 @@ public class Config {
      */
     public int getPart(){
         return this.part;
+    }
+
+    public boolean isPcpMode(){
+        return this.pcpMode;
     }
 
 }

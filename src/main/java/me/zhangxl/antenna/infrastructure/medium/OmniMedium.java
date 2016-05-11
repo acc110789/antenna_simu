@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.station.Station;
 
 import java.util.ArrayList;
 import java.util.List;

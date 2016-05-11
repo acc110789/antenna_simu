@@ -1,6 +1,7 @@
-package me.zhangxl.antenna.infrastructure;
+package me.zhangxl.antenna.infrastructure.station;
 
 import me.zhangxl.antenna.frame.*;
+import me.zhangxl.antenna.infrastructure.ChannelManager;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
@@ -42,6 +43,7 @@ public class Station extends AbstractRole{
         this.mReceiver = new Receiver(this);
         StationUtil.stationList.add(this);
         Medium.getInstance().register(this);
+        ChannelManager.getInstance();
     }
 
     public Station(int id, double xAxis, double yAxis) {
