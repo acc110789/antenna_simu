@@ -1,5 +1,6 @@
 package me.zhangxl.antenna;
 
+import me.zhangxl.antenna.util.Config;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,5 +31,14 @@ public class TestProperties {
                 System.out.println();
             }
         }
+    }
+
+    @Test
+    public void testConfig(){
+        System.out.println("rtslength " + Config.getInstance().getRtsLength());
+        System.out.println("ctslength " + Config.getInstance().getCtsLength());
+        System.out.println("ackLength "+ Config.getInstance().getAckLength());
+        System.out.println("realDataLength " + Config.getInstance().getRealDataLength());
+        System.out.println("dataLength "+ Config.getInstance().getDataLength());
     }
 }

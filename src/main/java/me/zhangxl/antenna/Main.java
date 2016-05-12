@@ -55,12 +55,6 @@ public class Main {
         if(Config.getInstance().getPhyHeader() <= 0){
             errInfo += "    phyHeader is less than or equal 0";
         }
-        if(Config.getInstance().getMacCtsOrAckHeader() <= 0){
-            errInfo += "    macHeader is less than or equal 0";
-        }
-        if(Config.getInstance().getMacRtsHeader() <= 0){
-            errInfo += "    macRtsHeader is less than or equal 0";
-        }
         if(Config.getInstance().getRtsLength() <= 0){
             errInfo += "    rtsLength is less than or equal 0";
         }
@@ -83,7 +77,7 @@ public class Main {
         if(Config.getInstance().getWarmUp() >= Config.getInstance().getSimulationDuration()/2){
             errInfo += "    warm up time is larger than a half of simulation duration";
         }
-        if(Config.getInstance().getFixDataLength() <= 0){
+        if(Config.getInstance().getRealDataLength() <= 0){
             errInfo += "    fix data length is less than 0";
         }
         if(Config.getInstance().getAntennaMode() != Medium.DIRECT_MODE

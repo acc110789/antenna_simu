@@ -5,8 +5,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import java.io.*;
-import java.util.Properties;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * 配置信息
@@ -41,16 +41,14 @@ public class Config {
     private int maxCW = -1;
     //bits 物理层的长度
     private int phyHeader = -1;
-    //ACK,CTS
-    private int macCtsOrAckHeader = -1;
-    private int macRtsHeader = -1;
     private int rtsLength = -1;
     private int ctsLength = -1;
     private int ackLength = -1;
     private double bandWidth = -1;
     private double simulationDuration = -1;
     private double warmUp = -1;
-    private long fixDataLength = -1;
+    private long realDataLength = -1;
+    private long dataLength = -1;
     private double eifs= -1;
     private int antennaMode = -1;
     private int part = -1;
@@ -72,38 +70,38 @@ public class Config {
 
     @Deprecated
     private void loadConfigProperties() throws IOException {
-        Properties properties = new Properties();
-        Reader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(Config.class.
-                    getClassLoader().getResourceAsStream("antenna_config.properties")));
-            properties.load(reader);
-
-            this.stationNum = Integer.valueOf(properties.getProperty("STATION_NUM"));
-            this.maxCW = Integer.valueOf(properties.getProperty("MAX_CW"));
-
-            String currentVersion = properties.getProperty("CURRENT_VERSION");
-            this.slotLength = PrecisionUtil.round(Double.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH")));
-            this.sifs = PrecisionUtil.round(Double.valueOf(properties.getProperty(currentVersion + "_SIFS")));
-            this.defaultCW = Integer.valueOf(properties.getProperty(currentVersion + "_DEFAULT_CW"));
-
-            this.bandWidth = PrecisionUtil.round(Double.valueOf(properties.getProperty("BAND_WIDTH")));
-            this.phyHeader = Integer.valueOf(properties.getProperty("PHY_HEADER"));
-            this.macCtsOrAckHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
-            this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
-
-            this.simulationDuration = PrecisionUtil.round(Double.valueOf(properties.getProperty("SIMULATION_DURATION")));
-            this.warmUp = PrecisionUtil.round(Double.valueOf(properties.getProperty("WARM_UP")));
-            this.fixDataLength = Long.valueOf(properties.getProperty("FIX_DATA_LENGTH"));
-
-            difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
-            rtsLength = phyHeader + macRtsHeader;
-            ctsLength = phyHeader + macCtsOrAckHeader;
-            ackLength = phyHeader + macCtsOrAckHeader;
-            eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
-        } finally {
-            IOUtils.closeQuietly(reader);
-        }
+//        Properties properties = new Properties();
+//        Reader reader = null;
+//        try {
+//            reader = new BufferedReader(new InputStreamReader(Config.class.
+//                    getClassLoader().getResourceAsStream("antenna_config.properties")));
+//            properties.load(reader);
+//
+//            this.stationNum = Integer.valueOf(properties.getProperty("STATION_NUM"));
+//            this.maxCW = Integer.valueOf(properties.getProperty("MAX_CW"));
+//
+//            String currentVersion = properties.getProperty("CURRENT_VERSION");
+//            this.slotLength = PrecisionUtil.round(Double.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH")));
+//            this.sifs = PrecisionUtil.round(Double.valueOf(properties.getProperty(currentVersion + "_SIFS")));
+//            this.defaultCW = Integer.valueOf(properties.getProperty(currentVersion + "_DEFAULT_CW"));
+//
+//            this.bandWidth = PrecisionUtil.round(Double.valueOf(properties.getProperty("BAND_WIDTH")));
+//            this.phyHeader = Integer.valueOf(properties.getProperty("PHY_HEADER"));
+//            this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
+//            this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
+//
+//            this.simulationDuration = PrecisionUtil.round(Double.valueOf(properties.getProperty("SIMULATION_DURATION")));
+//            this.warmUp = PrecisionUtil.round(Double.valueOf(properties.getProperty("WARM_UP")));
+//            this.dataLength = Long.valueOf(properties.getProperty("FIX_DATA_LENGTH"));
+//
+//            difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
+//            rtsLength = phyHeader + macRtsHeader;
+//            ctsLength = phyHeader + macHeader;
+//            ackLength = phyHeader + macHeader;
+//            eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
+//        } finally {
+//            IOUtils.closeQuietly(reader);
+//        }
     }
 
     private void loadConfigJSON() throws IOException {
@@ -125,22 +123,34 @@ public class Config {
 
             this.bandWidth = PrecisionUtil.round(object.getDouble("BAND_WIDTH"));
             this.phyHeader = object.getInt("PHY_HEADER");
-            this.macCtsOrAckHeader = object.getInt("MAC_HEADER");
-            this.macRtsHeader = object.getInt("MAC_RTS_HEADER");
+            int macHeader = object.getInt("MAC_HEADER_EXCLUDE_ADDR_AND_DATA");
+            int addrSize = object.getInt("MAC_ADDR_SIZE");
+
+            int rtsAddrNum = object.getInt("MAC_RTS_ADDR_NUM");
+            int macRtsHeader = macHeader + addrSize * rtsAddrNum;
+            int ctsAddrNum = object.getInt("MAC_CTS_ADDR_NUM");
+            int macCtsHeader = macHeader + addrSize * ctsAddrNum;
+            int ackAddrNum = object.getInt("MAC_ACK_ADDR_NUM");
+            int macAckHeader = macHeader + addrSize * ackAddrNum;
+
+            this.realDataLength = object.getInt("FIX_DATA_LENGTH");
+            //普通发送的数据应该是有两个地址,即发送方和接收方
+            this.dataLength = this.phyHeader + macHeader + 2 * addrSize + realDataLength;
 
             this.simulationDuration = PrecisionUtil.round(object.getDouble("SIMULATION_DURATION"));
             this.warmUp = PrecisionUtil.round(object.getDouble("WARM_UP"));
-            this.fixDataLength = object.getLong("FIX_DATA_LENGTH");
             this.antennaMode = object.getInt("ANTENNA_MODE");
             //part的含义:具体将一个圆周分成多少份
             this.part = object.getInt("PART");
+            //分配给RTS的频率的频率集的元素数量
             this.rtsFreCount = object.getInt("RTS_FRE_COUNT");
+            //分配给DATA的频率的频率集的元素数量
             this.dataFreCount = object.getInt("DATA_FRE_COUNT");
 
             difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
             rtsLength = phyHeader + macRtsHeader;
-            ctsLength = phyHeader + macCtsOrAckHeader;
-            ackLength = phyHeader + macCtsOrAckHeader;
+            ctsLength = phyHeader + macCtsHeader;
+            ackLength = phyHeader + macAckHeader;
             eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
         } catch (JSONException e){
             throw new IOException(e);
@@ -158,8 +168,12 @@ public class Config {
         return this.dataFreCount;
     }
 
-    public long getFixDataLength() {
-        return this.fixDataLength;
+    public long getDataLength() {
+        return this.dataLength;
+    }
+
+    public long getRealDataLength(){
+        return this.realDataLength;
     }
 
     public double getWarmUp() {
@@ -196,14 +210,6 @@ public class Config {
 
     public int getPhyHeader() {
         return phyHeader;
-    }
-
-    public int getMacCtsOrAckHeader() {
-        return macCtsOrAckHeader;
-    }
-
-    public int getMacRtsHeader() {
-        return macRtsHeader;
     }
 
     public int getRtsLength() {

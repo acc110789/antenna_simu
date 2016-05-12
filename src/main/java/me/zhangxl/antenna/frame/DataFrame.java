@@ -17,14 +17,12 @@ import java.util.Random;
 public class DataFrame extends Frame {
 
     private static Logger logger = SimuLoggerManager.getLogger(DataFrame.class.getSimpleName());
-    static final long frameLength = Config.getInstance().getFixDataLength()
-            + Config.getInstance().getPhyHeader()
-            + Config.getInstance().getMacCtsOrAckHeader();
+    static final long frameLength = Config.getInstance().getDataLength();
     private static final double frameTimeLength;
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
     //数据部分的长度
-    private static long dataLength = Config.getInstance().getFixDataLength();
+    private static long dataLength = Config.getInstance().getRealDataLength();
     private double startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
     private int failTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
     private int backOff;
