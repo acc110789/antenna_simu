@@ -50,7 +50,7 @@ public class ChannelManager {
         }
     }
 
-    public int getApChannel(){
+    public int getPcpChannel(){
         return this.apChannel;
     }
 

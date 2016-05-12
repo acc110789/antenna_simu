@@ -4,6 +4,7 @@ import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
 
 /**
+ * 新的Frame应该是PCP节点全向发送给周围的所有节点,这个Frame
  * Created by zhangxiaolong on 16/3/24.
  */
 public class CtsFrame extends Frame {
@@ -11,8 +12,8 @@ public class CtsFrame extends Frame {
     static final int ctsLength = Config.getInstance().getCtsLength();
     private static final double ctsTimeLength;
 
-    CtsFrame(int srcId, int targetId) {
-        super(srcId, targetId, ctsLength);
+    CtsFrame(int srcId, int targetId , int fre) {
+        super(srcId, targetId, ctsLength, fre);
     }
 
     private static double ctsTimeOut ;

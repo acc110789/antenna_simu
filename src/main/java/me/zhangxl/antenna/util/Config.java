@@ -54,6 +54,8 @@ public class Config {
     private int part = -1;
     private int rtsFreCount = -1;
     private int dataFreCount = -1;
+    private int macHeader = -1;
+    private int addrSize = -1;
 
     private Config() {
         try {
@@ -123,8 +125,8 @@ public class Config {
 
             this.bandWidth = PrecisionUtil.round(object.getDouble("BAND_WIDTH"));
             this.phyHeader = object.getInt("PHY_HEADER");
-            int macHeader = object.getInt("MAC_HEADER_EXCLUDE_ADDR_AND_DATA");
-            int addrSize = object.getInt("MAC_ADDR_SIZE");
+            macHeader = object.getInt("MAC_HEADER_EXCLUDE_ADDR_AND_DATA");
+            addrSize = object.getInt("MAC_ADDR_SIZE");
 
             int rtsAddrNum = object.getInt("MAC_RTS_ADDR_NUM");
             int macRtsHeader = macHeader + addrSize * rtsAddrNum;
@@ -245,6 +247,15 @@ public class Config {
 
     public boolean isPcpMode(){
         return this.pcpMode;
+    }
+
+    //这里的macHeader并没有包括addr地址
+    public int getMacHeader(){
+        return this.macHeader;
+    }
+
+    public int getAddrSize(){
+        return this.addrSize;
     }
 
 }

@@ -14,11 +14,13 @@ public abstract class Frame implements Cloneable{
     private final int targetId;
     private boolean dirty = false;
     private double startTime = -1;
+    private final Integer fre; //表明这个frame的传输频率是多少
 
-    Frame(int srcId, int targetId, long length){
+    Frame(int srcId, int targetId, long length, int fre){
         this.srcId = srcId;
         this.targetId = targetId;
         this.length = length;
+        this.fre = fre;
         if(this.length < 0){
             throw new IllegalArgumentException("length is less than 0");
         }
@@ -92,7 +94,7 @@ public abstract class Frame implements Cloneable{
      * @return AckFrame,src和target应该反过来
      */
     public AckFrame generateAckFrame(){
-        return new AckFrame(this.targetId,this.srcId);
+        return new AckFrame(this.targetId,this.srcId, );
     }
 
     @Override

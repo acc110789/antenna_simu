@@ -1,6 +1,7 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.infrastructure.station.Locatable;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
@@ -70,6 +71,10 @@ public abstract class Medium {
         sMedium = null;
         stationToFrames.clear();
         stationList.clear();
+    }
+
+    public void putFrame(final Locatable source,final Frame frame){
+
     }
 
     /**

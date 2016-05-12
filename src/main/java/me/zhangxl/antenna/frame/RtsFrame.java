@@ -22,8 +22,8 @@ public class RtsFrame extends Frame {
         rtsTimeOut = PrecisionUtil.sub(rtsTimeOut ,Config.getInstance().getDifs());
     }
 
-    public RtsFrame(int srcId, int targetId) {
-        super(srcId, targetId, rtsLength);
+    public RtsFrame(int srcId, int targetId,int fre) {
+        super(srcId, targetId, rtsLength, fre);
     }
 
     public static double getRtsTimeOut(){

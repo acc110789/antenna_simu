@@ -10,8 +10,8 @@ public class AckFrame extends Frame {
 
     static final int ackLength = Config.getInstance().getAckLength();
 
-    AckFrame(int srcId, int targetId) {
-        super(srcId, targetId, Config.getInstance().getAckLength());
+    AckFrame(int srcId, int targetId, int fre) {
+        super(srcId, targetId, Config.getInstance().getAckLength(),fre);
     }
 
     private static double ackTimeOut ;

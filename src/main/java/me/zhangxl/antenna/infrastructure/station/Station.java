@@ -18,7 +18,7 @@ import java.util.List;
  * 该类代表一个站点,以及其行为和状态.
  * Created by zhangxiaolong on 16/3/24.
  */
-public class Station extends AbstractRole{
+public class Station extends AbstractRole implements Locatable{
 
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
     private final Sender mSender;
