@@ -170,8 +170,8 @@ public class Station extends AbstractRole implements Locatable {
             setCommunicationTarget(dst);
             mSender.onPreSendSIFSAndDATA();
         } else if(dst == getId()){
-            setCurrentStatus(Status.WAITING_DATA_FRAME);
             setCommunicationTarget(src);
+            setCurrentStatus(Status.WAITING_DATA_FRAME);
         } else {
             throw new IllegalStateException("wrong state");
         }

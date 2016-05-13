@@ -1,11 +1,11 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.infrastructure.ChannelManager;
 import me.zhangxl.antenna.infrastructure.Locatable;
-import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
 
@@ -18,18 +18,20 @@ import java.util.Map;
  * 代表传输的介质(信道)
  * Created by zhangxiaolong on 16/3/24.
  */
-public abstract class Medium {
+public class Medium {
 
     static final TimeLogger logger = SimuLoggerManager.getLogger(Medium.class.getSimpleName());
     public static final int DIRECT_MODE = 1;
     public static final int OMNI_MODE = 2;
 
-    static final List<Station> stationList = new ArrayList<>();
+    static final List<Locatable> stationList = new ArrayList<>();
     /**
      * 把station没有接受(由于station)的frame暂时放置在这里
      */
-    static final Map<Station,List<Frame>> stationToFrames = new HashMap<>();
-    static  Medium sMedium ;
+    static final Map<Locatable,List<Frame>> stationToFrames = new HashMap<>();
+    private static Medium directMedium;
+    private static Medium omniMedium;
+    private static Medium sInstance;
 
     Medium() {
         logger.unLogHeader();
@@ -37,15 +39,13 @@ public abstract class Medium {
             @Override
             public void run() {
                 //触发所有的节点
-                if(sMedium instanceof DirectMedium){
+                if(directMedium instanceof DirectMedium){
                     logger.info("定向天线模式,分析所有Station的位置信息......");
-                    ((DirectMedium) sMedium).analysisStationLocation();
+                    ((DirectMedium) directMedium).analysisStationLocation();
                 } else {
                     logger.info("全向天线模式");
                 }
-                for(Station station : stationList){
-                    station.onPostDIFS();
-                }
+                // TODO: 16/5/13 怎么让程序开始跑起来
             }
         });
     }
@@ -55,20 +55,20 @@ public abstract class Medium {
     }
 
     public static Medium getInstance() {
-        if(sMedium == null){
-            if(Config.getInstance().getAntennaMode() == DIRECT_MODE){
-                sMedium = new DirectMedium();
-            } else if(Config.getInstance().getAntennaMode() == OMNI_MODE){
-                sMedium = new OmniMedium();
-            } else {
-                throw new RuntimeException();
-            }
+        if(directMedium == null){
+            directMedium = new DirectMedium();
         }
-        return sMedium;
+        if(omniMedium == null){
+            omniMedium = new OmniMedium();
+        }
+        if(sInstance == null){
+            sInstance = new Medium();
+        }
+        return sInstance;
     }
 
     public static void reset(){
-        sMedium = null;
+        directMedium = null;
         stationToFrames.clear();
         stationList.clear();
     }
@@ -85,7 +85,18 @@ public abstract class Medium {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                for(Station station1 : getStationToReceive(source, frame)){
+                List<Locatable> targets;
+                if(ChannelManager.getInstance().isOmniChannel(frame.getFre())){
+                    //全向频率
+                    targets = omniMedium.getStationToReceive(source,frame);
+                } else if(ChannelManager.getInstance().isDirectChannel(frame.getFre())){
+                    //定向频率
+                    targets = directMedium.getStationToReceive(source,frame);
+                } else {
+                    throw new IllegalStateException("不可能的频率");
+                }
+
+                for(Locatable station1 : targets){
                     Frame copy;
                     try {
                         copy = (Frame) frame.clone();
@@ -101,7 +112,7 @@ public abstract class Medium {
         },0, TimeTask.RECEIVE);
     }
 
-    private void putUnacceptedFrames(final Station station , final Frame frame){
+    private void putUnacceptedFrames(final Locatable station , final Frame frame){
         List<Frame> frames = stationToFrames.get(station);
         if(frames == null){
             frames = new ArrayList<>();
@@ -141,7 +152,9 @@ public abstract class Medium {
         }
     }
 
-    abstract List<Station> getStationToReceive(Station station, Frame frame);
+    List<Locatable> getStationToReceive(Locatable station, Frame frame){
+        throw new IllegalStateException();
+    }
 
 
 }

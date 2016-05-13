@@ -80,8 +80,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
      */
     @Override
     public void onPostRecvData(final DataFrame frame) {
-        onPostRecvMethod(logger,
-                String.format("%d onPostRecvData()", getId()), frame, Status.RECEIVING_DATA,
+        onPostRecvMethod(logger, String.format("%d onPostRecvData()", getId()), frame, Status.RECEIVING_DATA,
                 Status.SENDING_ACK, new Runnable() {
                     @Override
                     public void run() {

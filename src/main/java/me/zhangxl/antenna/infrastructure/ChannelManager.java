@@ -74,4 +74,12 @@ public class ChannelManager {
     public boolean isRtsChannel(Integer rtsChannel){
         return rtsChannels.contains(rtsChannel);
     }
+
+    public boolean isOmniChannel(Integer channel){
+        return isPcpChannel(channel);
+    }
+
+    public boolean isDirectChannel(Integer channel){
+        return isDataChannel(channel) || isRtsChannel(channel);
+    }
 }

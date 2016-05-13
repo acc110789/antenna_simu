@@ -1,5 +1,6 @@
 package me.zhangxl.antenna;
 
+import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.DirectMedium;
@@ -41,8 +42,8 @@ public class TestDirect {
         method.setAccessible(true);
         method.invoke(TimeController.getInstance());
 
-        Map<Station, DirectMedium.Info> map = DirectMedium.getMap();
-        for (Map.Entry<Station, DirectMedium.Info> entry : map.entrySet()) {
+        Map<Locatable, DirectMedium.Info> map = DirectMedium.getMap();
+        for (Map.Entry<Locatable, DirectMedium.Info> entry : map.entrySet()) {
             System.out.println(entry.getKey().getId() + ":");
             for (int i = 0; i < Config.getInstance().getPart(); i++) {
                 List<Station> stations = entry.getValue().getStations(i);

@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.Locatable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +12,8 @@ import java.util.List;
 class OmniMedium extends Medium {
 
     @Override
-    List<Station> getStationToReceive(Station station, Frame frame) {
-        List<Station> result = new ArrayList<>(stationList);
+    List<Locatable> getStationToReceive(Locatable station, Frame frame) {
+        List<Locatable> result = new ArrayList<>(stationList);
         result.remove(station);
         return result;
     }
