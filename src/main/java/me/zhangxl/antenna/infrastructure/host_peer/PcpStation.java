@@ -1,10 +1,11 @@
-package me.zhangxl.antenna.infrastructure.station;
+package me.zhangxl.antenna.infrastructure.host_peer;
 
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.NextRoundFrame;
 import me.zhangxl.antenna.frame.PairFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.ChannelManager;
+import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
@@ -33,6 +34,7 @@ public class PcpStation implements Locatable {
     private final int id = 0;
     private final List<RtsFrame> rtss = new ArrayList<>();
     private Status currentStatus = null;
+    private final HostFreFilter mFreFilter = new HostFreFilter();
     /**
      * 上一组rts是空闲或者碰撞,如果是空闲,则把下一个slots增加1,
      * 如果是碰撞,则把下一个slot减1.
@@ -57,9 +59,29 @@ public class PcpStation implements Locatable {
     }
 
     @Override
-    public boolean beginReceiveFrame(Frame frame) {
+    public boolean beginReceiveFrame(final Frame frame) {
         //检查频率
-        return false;
+        if(mFreFilter.canReceive(frame.getFre())) {
+            //如果是rtsframe的频率,则进行对应的处理
+            assert frame instanceof RtsFrame;
+            //检查当前的状态必须是waiting rts
+            assert currentStatus == Status.WAITING_RTS;
+            //检查是否与已经存在的frame发生任何的碰撞
+            for(RtsFrame frame1 : rtss){
+                if(frame1.getFre() == frame.getFre()){
+                    frame1.setDirty();
+                    frame.setDirty();
+                }
+            }
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    assert currentStatus == Status.WAITING_RTS;
+                    rtss.add((RtsFrame) frame);
+                }
+            },frame.getTransmitDuration(),TimeTask.RECEIVE);
+        }
+        return true;
     }
 
     /**
@@ -90,7 +112,7 @@ public class PcpStation implements Locatable {
                         }
                     }
                 }, PrecisionUtil.add(PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
-                        RtsFrame.getRtsTimeOut()), TimeTask.RECEIVE);
+                        RtsFrame.getRtsTimeOut()), TimeTask.AFTER_RECEIVE);
 
                 TimeController.getInstance().post(new Runnable() {
                     @Override
@@ -110,12 +132,12 @@ public class PcpStation implements Locatable {
                             }
                             onSendPairFrame();
                         } else {
-                            //没有发现rts,把slot减少
+                            //没有发现rts,把slot扩大
                             mSlots ++;
                         }
                     }
                 },PrecisionUtil.add(PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
-                        RtsFrame.getTimeLength()),TimeTask.RECEIVE);
+                        RtsFrame.getTimeLength()),TimeTask.AFTER_RECEIVE);
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
     }
@@ -133,10 +155,14 @@ public class PcpStation implements Locatable {
     }
 
     private void sendPairFrameInner(){
+        //没有可用的dataChannel,则把所有的rts都清空
+        if(!hasFreeDataChannel()){
+            rtss.clear();
+        }
         if(rtss.size() > 0){
             RtsFrame frame = rtss.remove(0);
             PairFrame pairFrame = new PairFrame(frame.getSrcId(),frame.getTargetId(),
-                    ChannelManager.getInstance().getPcpChannel());
+                    ChannelManager.getInstance().getPcpChannel(), getADataChannel());
             Medium.getInstance().putFrame(this,pairFrame);
             TimeController.getInstance().post(new Runnable() {
                 @Override
@@ -146,6 +172,23 @@ public class PcpStation implements Locatable {
             },pairFrame.getTransmitDuration(),TimeTask.RECEIVE);
         } else {
             sendNextRoundFrame();
+        }
+    }
+
+    /**
+     * @return 还有空闲的DataChannel
+     */
+    private boolean hasFreeDataChannel(){
+        // TODO: 16/5/13
+        return true;
+    }
+
+    private int getADataChannel(){
+        // TODO: 16/5/13
+        if(!hasFreeDataChannel()){
+            throw new IllegalStateException("no free channel available");
+        } else {
+            return ChannelManager.getInstance().getDataChannels().get(0);
         }
     }
 }

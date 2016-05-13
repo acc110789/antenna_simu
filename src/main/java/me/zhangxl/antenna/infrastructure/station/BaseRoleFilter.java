@@ -39,8 +39,8 @@ class BaseRoleFilter implements BaseRole {
     }
 
     @Override
-    public void endCommunication(boolean success, boolean fail) {
-        mBaseRole.endCommunication(success,fail);
+    public void endCommunication(boolean isSender) {
+        mBaseRole.endCommunication(isSender);
     }
 
     @Override
@@ -93,6 +93,8 @@ class BaseRoleFilter implements BaseRole {
         senderLogger.debug(info);
         assert getCurrentStatus() == lastStatus;
         setCurrentStatus(currentStatus);
-        TimeController.getInstance().post(toPost,postTime,priority);
+        if(toPost != null) {
+            TimeController.getInstance().post(toPost, postTime, priority);
+        }
     }
 }

@@ -11,67 +11,42 @@ interface BaseRole {
 
     int defaultCommunicationTarget = -1;
 
-    enum Mode {
+    enum Mode{
         READ_MODE,
         WRITE_MODE
     }
 
     enum Status {
-        /**
-         * 需要等待DIFS才能进入backoff时的状态
-         */
-        IDLE1(false,Mode.READ_MODE), //可以假设成为 WAITING_RTS的timeout是DIFS,超时的话就进入SLOTING
-        /**
-         * 需要等待EIFS才能进入backoff的状态
-         */
-        IDLE2(false,Mode.READ_MODE),//IDLE1 需要等待DIFS,IDLE2需要等待EIFS
-        /**
-         * 此时节点没有通信者,但是正在接受数据,有可能这个数据是无效数据
-         * 如果是无效数据,则进入IDLE2状态,如果是一个有效的RTS数据
-         * 则进入RECEIVING_RTS
-         */
-        IDLE_RECEIVING(false,Mode.READ_MODE),
+        WAITING_NEXT_ROUND,
+        RECEIVING_NEXT_ROUND_FRAME,
+        SLOTING,// TODO: 16/5/13 处于这个频率应该是不能收到任何频率的信息的
+        SENDING_RTS(Mode.WRITE_MODE),
+        RECEIVING_PAIR_FRAME,
 
-        SLOTING(false,Mode.READ_MODE),
-        //note: 没有WAITING_RTS这个状态
-        SENDING_RTS(true,Mode.WRITE_MODE),
-        RECEIVING_RTS(false,Mode.READ_MODE),
-        WAITING_CTS(true,Mode.READ_MODE),
+        WAITING_DATA_FRAME,
 
-        SENDING_SIFS_CTS(false,Mode.WRITE_MODE),
-        SENDING_CTS(false,Mode.WRITE_MODE),
-        RECEIVING_CTS(true,Mode.READ_MODE),
-        WAITING_DATA(false,Mode.READ_MODE),
+        SENDING_DATA(Mode.WRITE_MODE),
+        RECEIVING_DATA,
 
-        SENDING_SIFS_DATA(true,Mode.WRITE_MODE),
-        SENDING_DATA(true,Mode.WRITE_MODE),
-        RECEIVING_DATA(false,Mode.READ_MODE),
-        WAITING_ACK(true,Mode.READ_MODE),
+        WAITING_ACK,
+        SENDING_ACK(Mode.WRITE_MODE),
+        RECEIVING_ACK;
 
-        SENDING_SIFS_ACK(false,Mode.WRITE_MODE),
-        SENDING_ACK(false,Mode.WRITE_MODE),
-        RECEIVING_ACK(true,Mode.READ_MODE),
+        private final Mode mode;
 
-
-        NAV(false,null);
-
-        final Boolean sender;
-        final Mode mode;
-        Status(Boolean sender,Mode mode){
-            this.sender = sender;
+        private Status(Mode mode){
             this.mode = mode;
         }
-
-        boolean isSender(){
-            return this.sender;
+        private Status(){
+            this(Mode.READ_MODE);
         }
 
         boolean isReadMode(){
-            return mode == Mode.READ_MODE;
+            return this.mode == Mode.READ_MODE;
         }
 
         boolean isWriteMode(){
-            return mode == Mode.WRITE_MODE;
+            return this.mode == Mode.WRITE_MODE;
         }
     }
 
@@ -98,10 +73,10 @@ interface BaseRole {
      * (1)如果通信失败,则对于发送方来说需要将碰撞次数加一,扩大碰撞窗口.接收方则不受影响
      * (2)如果是 超时性质的通信失败,则要马上执行{@link Station#onPostDIFS()}
      * 否则需要等DIFS之后才能执行{@link Station#onPostDIFS()}
-     * @param success
-     * @param fail
+     * @param isSender
+     *
      */
-    void endCommunication(boolean success, boolean fail);
+    void endCommunication(boolean isSender);
 
     void setCommunicationTarget(int id);
 

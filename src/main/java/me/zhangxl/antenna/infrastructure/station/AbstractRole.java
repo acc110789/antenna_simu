@@ -1,8 +1,5 @@
 package me.zhangxl.antenna.infrastructure.station;
 
-import me.zhangxl.antenna.infrastructure.clock.TimeController;
-import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +24,7 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
     //需要注意的是一旦一个Station进入了写(发送)模式之后,
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
-    private Status currentStatus = Status.SLOTING;
+    private Status currentStatus = Status.WAITING_NEXT_ROUND;
 
     /**
      * 节点的当前通信对象
@@ -44,18 +41,9 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
     abstract void onFinish();
 
     @Override
-    public void endCommunication(boolean success, boolean fail){
-        assert getCurrentStatus() != Status.IDLE1;
-        assert getCurrentStatus() != Status.IDLE2;
-        if(getCurrentStatus().isSender()) {
-            //如果发送成功,则统计数据
-            if (success) {
-                onSendSuccess();
-            }
-            //如果发送失败,则将backOff窗口加倍
-            if (fail) {
-                backOffDueToTimeout();
-            }
+    public void endCommunication(boolean isSender){
+        if(isSender){
+            onSendSuccess();
         }
         onFinish();
     }
@@ -76,43 +64,10 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
         return this.currentStatus;
     }
 
-    abstract void onPostDIFS();
-
-    abstract void assertNoReceivingFrameOnWriteMode();
-
     @Override
     public void setCurrentStatus(Status status) {
         //Status previous = this.currentStatus;
         this.currentStatus = status;
-        if(this.currentStatus.isReadMode()){
-            Medium.getInstance().notify((Station)this);
-        }
-        if(this.currentStatus.isWriteMode()){
-            //保证在writeMode的时候没有正在接受的frame
-            assertNoReceivingFrameOnWriteMode();
-        }
-        if(getCurrentStatus() == Status.IDLE1) {
-            TimeController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    if(getCurrentStatus() == Status.IDLE1){
-                        setCurrentStatus(Status.SLOTING);
-                    }
-                }
-            }, Config.getInstance().getDifs());
-        } else if(getCurrentStatus() == Status.IDLE2){
-            TimeController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    if(getCurrentStatus() == Status.IDLE2){
-                        setCurrentStatus(Status.SLOTING);
-                    }
-                }
-            },Config.getInstance().getEifs());
-        }
-        else if(getCurrentStatus() == Status.SLOTING){
-            onPostDIFS();
-        }
     }
 
     @Override

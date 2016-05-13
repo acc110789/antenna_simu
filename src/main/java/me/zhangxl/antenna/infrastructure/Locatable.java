@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.infrastructure.station;
+package me.zhangxl.antenna.infrastructure;
 
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.util.Pair;

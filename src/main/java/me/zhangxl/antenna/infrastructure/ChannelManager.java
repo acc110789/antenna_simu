@@ -63,7 +63,7 @@ public class ChannelManager {
         return new ArrayList<>(dataChannels);
     }
 
-    public boolean isApChannel(Integer apChannel){
+    public boolean isPcpChannel(Integer apChannel){
         return apChannel.equals(this.apChannel);
     }
 

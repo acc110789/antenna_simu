@@ -1,6 +1,7 @@
 package me.zhangxl.antenna.infrastructure.station;
 
 import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.infrastructure.ChannelManager;
 import me.zhangxl.antenna.util.Config;
 
 import java.util.ArrayList;
@@ -23,7 +24,9 @@ public class StationUtil {
     //保证每个Station有足够的数据待发送,使之饱和
     public static void guaranteeEnoughFrame(Station station) {
         for (int i = station.getWaitingRequestNum(); i < 100; i++) {
-            station.putDataFrame(getRandomTargetId(station.getId()), Config.getInstance().getDataLength());
+            station.putDataFrame(getRandomTargetId(station.getId()),
+                    Config.getInstance().getDataLength(),
+                    ChannelManager.getInstance().getRandomRtsChannel());
         }
     }
 

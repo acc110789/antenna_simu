@@ -30,6 +30,7 @@ public class TimeTask implements Comparable<TimeTask> {
 
     public static int SEND = COMMON_PRIORITY;
     public static int RECEIVE = SEND + 1;
+    public static int AFTER_RECEIVE = RECEIVE + 1;
 
     @Override
     public int compareTo(TimeTask o) {

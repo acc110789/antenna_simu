@@ -24,9 +24,15 @@ public class PairFrame extends Frame {
             Config.getInstance().getMacHeader() +//mac层的header
             2 * Config.getInstance().getAddrSize() +//两个地址
             2 * 8;//2个字节,表明信道的编号
+    private final int channel;
 
-    public PairFrame(int srcId, int targetId, int fre) {
+    public PairFrame(int srcId, int targetId, int fre, int channel) {
         super(srcId, targetId, frameLength, fre);
+        this.channel = channel;
+    }
+
+    public int getChannel(){
+        return this.channel;
     }
 
     @Override

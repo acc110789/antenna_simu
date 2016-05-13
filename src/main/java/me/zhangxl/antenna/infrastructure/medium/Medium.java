@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.station.Locatable;
+import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
