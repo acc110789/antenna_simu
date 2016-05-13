@@ -8,8 +8,8 @@ import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
 /**
  * Created by zhangxiaolong on 16/5/13.
  */
-public class OnReceiveAckFrame extends OnReceiveFrameLogic {
-    public OnReceiveAckFrame(Station station) {
+class OnReceiveAckFrame extends OnReceiveFrameLogic {
+    OnReceiveAckFrame(Station station) {
         super(station);
     }
 

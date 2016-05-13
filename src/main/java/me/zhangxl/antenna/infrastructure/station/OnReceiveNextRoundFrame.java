@@ -25,7 +25,6 @@ class OnReceiveNextRoundFrame extends OnReceiveFrameLogic {
             public void run() {
                 assert station.getCurrentStatus() == Status.RECEIVING_NEXT_ROUND_FRAME;
                 station.receivingFrames.remove(frame);
-                station.setCurrentStatus(Status.SLOTING);
                 station.onNextRound(((NextRoundFrame) frame).getSlots());
             }
         }, frame.getEndDuration());

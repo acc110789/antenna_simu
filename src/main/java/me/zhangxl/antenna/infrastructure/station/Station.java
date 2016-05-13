@@ -152,7 +152,15 @@ public class Station extends AbstractRole implements Locatable {
     }
 
     void onNextRound(int slots){
+        setCurrentStatus(Status.SLOTING);
         mSlotManager.setAvailableSlotCount(slots);
+        if(mCurrentSendingFrame == null){
+            //说明上次的发送成功,mCurrentSendingFrame被放在了已发送list里面了
+            getDataFrameToSend();
+        } else if(mCurrentSendingFrame.canBeSent()){
+            //说明上次曾经尝试发送,但是PCP节点没有给机会,这样相当于碰撞,应该将窗口加倍
+            mCurrentSendingFrame.addCollitionTimes();
+        }
         mSlotManager.scheduleSLOT();
     }
 
