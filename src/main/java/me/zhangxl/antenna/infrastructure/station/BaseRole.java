@@ -19,7 +19,7 @@ interface BaseRole {
     enum Status {
         WAITING_NEXT_ROUND,
         RECEIVING_NEXT_ROUND_FRAME,
-        SLOTING,// TODO: 16/5/13 处于这个频率应该是不能收到任何频率的信息的
+        SLOTING,
         SENDING_RTS(Mode.WRITE_MODE),
         RECEIVING_PAIR_FRAME,
 

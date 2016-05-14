@@ -2,6 +2,7 @@ package me.zhangxl.antenna;
 
 import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
+import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
@@ -56,6 +57,7 @@ public class TestStation {
         for (int i = 1; i <= num; i++) {
             result.add(new Station(i));
         }
+        PcpStation.getInstance();
         return result;
     }
 
@@ -131,7 +133,7 @@ public class TestStation {
         logger.info("***************config*****************");
         logger.ln();
         logger.info("%-13s%#.14f", "slot length", Config.getInstance().getSlotLength());
-        logger.info("%-13s%#.14f", "rts  length", new RtsFrame(-1, -1).getTransmitDuration());
+        logger.info("%-13s%#.14f", "rts  length", new RtsFrame(-1, -1,0).getTransmitDuration());
         logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
         logger.info("%-13s%#.14f", "cts  timeout", CtsFrame.getCtsTimeOut());
         logger.info("%-13s%#.14f", "rts  timeout", RtsFrame.getRtsTimeOut());

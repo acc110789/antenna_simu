@@ -1,15 +1,18 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
-import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Locatable;
+import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.PrecisionUtil;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by zhangxiaolong on 16/4/10.
@@ -22,9 +25,8 @@ public class DirectMedium extends Medium {
     List<Locatable> getStationToReceive(Locatable source, Frame frame) {
         //根据frame中提供的station的id找到具体的station
         Locatable target = null;
-        if(Config.getInstance().isPcpMode() &&
-                (frame instanceof RtsFrame || frame instanceof CtsFrame)){
-            target = null; // TODO: 16/5/9 target = pcpPeer ;//设置目标节点为PCP节点
+        if(frame instanceof RtsFrame){
+            target = PcpStation.getInstance();
         } else {
             int targetId = frame.getTargetId();
             for (Locatable station : stationList) {

@@ -46,9 +46,9 @@ public class TestDirect {
         for (Map.Entry<Locatable, DirectMedium.Info> entry : map.entrySet()) {
             System.out.println(entry.getKey().getId() + ":");
             for (int i = 0; i < Config.getInstance().getPart(); i++) {
-                List<Station> stations = entry.getValue().getStations(i);
+                List<Locatable> stations = entry.getValue().getStations(i);
                 System.out.println("    第" + i + "个扇区:");
-                for(Station station : stations){
+                for(Locatable station : stations){
                     System.out.println("            contain "+station.getId());
                 }
             }

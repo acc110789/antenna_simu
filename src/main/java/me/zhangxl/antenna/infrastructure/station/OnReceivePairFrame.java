@@ -6,6 +6,10 @@ import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
 
 /**
+ * 接受到正确的PairFrame之后的route
+ * SIFS --> DATA --> SIFS --> ACK
+ * 刚刚发送完Ack或者刚刚接收完Ack之后立刻切换频率,
+ * 切回到只能接收Pcp节点的信号的频率.
  * Created by zhangxiaolong on 16/5/13.
  */
 class OnReceivePairFrame extends OnReceiveFrameLogic {

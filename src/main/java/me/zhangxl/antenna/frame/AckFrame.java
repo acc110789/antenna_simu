@@ -15,13 +15,17 @@ public class AckFrame extends Frame {
     }
 
     private static double ackTimeOut ;
+    private static double frameTimeLength;
 
     static {
+        frameTimeLength = PrecisionUtil.div(ackLength,Config.getInstance().getBandWidth());
         ackTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),
-                Config.getInstance().getDifs(),
-                PrecisionUtil.div(ackLength,Config.getInstance().getBandWidth()));
-
+                Config.getInstance().getDifs(), frameTimeLength);
         ackTimeOut = PrecisionUtil.sub(ackTimeOut,Config.getInstance().getDifs());
+    }
+
+    public static double getFrameTimeLength(){
+        return frameTimeLength;
     }
 
     public static double getAckTimeOut(){
