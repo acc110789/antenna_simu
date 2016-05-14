@@ -1,6 +1,7 @@
 package me.zhangxl.antenna.frame;
 
 import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.PrecisionUtil;
 
 /**
  * 这个节点由PCP节点全向发出(在2.4GHz或者5GHz任意选出一个频率)
@@ -18,9 +19,16 @@ public class NextRoundFrame extends Frame {
             2 * 8;//2个字节表明下一轮最有竞争节点可能的退避窗口
     private int slots = -1;
 
+    private static final double frameTimeLength = PrecisionUtil.div(frameLength,
+            Config.getInstance().getBandWidth());
+
     public NextRoundFrame(int srcId, int targetId, int fre, int slots) {
         super(srcId, targetId, frameLength, fre);
         this.slots = slots;
+    }
+
+    public static double getFrameTimeLength(){
+        return frameTimeLength;
     }
 
     @Override

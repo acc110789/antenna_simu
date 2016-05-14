@@ -18,6 +18,9 @@ import java.util.Map;
  * Created by zhangxiaolong on 16/4/10.
  */
 public class DirectMedium extends Medium {
+    /**
+     * 保存着每一个节点的扇区信息
+     */
     private static final Map<Locatable, Info> sMap = new HashMap<>();
 
     //先计算出frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回

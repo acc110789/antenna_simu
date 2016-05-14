@@ -1,8 +1,6 @@
 package me.zhangxl.antenna.infrastructure.clock;
 
-import me.zhangxl.antenna.frame.CtsFrame;
-import me.zhangxl.antenna.frame.DataFrame;
-import me.zhangxl.antenna.frame.RtsFrame;
+import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
 import me.zhangxl.antenna.util.SimuLoggerManager;
@@ -102,9 +100,9 @@ public class TimeController {
                 text = "SLOT";
             } else if(PrecisionUtil.sub(time,Config.getInstance().getEifs()) == 0){
                 text = "EIFS";
-            } else if(PrecisionUtil.sub(time, RtsFrame.getTimeLength()) == 0){
+            } else if(PrecisionUtil.sub(time, RtsFrame.getFrameTimeLength()) == 0){
                 text = "RTS";
-            } else if(PrecisionUtil.sub(time, CtsFrame.getCtsTimeLength()) == 0){
+            } else if(PrecisionUtil.sub(time, CtsFrame.getFrameTimeLength()) == 0){
                 text = "CTS/ACK";
             } else if(PrecisionUtil.sub(time, DataFrame.getFrameTimeLength()) == 0){
                 text = "DATA";
@@ -112,6 +110,10 @@ public class TimeController {
                 text = "RTS timeout";
             } else if(PrecisionUtil.sub(time,CtsFrame.getCtsTimeOut()) == 0){
                 text = "CTS/ACK timeout";
+            } else if(PrecisionUtil.sub(time, NextRoundFrame.getFrameTimeLength()) == 0){
+                text = "NextRound";
+            } else if(PrecisionUtil.sub(time, PairFrame.getFrameTimeLength()) == 0){
+                text = "Pair";
             } else {
                 text = String.format("%#.14f", time);
             }

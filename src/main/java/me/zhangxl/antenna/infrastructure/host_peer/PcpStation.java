@@ -66,7 +66,11 @@ public class PcpStation implements Locatable {
         //检查频率
         if (mFreFilter.canReceive(frame.getFre())) {
             //如果是rtsframe的频率,则进行对应的处理
-            assert frame instanceof RtsFrame;
+            try {
+                assert frame instanceof RtsFrame;
+            } catch (Throwable e){
+                System.out.println(frame.getClass().getSimpleName());
+            }
             //检查当前的状态必须是waiting rts
             assert currentStatus == Status.WAITING_RTS;
             //检查是否与已经存在的frame发生任何的碰撞
@@ -98,6 +102,7 @@ public class PcpStation implements Locatable {
      */
     public void sendNextRoundFrame() {
         logger.debug("%d preSendNextRoundFrame",getId());
+        logger.info("%d slots permitted",mSlots);
         final NextRoundFrame frame = new NextRoundFrame(getId(), -1, ChannelManager.getInstance().getPcpChannel(), mSlots);
         Medium.getInstance().putFrame(this, frame);
         currentStatus = Status.SENDING_NEXT_ROUND;
@@ -141,7 +146,7 @@ public class PcpStation implements Locatable {
                         }
                     }
                 }, PrecisionUtil.add(PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
-                        RtsFrame.getTimeLength()), TimeTask.AFTER_RECEIVE);
+                        RtsFrame.getFrameTimeLength()), TimeTask.AFTER_RECEIVE);
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
     }
@@ -170,15 +175,19 @@ public class PcpStation implements Locatable {
                 final int channel = getADataChannel();
                 PairFrame pairFrame = new PairFrame(frame.getSrcId(), frame.getTargetId(),
                         ChannelManager.getInstance().getPcpChannel(), channel);
+                //发送PairFrame
                 Medium.getInstance().putFrame(this, pairFrame);
                 TimeController.getInstance().post(new Runnable() {
                     @Override
                     public void run() {
                         //把pairFrame发送完毕,
                         channelUsage.put(frame.getSrcId(), frame.getTargetId(), channel);
+                        logger.info("%d pairFrame,srcId:%d,targetId:%d,channelId:%d",
+                                getId(),frame.getSrcId(),frame.getTargetId(),channel);
+                        //准备发送下一个可能PairFrame
                         onSendPairFrame();
                     }
-                }, pairFrame.getTransmitDuration(), TimeTask.RECEIVE);
+                }, pairFrame.getTransmitDuration(), TimeTask.SEND);
             } else {
                 rtss.clear();
                 sendNextRoundFrame();

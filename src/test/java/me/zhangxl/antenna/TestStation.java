@@ -1,6 +1,7 @@
 package me.zhangxl.antenna;
 
 import me.zhangxl.antenna.frame.CtsFrame;
+import me.zhangxl.antenna.frame.NextRoundFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.infrastructure.station.Station;
@@ -107,6 +108,7 @@ public class TestStation {
         Station station1 = new Station(1, 1, 0);
         Station station2 = new Station(2, 0, 1);
         Station station3 = new Station(3, -1, 0);
+        PcpStation.getInstance();
 
         StationUtil.guaranteeEnoughFrame(station1);
         StationUtil.guaranteeEnoughFrame(station2);
@@ -133,11 +135,12 @@ public class TestStation {
         logger.info("***************config*****************");
         logger.ln();
         logger.info("%-13s%#.14f", "slot length", Config.getInstance().getSlotLength());
-        logger.info("%-13s%#.14f", "rts  length", new RtsFrame(-1, -1,0).getTransmitDuration());
+        logger.info("%-13s%#.14f", "rts  length", RtsFrame.getFrameTimeLength());
         logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
         logger.info("%-13s%#.14f", "cts  timeout", CtsFrame.getCtsTimeOut());
         logger.info("%-13s%#.14f", "rts  timeout", RtsFrame.getRtsTimeOut());
         logger.info("%-13s%#.14f", "eifs length", Config.getInstance().getEifs());
+        logger.info("%-13s%#.14f", "next length", NextRoundFrame.getFrameTimeLength());
         logger.ln();
         logger.info("**************************************");
         logger.info("**************************************");
