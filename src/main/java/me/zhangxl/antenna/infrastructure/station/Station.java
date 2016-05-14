@@ -161,7 +161,9 @@ public class Station extends AbstractRole implements Locatable {
             //说明上次曾经尝试发送,但是PCP节点没有给机会,这样相当于碰撞,应该将窗口加倍
             mCurrentSendingFrame.addCollitionTimes();
         }
-        mSlotManager.scheduleSLOT();
+        if (!sendDataIfNeed()) {
+            mSlotManager.scheduleSLOT();
+        }
     }
 
     void onPaired(int src,int dst,int channel){

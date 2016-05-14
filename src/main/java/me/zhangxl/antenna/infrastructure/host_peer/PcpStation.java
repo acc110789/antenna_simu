@@ -101,7 +101,7 @@ public class PcpStation implements Locatable {
      * {@link me.zhangxl.antenna.frame.NextRoundFrame}
      */
     public void sendNextRoundFrame() {
-        logger.debug("%d preSendNextRoundFrame",getId());
+        logger.debug("%d onPreSendNextRoundFrame",getId());
         logger.info("%d slots permitted",mSlots);
         final NextRoundFrame frame = new NextRoundFrame(getId(), -1, ChannelManager.getInstance().getPcpChannel(), mSlots);
         Medium.getInstance().putFrame(this, frame);
@@ -109,7 +109,7 @@ public class PcpStation implements Locatable {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                logger.debug("%d postSendNextRoundFrame",getId());
+                logger.debug("%d onPostSendNextRoundFrame",getId());
                 currentStatus = Status.WAITING_RTS;
 
                 //rts 已经超时之后都没有收到任何的rts应该如下处理
