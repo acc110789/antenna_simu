@@ -26,8 +26,8 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     @Override
     public void onPreSendRTS(RtsFrame frame) {
-        onSendMethod(logger, String.format("%d onPreSendRTS()", getId()), Status.SLOTING,
-                Status.SENDING_RTS, new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendRTS()  channel:%d", getId(),frame.getFre()),
+                Status.SLOTING, Status.SENDING_RTS, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendRTS();
@@ -56,8 +56,8 @@ class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     @Override
     public void onPreSendData(DataFrame dataFrame) {
-        onSendMethod(logger, String.format("%d onPreSendData()",getId()), Status.SENDING_DATA,
-                Status.SENDING_DATA, new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendData()  channel:%d",getId(),dataFrame.getFre()),
+                Status.SENDING_DATA, Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendDATA();

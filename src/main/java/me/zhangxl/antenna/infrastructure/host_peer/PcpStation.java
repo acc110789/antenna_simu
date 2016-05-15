@@ -32,7 +32,7 @@ public class PcpStation implements Locatable {
     private static final int initialSlot = 1;
     private final Pair<Double, Double> mLocation = new Pair<>(0.0, 0.0);
     private final int id = 0;
-    private final List<RtsFrame> rtss = new ArrayList<>();
+    private final List<RtsFrame> receivedRtss = new ArrayList<>();
     private Status currentStatus = null;
     private final HostFreFilter mFreFilter = new HostFreFilter();
     private final ChannelUsage channelUsage = new ChannelUsage();
@@ -74,7 +74,7 @@ public class PcpStation implements Locatable {
             //检查当前的状态必须是waiting rts
             assert currentStatus == Status.WAITING_RTS;
             //检查是否与已经存在的frame发生任何的碰撞
-            for (RtsFrame frame1 : rtss) {
+            for (RtsFrame frame1 : receivedRtss) {
                 if (frame1.getFre() == frame.getFre()) {
                     frame1.setDirty();
                     frame.setDirty();
@@ -84,11 +84,15 @@ public class PcpStation implements Locatable {
                 @Override
                 public void run() {
                     assert currentStatus == Status.WAITING_RTS;
-                    rtss.add((RtsFrame) frame);
+                    receivedRtss.add((RtsFrame) frame);
                 }
             }, frame.getTransmitDuration(), TimeTask.RECEIVE);
         }
         return true;
+    }
+
+    private void setCurrentStatus(Status status){
+        currentStatus = status;
     }
 
     /**
@@ -105,12 +109,12 @@ public class PcpStation implements Locatable {
         logger.info("%d slots permitted",mSlots);
         final NextRoundFrame frame = new NextRoundFrame(getId(), -1, ChannelManager.getInstance().getPcpChannel(), mSlots);
         Medium.getInstance().putFrame(this, frame);
-        currentStatus = Status.SENDING_NEXT_ROUND;
+        setCurrentStatus(Status.SENDING_NEXT_ROUND);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 logger.debug("%d onPostSendNextRoundFrame",getId());
-                currentStatus = Status.WAITING_RTS;
+                setCurrentStatus(Status.WAITING_RTS);
 
                 //rts 已经超时之后都没有收到任何的rts应该如下处理
                 TimeController.getInstance().post(new Runnable() {
@@ -122,17 +126,19 @@ public class PcpStation implements Locatable {
                             sendNextRoundFrame();
                         }
                     }
-                }, PrecisionUtil.add(PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
-                        RtsFrame.getRtsTimeOut()), TimeTask.AFTER_RECEIVE);
+                }, PrecisionUtil.add(Config.getInstance().getSifs(),
+                        PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
+                        RtsFrame.getRtsTimeOut()),
+                   TimeTask.AFTER_RECEIVE);
 
                 //在规定时间内收到的RtsFrame应该作如下处理
                 TimeController.getInstance().post(new Runnable() {
                     @Override
                     public void run() {
-                        if (rtss.size() > 0) {
-                            currentStatus = Status.SENDING_PAIR;
+                        if (receivedRtss.size() > 0) {
+                            setCurrentStatus(Status.SENDING_PAIR);
                             boolean collision = false;
-                            Iterator<RtsFrame> iter = rtss.iterator();
+                            Iterator<RtsFrame> iter = receivedRtss.iterator();
                             while (iter.hasNext()) {
                                 if (iter.next().isDirty()) {
                                     collision = true;
@@ -140,13 +146,17 @@ public class PcpStation implements Locatable {
                                 }
                             }
                             if (collision) {
+                                logger.info("collision encountered");
                                 mSlots--;
                             }
                             onSendPairFrame();
                         }
                     }
-                }, PrecisionUtil.add(PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
-                        RtsFrame.getFrameTimeLength()), TimeTask.AFTER_RECEIVE);
+                }, PrecisionUtil.add(
+                        Config.getInstance().getSifs(),
+                        PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
+                        RtsFrame.getFrameTimeLength()),
+                   TimeTask.AFTER_RECEIVE);
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
     }
@@ -158,6 +168,7 @@ public class PcpStation implements Locatable {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
+                logger.debug("%d onSendPairFrame",getId());
                 sendPairFrameInner();
             }
         }, Config.getInstance().getSifs());
@@ -166,30 +177,32 @@ public class PcpStation implements Locatable {
     private void sendPairFrameInner() {
         //没有可用的dataChannel,则把所有的rts都清空
         if (!hasFreeDataChannel()) {
-            rtss.clear();
+            receivedRtss.clear();
         }
-        if (rtss.size() > 0) {
+        if (receivedRtss.size() > 0) {
             final RtsFrame frame = getFreeRts();
             if (frame != null) {
-                rtss.remove(frame);
+                receivedRtss.remove(frame);
                 final int channel = getADataChannel();
                 PairFrame pairFrame = new PairFrame(frame.getSrcId(), frame.getTargetId(),
                         ChannelManager.getInstance().getPcpChannel(), channel);
                 //发送PairFrame
                 Medium.getInstance().putFrame(this, pairFrame);
+                logger.debug("%d onPreSendPairFrame",getId());
+                logger.info("%d pairFrame,  srcId:%d,   targetId:%d,   channelId:%d",
+                        getId(),frame.getSrcId(),frame.getTargetId(),channel);
                 TimeController.getInstance().post(new Runnable() {
                     @Override
                     public void run() {
-                        //把pairFrame发送完毕,
+                        //把pairFrame发送完毕
+                        logger.debug("%d onPostSendPairFrame",getId());
                         channelUsage.put(frame.getSrcId(), frame.getTargetId(), channel);
-                        logger.info("%d pairFrame,srcId:%d,targetId:%d,channelId:%d",
-                                getId(),frame.getSrcId(),frame.getTargetId(),channel);
                         //准备发送下一个可能PairFrame
                         onSendPairFrame();
                     }
                 }, pairFrame.getTransmitDuration(), TimeTask.SEND);
             } else {
-                rtss.clear();
+                receivedRtss.clear();
                 sendNextRoundFrame();
             }
         } else {
@@ -203,7 +216,7 @@ public class PcpStation implements Locatable {
      */
     private RtsFrame getFreeRts() {
         RtsFrame target = null;
-        for (RtsFrame frame : rtss) {
+        for (RtsFrame frame : receivedRtss) {
             //这里检查一下
             if (channelUsage.isIdFree(frame.getTargetId())
                     && channelUsage.isIdFree(frame.getSrcId())) {

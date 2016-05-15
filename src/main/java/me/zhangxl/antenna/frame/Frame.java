@@ -15,7 +15,8 @@ public abstract class Frame implements Cloneable{
     private final int targetId;
     private boolean dirty = false;
     private double startTime = -1;
-    private final Integer fre; //表明这个frame的传输频率是多少
+    private Integer fre; //表明这个frame的传输频率是多少
+    private boolean complete = true;
 
     Frame(int srcId, int targetId, long length, int fre){
         this.srcId = srcId;
@@ -84,6 +85,10 @@ public abstract class Frame implements Cloneable{
         return this.fre;
     }
 
+    public void setFre(int fre){
+        this.fre = fre;
+    }
+
     public RtsFrame generateRtsFrame(){
         return new RtsFrame(this.srcId,this.targetId, ChannelManager.getInstance().getRandomRtsChannel());
     }
@@ -99,4 +104,5 @@ public abstract class Frame implements Cloneable{
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
 }

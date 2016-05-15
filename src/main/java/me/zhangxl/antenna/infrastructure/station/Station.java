@@ -181,6 +181,9 @@ public class Station extends AbstractRole implements Locatable {
 
     @Override
     public DataFrame getDataToSend() {
+        int fre = mFreFilter.getFre();
+        assert ChannelManager.getInstance().isDataChannel(fre);
+        mCurrentSendingFrame.setFre(fre);
         return mCurrentSendingFrame;
     }
 

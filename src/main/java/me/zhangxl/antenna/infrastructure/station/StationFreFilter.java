@@ -14,6 +14,10 @@ class StationFreFilter implements FreFilter {
         this.fre = fre;
     }
 
+    int getFre(){
+        return this.fre;
+    }
+
     @Override
     public boolean canReceive(int fre) {
         return this.fre == fre;
