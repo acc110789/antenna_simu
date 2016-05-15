@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
  * 一次通信过程中的发送者角色
  * Created by zhangxiaolong on 16/4/15.
  */
-class Sender extends BaseRoleFilter implements SenderExpandRole {
+public class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     private static final Logger logger = SimuLoggerManager.getLogger(Sender.class.getSimpleName());
     private final SendBaseRole mRole;

@@ -100,7 +100,7 @@ public class TestStation {
     public void threeDirectStation() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
         setDirectionMode(Medium.DIRECT_MODE);
-        setSimulationDuration(1);
+        setSimulationDuration(0.02);
         setWarmUpTime(0);
         Medium.reset();
         TimeController.getInstance().clear();

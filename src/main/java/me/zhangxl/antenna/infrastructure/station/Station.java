@@ -5,6 +5,7 @@ import me.zhangxl.antenna.infrastructure.ChannelManager;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
+import me.zhangxl.antenna.infrastructure.station.receive_pair.OnReceivePairFrame;
 import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
@@ -20,11 +21,11 @@ import java.util.List;
 public class Station extends AbstractRole implements Locatable {
 
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
-    final Sender mSender;
+    public final Sender mSender;
     final Receiver mReceiver;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
 
-    DataFrame mCurrentSendingFrame;
+    public DataFrame mCurrentSendingFrame;
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
     /**
@@ -34,8 +35,8 @@ public class Station extends AbstractRole implements Locatable {
     /**
      * 正在接受的frames
      */
-    List<Frame> receivingFrames = new ArrayList<>();
-    private final StationFreFilter mFreFilter = new StationFreFilter();
+    public List<Frame> receivingFrames = new ArrayList<>();
+    public final StationFreFilter mFreFilter = new StationFreFilter();
     private final SlotManager mSlotManager = new SlotManager(this);
 
     public Station(int id) {
@@ -166,7 +167,7 @@ public class Station extends AbstractRole implements Locatable {
         }
     }
 
-    void onPaired(int src,int dst,int channel){
+    public void onPaired(int src,int dst,int channel){
         mFreFilter.setFre(channel);
         if(src == getId()){
             setCommunicationTarget(dst);

@@ -7,7 +7,7 @@ import me.zhangxl.antenna.frame.Frame;
 /**
  * Created by zhangxiaolong on 16/4/15.
  */
-interface BaseRole {
+public interface BaseRole {
 
     int defaultCommunicationTarget = -1;
 

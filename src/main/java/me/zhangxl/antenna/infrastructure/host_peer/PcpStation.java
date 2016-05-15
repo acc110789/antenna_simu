@@ -7,10 +7,7 @@ import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.infrastructure.station.Station;
-import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Pair;
-import me.zhangxl.antenna.util.PrecisionUtil;
-import me.zhangxl.antenna.util.SimuLoggerManager;
+import me.zhangxl.antenna.util.*;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -126,10 +123,7 @@ public class PcpStation implements Locatable {
                             sendNextRoundFrame();
                         }
                     }
-                }, PrecisionUtil.add(Config.getInstance().getSifs(),
-                        PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
-                        RtsFrame.getRtsTimeOut()),
-                   TimeTask.AFTER_RECEIVE);
+                }, Constant.getPcpRtsTimeOut(mSlots), TimeTask.AFTER_RECEIVE);
 
                 //在规定时间内收到的RtsFrame应该作如下处理
                 TimeController.getInstance().post(new Runnable() {
@@ -152,11 +146,7 @@ public class PcpStation implements Locatable {
                             onSendPairFrame();
                         }
                     }
-                }, PrecisionUtil.add(
-                        Config.getInstance().getSifs(),
-                        PrecisionUtil.mul(mSlots, Config.getInstance().getSlotLength()),
-                        RtsFrame.getFrameTimeLength()),
-                   TimeTask.AFTER_RECEIVE);
+                }, Constant.getPcpRtsDeadLine(mSlots), TimeTask.AFTER_RECEIVE);
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
     }
@@ -320,18 +310,12 @@ class ChannelUsage {
     public void put(int srcId, int targetId, int channelId) {
         final CommunicateItem item = new CommunicateItem(srcId, targetId, channelId);
         items.add(item);
-        double duration = PrecisionUtil.add(
-                Config.getInstance().getSifs(),
-                DataFrame.getFrameTimeLength(),
-                Config.getInstance().getSifs(),
-                AckFrame.getFrameTimeLength());
-
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 items.remove(item);
             }
-        }, duration, TimeTask.AFTER_RECEIVE);
+        }, Constant.getDataChannelDeadLine(), TimeTask.AFTER_RECEIVE);
     }
 }
 
