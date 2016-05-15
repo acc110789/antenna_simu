@@ -30,6 +30,7 @@ public class PcpStation implements Locatable {
     private final Pair<Double, Double> mLocation = new Pair<>(0.0, 0.0);
     private final int id = 0;
     private final List<RtsFrame> receivedRtss = new ArrayList<>();
+    private final List<RtsFrame> receivingRtss = new ArrayList<>();
     private Status currentStatus = null;
     private final HostFreFilter mFreFilter = new HostFreFilter();
     private final ChannelUsage channelUsage = new ChannelUsage();
@@ -71,16 +72,18 @@ public class PcpStation implements Locatable {
             //检查当前的状态必须是waiting rts
             assert currentStatus == Status.WAITING_RTS;
             //检查是否与已经存在的frame发生任何的碰撞
-            for (RtsFrame frame1 : receivedRtss) {
+            for (RtsFrame frame1 : receivingRtss) {
                 if (frame1.getFre() == frame.getFre()) {
                     frame1.setDirty();
                     frame.setDirty();
                 }
             }
+            receivingRtss.add((RtsFrame) frame);
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     assert currentStatus == Status.WAITING_RTS;
+                    receivingRtss.remove(frame);
                     receivedRtss.add((RtsFrame) frame);
                 }
             }, frame.getTransmitDuration(), TimeTask.RECEIVE);

@@ -1,6 +1,6 @@
 {
-  "RTS_FRE_COUNT":3,
-  "DATA_FRE_COUNT":3,
+  "RTS_FRE_COUNT": 3,
+  "DATA_FRE_COUNT": 3,
   "PCP_MODE": true,
   "STATION_NUM": 60,
   "MAX_CW": 4,
