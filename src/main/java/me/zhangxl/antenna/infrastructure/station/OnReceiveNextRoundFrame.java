@@ -16,7 +16,7 @@ class OnReceiveNextRoundFrame extends OnReceiveFrameLogic {
     }
 
     @Override
-    void doLogic(final Frame frame) {
+    public void doLogic(final Frame frame) {
         assert frame instanceof NextRoundFrame;
         assert station.getCurrentStatus() == Status.WAITING_NEXT_ROUND;
         station.setCurrentStatus(BaseRole.Status.RECEIVING_NEXT_ROUND_FRAME);

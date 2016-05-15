@@ -129,7 +129,7 @@ public class Station extends AbstractRole implements Locatable {
      */
     public boolean beginReceiveFrame(Frame frame){
         //如果频率不是这个station care的频率,就跟这个频率好像不存在是一样的
-        if(!mFreFilter.canReceive(frame.getFre())){
+        if(getCurrentStatus() == Status.NAVING || !mFreFilter.canReceive(frame.getFre())){
             return true;
         }
         if(getCurrentStatus().isWriteMode()){
@@ -167,18 +167,18 @@ public class Station extends AbstractRole implements Locatable {
         }
     }
 
-    public void onPaired(int src,int dst,int channel){
-        mFreFilter.setFre(channel);
-        if(src == getId()){
-            setCommunicationTarget(dst);
-            mSender.onPreSendSIFSAndDATA();
-        } else if(dst == getId()){
-            setCommunicationTarget(src);
-            setCurrentStatus(Status.WAITING_DATA_FRAME);
-        } else {
-            throw new IllegalStateException("wrong state");
-        }
-    }
+//    public void onPaired(int src,int dst,int channel){
+//        mFreFilter.setFre(channel);
+//        if(src == getId()){
+//            setCommunicationTarget(dst);
+//            mSender.onPreSendSIFSAndDATA();
+//        } else if(dst == getId()){
+//            setCommunicationTarget(src);
+//            setCurrentStatus(Status.WAITING_DATA_FRAME);
+//        } else {
+//            throw new IllegalStateException("wrong state");
+//        }
+//    }
 
     @Override
     public DataFrame getDataToSend() {

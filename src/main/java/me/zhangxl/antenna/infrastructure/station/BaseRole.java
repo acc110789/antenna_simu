@@ -30,7 +30,9 @@ public interface BaseRole {
 
         WAITING_ACK,
         SENDING_ACK(Mode.WRITE_MODE),
-        RECEIVING_ACK;
+        RECEIVING_ACK,
+
+        NAVING;
 
         private final Mode mode;
 

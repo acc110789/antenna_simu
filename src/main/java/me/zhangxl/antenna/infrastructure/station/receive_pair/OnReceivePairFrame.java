@@ -33,10 +33,6 @@ public class OnReceivePairFrame extends OnReceiveFrameLogic {
                 station.receivingFrames.remove(frame);
                 //接收成功
                 deal((PairFrame) frame);
-                if(frame.getSrcId() == station.getId() || frame.getTargetId() == station.getId()){
-                    //交给上层处理
-                    station.onPaired(frame.getSrcId(),frame.getTargetId(),((PairFrame) frame).getChannel());
-                }
             }
         }, frame.getEndDuration());
     }

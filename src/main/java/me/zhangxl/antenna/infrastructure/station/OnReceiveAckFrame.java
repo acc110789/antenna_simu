@@ -14,7 +14,7 @@ class OnReceiveAckFrame extends OnReceiveFrameLogic {
     }
 
     @Override
-    void doLogic(final Frame frame) {
+    public void doLogic(final Frame frame) {
         assert frame instanceof AckFrame;
         assert station.getCurrentStatus() == Status.WAITING_ACK;
         station.setCurrentStatus(Status.RECEIVING_ACK);
