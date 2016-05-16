@@ -64,11 +64,7 @@ public class PcpStation implements Locatable {
         //检查频率
         if (mFreFilter.canReceive(frame.getFre())) {
             //如果是rtsframe的频率,则进行对应的处理
-            try {
-                assert frame instanceof RtsFrame;
-            } catch (Throwable e){
-                System.out.println(frame.getClass().getSimpleName());
-            }
+            assert frame instanceof RtsFrame;
             //检查当前的状态必须是waiting rts
             assert currentStatus == Status.WAITING_RTS;
             //检查是否与已经存在的frame发生任何的碰撞
@@ -91,7 +87,7 @@ public class PcpStation implements Locatable {
         return true;
     }
 
-    private void setCurrentStatus(Status status){
+    private void setCurrentStatus(Status status) {
         currentStatus = status;
     }
 
@@ -105,15 +101,16 @@ public class PcpStation implements Locatable {
      * {@link me.zhangxl.antenna.frame.NextRoundFrame}
      */
     public void sendNextRoundFrame() {
-        logger.debug("%d onPreSendNextRoundFrame",getId());
-        logger.info("%d slots permitted",mSlots);
+        logger.debug("%d onPreSendNextRoundFrame", getId());
+        amendSlots();
+        logger.info("%d slots permitted", mSlots);
         final NextRoundFrame frame = new NextRoundFrame(getId(), -1, ChannelManager.getInstance().getPcpChannel(), mSlots);
         Medium.getInstance().putFrame(this, frame);
         setCurrentStatus(Status.SENDING_NEXT_ROUND);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                logger.debug("%d onPostSendNextRoundFrame",getId());
+                logger.debug("%d onPostSendNextRoundFrame", getId());
                 setCurrentStatus(Status.WAITING_RTS);
 
                 //rts 已经超时之后都没有收到任何的rts应该如下处理
@@ -161,7 +158,7 @@ public class PcpStation implements Locatable {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                logger.debug("%d onSendPairFrame",getId());
+                logger.debug("%d onSendPairFrame", getId());
                 sendPairFrameInner();
             }
         }, Config.getInstance().getSifs());
@@ -181,14 +178,14 @@ public class PcpStation implements Locatable {
                         ChannelManager.getInstance().getPcpChannel(), channel);
                 //发送PairFrame
                 Medium.getInstance().putFrame(this, pairFrame);
-                logger.debug("%d onPreSendPairFrame",getId());
+                logger.debug("%d onPreSendPairFrame", getId());
                 logger.info("%d pairFrame,  srcId:%d,   targetId:%d,   channelId:%d",
-                        getId(),frame.getSrcId(),frame.getTargetId(),channel);
+                        getId(), frame.getSrcId(), frame.getTargetId(), channel);
                 TimeController.getInstance().post(new Runnable() {
                     @Override
                     public void run() {
                         //把pairFrame发送完毕
-                        logger.debug("%d onPostSendPairFrame",getId());
+                        logger.debug("%d onPostSendPairFrame", getId());
                         channelUsage.put(frame.getSrcId(), frame.getTargetId(), channel);
                         //准备发送下一个可能PairFrame
                         onSendPairFrame();
@@ -201,6 +198,18 @@ public class PcpStation implements Locatable {
         } else {
             sendNextRoundFrame();
         }
+    }
+
+    private void amendSlots(){
+        int busyNum = channelUsage.getItemSize() * 2;
+        int peerNum = Medium.getInstance().getPeerNum();
+        int freeNum = peerNum - busyNum;
+        int window = Config.getInstance().getDefaultCW();
+        window = 1 << window;
+        int value = window/freeNum;
+        value = value == 0 ? value + 1: value;
+        mSlots = value * (Config.getInstance().getRtsFreCount()-1);
+        mSlots = Math.max(window/2,mSlots);
     }
 
     /**
@@ -308,6 +317,10 @@ class ChannelUsage {
             }
         }
         throw new EmptyException();
+    }
+
+    int getItemSize(){
+        return items.size();
     }
 
     public void put(int srcId, int targetId, int channelId) {

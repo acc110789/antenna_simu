@@ -3,12 +3,12 @@
   "DATA_FRE_COUNT": 3,
   "PCP_MODE": true,
   "STATION_NUM": 60,
-  "MAX_CW": 4,
+  "MAX_CW": 5,
   "CURRENT_VERSION": "802.11CUSTOM",
   "802.11CUSTOM": {
     "SLOT_LENGTH": 20e-6,
     "SIFS": 10e-6,
-    "DEFAULT_CW": 2
+    "DEFAULT_CW": 3
   },
   "802.11B": {
     "SLOT_LENGTH": 20e-6,

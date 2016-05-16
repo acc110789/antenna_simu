@@ -65,6 +65,13 @@ public class Medium {
         return sInstance;
     }
 
+    /**
+     * @return 返回节点数量
+     */
+    public int getPeerNum(){
+        return stationList.size() -1;
+    }
+
     public static void reset() {
         directMedium = null;
         stationToFrames.clear();
