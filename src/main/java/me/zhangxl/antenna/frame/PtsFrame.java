@@ -19,23 +19,22 @@ import me.zhangxl.antenna.util.PrecisionUtil;
  * ,所以分配两个字节来标识所有的信道是绰绰有余的)。
  * Created by zhangxiaolong on 16/5/12.
  */
-public class PairFrame extends Frame {
+public class PtsFrame extends Frame implements Navable{
 
     private static final long frameLength = Config.getInstance().getPhyHeader() +//物理层的header
             Config.getInstance().getMacHeader() +//mac层的header
-            2 * Config.getInstance().getAddrSize() +//两个地址
-            2 * 8;//2个字节,表明信道的编号
+            2 * Config.getInstance().getAddrSize();//两个地址
 
     private static final double frameTimeLength = PrecisionUtil.div(frameLength,Config.getInstance().getBandWidth());
-    private final int channel;
+    private final boolean passByPcp;
 
-    public PairFrame(int srcId, int targetId, int fre, int channel) {
-        super(srcId, targetId, frameLength, fre);
-        this.channel = channel;
+    public PtsFrame(int srcId, int targetId, boolean passByPcp) {
+        super(srcId, targetId, frameLength);
+        this.passByPcp = passByPcp;
     }
 
-    public int getChannel(){
-        return this.channel;
+    public boolean isPassByPcp(){
+        return this.passByPcp;
     }
 
     public static double getFrameTimeLength(){
@@ -44,6 +43,11 @@ public class PairFrame extends Frame {
 
     @Override
     public double getNavDuration() {
-        return 0;
+        // TODO: 16/5/21
+        throw new IllegalStateException();
+    }
+
+    public static double getPtsTimeOut(){
+        return PrecisionUtil.add(frameTimeLength,Config.getInstance().getDifs());
     }
 }

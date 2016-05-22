@@ -10,8 +10,8 @@ public class AckFrame extends Frame {
 
     static final int ackLength = Config.getInstance().getAckLength();
 
-    AckFrame(int srcId, int targetId, int fre) {
-        super(srcId, targetId, Config.getInstance().getAckLength(),fre);
+    AckFrame(int srcId, int targetId) {
+        super(srcId, targetId, Config.getInstance().getAckLength());
     }
 
     private static double ackTimeOut ;
@@ -30,10 +30,5 @@ public class AckFrame extends Frame {
 
     public static double getAckTimeOut(){
         return ackTimeOut;
-    }
-
-    @Override
-    public double getNavDuration() {
-        throw new IllegalStateException("ack can not hava nav");
     }
 }

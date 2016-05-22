@@ -1,8 +1,8 @@
 package me.zhangxl.antenna.infrastructure.station;
 
 import me.zhangxl.antenna.frame.AckFrame;
-import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.DataFrame;
+import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.util.Config;
@@ -26,7 +26,7 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     @Override
     public void onPreSendRTS(RtsFrame frame) {
-        onSendMethod(logger, String.format("%d onPreSendRTS()  channel:%d", getId(),frame.getFre()),
+        onSendMethod(logger, String.format("%d onPreSendRTS()", getId()),
                 Status.SLOTING, Status.SENDING_RTS, new Runnable() {
                     @Override
                     public void run() {
@@ -39,13 +39,22 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     @Override
     public void onPostSendRTS() {
-        onSendMethod(logger, String.format("%d onPostSendRTS()",getId()), Status.SENDING_RTS,
-                Status.WAITING_NEXT_ROUND, null, -1, -1);
+        onSendMethod(logger, String.format("%d onPostSendRTS()", getId()), Status.SENDING_RTS,
+                Status.WAITING_PTS, new Runnable() {
+                    @Override
+                    public void run() {
+                        if (getCurrentStatus() == Status.WAITING_PTS) {
+                            logger.info("%d after onPostSendRTS() wait PTS timeout",getId());
+                            // TODO: 16/5/21 这个应该是超时的那种失败
+                            endCommunication(true);
+                        }
+                    }
+                }, PtsFrame.getPtsTimeOut(), TimeTask.PTS_TIMEOUT);
     }
 
-    @Override
-    public void onPreSendSIFSAndDATA() {
-        onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()",getId()), Status.RECEIVING_PAIR_FRAME,
+
+    private void onPreSendSIFSAndDATA() {
+        onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()",getId()), Status.SENDING_DATA,
                 Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
@@ -56,7 +65,7 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     @Override
     public void onPreSendData(DataFrame dataFrame) {
-        onSendMethod(logger, String.format("%d onPreSendData()  channel:%d",getId(),dataFrame.getFre()),
+        onSendMethod(logger, String.format("%d onPreSendData()",getId()),
                 Status.SENDING_DATA, Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
@@ -75,8 +84,8 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
                         //超时,对方没有发送ACK,应该不可能执行到这里
                         if (getCurrentStatus() == Status.WAITING_ACK) {
                             logger.info("%d after onPostSendDATA(),wait ack timeout",getId());
-                            // TODO: 16/5/13
-                            throw new IllegalStateException("timeout when waiting ack");
+                            // TODO: 16/5/21 这也是一次失败的传输
+                            endCommunication(true);
                         }
 
                     }
@@ -86,9 +95,17 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
     /**
      * 在真实的环境下,只有没有被碰撞的frame才能收到,所以当发生碰撞时,不打log
      * {@link #onPreSendSIFSAndDATA()}
+     * @param frame
      */
     @Override
-    public void onPostRecvCTS(CtsFrame frame) {
+    public void onPostRecvPTS(PtsFrame frame) {
+        onPostRecvMethod(logger, String.format("%d onPostRecvPTS()", getId()),
+                frame, Status.WAITING_PTS, Status.SENDING_DATA, new Runnable() {
+                    @Override
+                    public void run() {
+                        onPreSendSIFSAndDATA();
+                    }
+                });
         throw new IllegalStateException();
     }
 

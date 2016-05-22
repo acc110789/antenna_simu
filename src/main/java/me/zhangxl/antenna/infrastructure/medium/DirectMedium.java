@@ -26,7 +26,7 @@ public class DirectMedium extends Medium {
     //先计算出frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
     @Override
     List<Locatable> getStationToReceive(Locatable source, Frame frame) {
-        //根据frame中提供的station的id找到具体的station
+        //根据frame中提供的station的id找到具体的station(target)
         Locatable target = null;
         if(frame instanceof RtsFrame){
             target = PcpStation.getInstance();
@@ -38,12 +38,13 @@ public class DirectMedium extends Medium {
                 }
             }
         }
+        //找到target所在的扇区的index
         assert target != null;
         double angle = getAngle(target.getAxis(), source.getAxis());
-        //每隔unit设置一个跨度
         double unit = PrecisionUtil.div(360, Config.getInstance().getPart());
         double d_index = PrecisionUtil.div(angle, unit);
         int index = ((int) Math.floor(d_index));
+        //返回该index扇区内的所有节点
         return sMap.get(source).getStations(index);
     }
 

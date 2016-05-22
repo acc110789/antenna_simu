@@ -6,7 +6,7 @@ import me.zhangxl.antenna.util.PrecisionUtil;
 /**
  * Created by zhangxiaolong on 16/3/24.
  */
-public class RtsFrame extends Frame {
+public class RtsFrame extends Frame implements Navable {
 
     private static final int rtsLength = Config.getInstance().getRtsLength();
     private static final double frameTimeLength;
@@ -22,24 +22,18 @@ public class RtsFrame extends Frame {
         rtsTimeOut = PrecisionUtil.sub(rtsTimeOut ,Config.getInstance().getDifs());
     }
 
-    public RtsFrame(int srcId, int targetId,int fre) {
-        super(srcId, targetId, rtsLength, fre);
+    public RtsFrame(int srcId, int targetId) {
+        super(srcId, targetId, rtsLength);
     }
 
     public static double getRtsTimeOut(){
         return rtsTimeOut;
     }
 
-    private static final double navDuration = PrecisionUtil.add(Config.getInstance().getSifs(),
-            PrecisionUtil.div(CtsFrame.ctsLength,Config.getInstance().getBandWidth()),
-            Config.getInstance().getSifs(),
-            PrecisionUtil.div(DataFrame.frameLength,Config.getInstance().getBandWidth()),
-            Config.getInstance().getSifs(),
-            PrecisionUtil.div(AckFrame.ackLength,Config.getInstance().getBandWidth()));
-
     @Override
     public double getNavDuration() {
-        return navDuration;
+        // TODO: 16/5/21 还没有实现
+        throw new IllegalStateException();
     }
 
     public static double getFrameTimeLength(){

@@ -20,7 +20,7 @@ public class TimeTask implements Comparable<TimeTask> {
      */
     public static int COMMON_PRIORITY = 0;
     public static int POST_SEND_CTS = COMMON_PRIORITY;
-    public static int CTS_TIMEOUT = POST_SEND_CTS + 1;
+    public static int PTS_TIMEOUT = POST_SEND_CTS + 1;
 
     public static int POST_SEND_DATA = COMMON_PRIORITY;
     public static int DATA_TIMEOUT = POST_SEND_DATA + 1;

@@ -28,12 +28,12 @@ public class DataFrame extends Frame {
     private int backOff;
     private int id;
 
-    public DataFrame(int srcId, int targetId,int fre) {
-        this(srcId, targetId, nextSerialNum(),fre);
+    public DataFrame(int srcId, int targetId) {
+        this(srcId, targetId, nextSerialNum());
     }
 
-    public DataFrame(int srcId, int targetId, int id,int fre) {
-        super(srcId, targetId, frameLength, fre);
+    public DataFrame(int srcId, int targetId, int id) {
+        super(srcId, targetId, frameLength);
         this.id = id;
     }
 
@@ -102,11 +102,6 @@ public class DataFrame extends Frame {
         if (backOff < 0) {
             throw new IllegalStateException(String.format("Station %d :backOff is less than 0",getSrcId()));
         }
-    }
-
-    @Override
-    public double getNavDuration() {
-        throw new IllegalStateException("data frame can not hava nav");
     }
 
     public long getLength() {

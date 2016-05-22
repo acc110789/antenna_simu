@@ -112,7 +112,7 @@ public class TimeController {
                 text = "CTS/ACK timeout";
             } else if(PrecisionUtil.sub(time, NextRoundFrame.getFrameTimeLength()) == 0){
                 text = "NextRound";
-            } else if(PrecisionUtil.sub(time, PairFrame.getFrameTimeLength()) == 0){
+            } else if(PrecisionUtil.sub(time, PtsFrame.getFrameTimeLength()) == 0){
                 text = "Pair";
             } else {
                 text = String.format("%#.14f", time);

@@ -1,11 +1,10 @@
 package me.zhangxl.antenna.infrastructure.station;
 
 import me.zhangxl.antenna.frame.*;
-import me.zhangxl.antenna.infrastructure.ChannelManager;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.infrastructure.station.receive_pair.OnReceivePairFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_pair.OnReceivePtsFrame;
 import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
@@ -36,8 +35,6 @@ public class Station extends AbstractRole implements Locatable {
      * 正在接受的frames
      */
     public List<Frame> receivingFrames = new ArrayList<>();
-    public final StationFreFilter mFreFilter = new StationFreFilter();
-    private final SlotManager mSlotManager = new SlotManager(this);
 
     public Station(int id) {
         super(id);
@@ -45,7 +42,6 @@ public class Station extends AbstractRole implements Locatable {
         this.mReceiver = new Receiver(this);
         StationUtil.stationList.add(this);
         Medium.getInstance().register(this);
-        ChannelManager.getInstance();
     }
 
     public Station(int id, double xAxis, double yAxis) {
@@ -73,8 +69,8 @@ public class Station extends AbstractRole implements Locatable {
     @Override
     void onFinish() {
         setCommunicationTarget(defaultCommunicationTarget);
-        setCurrentStatus(Status.WAITING_NEXT_ROUND);
-        mFreFilter.setFre(ChannelManager.getInstance().getPcpChannel());
+        // TODO: 16/5/22 再想一想这个地方的逻辑部分
+        setCurrentStatus(Status.SLOTING);
     }
 
     /**
@@ -110,8 +106,8 @@ public class Station extends AbstractRole implements Locatable {
         return false;
     }
 
-    void putDataFrame(int targetId, long length,int fre) {
-        mDataFramesToSend.add(new DataFrame(getId(), targetId,fre));
+    void putDataFrame(int targetId, long length) {
+        mDataFramesToSend.add(new DataFrame(getId(), targetId));
     }
 
     @Override
@@ -129,62 +125,33 @@ public class Station extends AbstractRole implements Locatable {
      */
     public boolean beginReceiveFrame(Frame frame){
         //如果频率不是这个station care的频率,就跟这个频率好像不存在是一样的
-        if(getCurrentStatus() == Status.NAVING || !mFreFilter.canReceive(frame.getFre())){
-            return true;
+        if(getCurrentStatus() == Status.NAVING || !getCurrentStatus().isReadMode()){
+            return false;
         }
-        if(getCurrentStatus().isWriteMode()){
-            throw new IllegalStateException("不可能是WriteMode");
-        }
-        if(receivingFrames.size() > 0){
-            throw new IllegalStateException("应该不会有正在接受的frame");
+        for (Frame frame1 : receivingFrames) {
+            if (StationUtil.hasIntersection(frame1,frame)) {
+                frame1.setDirty();
+                frame.setDirty();
+            }
         }
         receivingFrames.add(frame);
 
-        if(frame instanceof NextRoundFrame){
-            new OnReceiveNextRoundFrame(this).doLogic(frame);
-        } else if(frame instanceof PairFrame){
-            new OnReceivePairFrame(this).doLogic(frame);
+        if(frame instanceof RtsFrame){
+            new OnReceiveRtsFrame(this).doLogic(frame);
+        } else if(frame instanceof PtsFrame){
+            new OnReceivePtsFrame(this).doLogic(frame);
         } else if(frame instanceof DataFrame){
             new OnReceiveDataFrame(this).doLogic(frame);
         } else if(frame instanceof  AckFrame){
             new OnReceiveAckFrame(this).doLogic(frame);
+        } else {
+            throw new IllegalStateException();
         }
         return true;
     }
 
-    void onNextRound(int slots){
-        setCurrentStatus(Status.SLOTING);
-        mSlotManager.setAvailableSlotCount(slots);
-        if(mCurrentSendingFrame == null){
-            //说明上次的发送成功,mCurrentSendingFrame被放在了已发送list里面了
-            getDataFrameToSend();
-        } else if(mCurrentSendingFrame.canBeSent()){
-            //说明上次曾经尝试发送,但是PCP节点没有给机会,这样相当于碰撞,应该将窗口加倍
-            mCurrentSendingFrame.addCollitionTimes();
-        }
-        if (!sendDataIfNeed()) {
-            mSlotManager.scheduleSLOT();
-        }
-    }
-
-//    public void onPaired(int src,int dst,int channel){
-//        mFreFilter.setFre(channel);
-//        if(src == getId()){
-//            setCommunicationTarget(dst);
-//            mSender.onPreSendSIFSAndDATA();
-//        } else if(dst == getId()){
-//            setCommunicationTarget(src);
-//            setCurrentStatus(Status.WAITING_DATA_FRAME);
-//        } else {
-//            throw new IllegalStateException("wrong state");
-//        }
-//    }
-
     @Override
     public DataFrame getDataToSend() {
-        int fre = mFreFilter.getFre();
-        assert ChannelManager.getInstance().isDataChannel(fre);
-        mCurrentSendingFrame.setFre(fre);
         return mCurrentSendingFrame;
     }
 

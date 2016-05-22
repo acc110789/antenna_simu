@@ -1,7 +1,6 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.infrastructure.ChannelManager;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
@@ -86,17 +85,8 @@ public class Medium {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                List<Locatable> targets;
-                if (ChannelManager.getInstance().isOmniChannel(frame.getFre())) {
-                    //全向频率
-                    targets = omniMedium.getStationToReceive(source, frame);
-                } else if (ChannelManager.getInstance().isDirectChannel(frame.getFre())) {
-                    //定向频率
-                    targets = directMedium.getStationToReceive(source, frame);
-                } else {
-                    throw new IllegalStateException("不可能的频率");
-                }
-
+                //定向频率
+                List<Locatable> targets = directMedium.getStationToReceive(source, frame);
                 for (Locatable station1 : targets) {
                     Frame copy;
                     try {

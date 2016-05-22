@@ -1,8 +1,8 @@
 package me.zhangxl.antenna.infrastructure.station;
 
 import me.zhangxl.antenna.frame.AckFrame;
-import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.DataFrame;
+import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 
 /**
@@ -19,13 +19,11 @@ interface SenderExpandRole extends SendBaseRole {
 
     void onPostSendRTS();
 
-    void onPreSendSIFSAndDATA();
-
     void onPreSendData(DataFrame dataFrame);
 
     void onPostSendDATA();
 
-    void onPostRecvCTS(CtsFrame frame);
+    void onPostRecvPTS(PtsFrame frame);
 
     /**
      * 表明发送成功了

@@ -1,9 +1,9 @@
 package me.zhangxl.antenna.infrastructure.station;
 
 import me.zhangxl.antenna.frame.AckFrame;
-import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.SimuLoggerManager;
@@ -25,22 +25,36 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
     }
 
     @Override
-    public void onPreSendSIFSAndCTS(RtsFrame frame) {
-        throw new IllegalStateException();
+    public void onPostRecvRTS(RtsFrame frame) {
+        logger.debug("%d onPostRecvRTS()", getId());
+        if(frame.getTargetId() == mRole.getId()){
+            //如果目标节点是自己,则停止slot,马上进入等待pts的阶段
+            setCurrentStatus(Status.WAITING_PTS);
+            TimeController.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    if(getCurrentStatus() == Status.WAITING_PTS){
+                        setCurrentStatus(Status.SLOTING);
+                    }
+                }
+                // TODO: 16/5/22 等待两个ptstimeout的时间
+            },-1);
+        } else {
+            //RTS不是发给自己的,则设置NAV
+            //不是发给本Station的,这种情况下应当设置NAV向量
+                setCurrentStatus(Status.NAVING);
+                logger.info("%d set NAV",getId());
+                TimeController.getInstance().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        logger.info("%d NAV finish",getId());
+                        endCommunication(false);
+                    }
+                },frame.getNavDuration(),TimeTask.RECEIVE);
+        }
     }
 
-    @Override
-    public void onPreSendCTS(CtsFrame frame) {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public void onPostSendCTS() {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public void onPreSendSIFSAndACK(final AckFrame frame) {
+    private void onPreSendSIFSAndACK(final AckFrame frame) {
         onSendMethod(logger, String.format("%d onPreSendSIFSAndACK()", getId()), Status.SENDING_ACK,
                 Status.SENDING_ACK, new Runnable() {
                     @Override
@@ -67,12 +81,6 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
         logger.debug("%d onPostSendACK()", getId());
         assert getCurrentStatus() == Status.SENDING_ACK;
         endCommunication(false);
-    }
-
-
-    @Override
-    public void onPostRecvRTS(RtsFrame frame) {
-        throw new IllegalStateException();
     }
 
     /**

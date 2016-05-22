@@ -17,7 +17,7 @@ public class OnReceiveDataFrame extends OnReceiveFrameLogic {
     @Override
     public void doLogic(final Frame frame) {
         assert frame instanceof DataFrame;
-        assert station.getCurrentStatus() == Status.WAITING_DATA_FRAME;
+        assert station.getCurrentStatus() == Status.WAITING_DATA;
         station.setCurrentStatus(Status.RECEIVING_DATA);
 
         TimeController.getInstance().post(new Runnable() {

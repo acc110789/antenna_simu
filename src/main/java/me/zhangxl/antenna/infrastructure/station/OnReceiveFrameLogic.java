@@ -12,4 +12,5 @@ public abstract class OnReceiveFrameLogic {
     }
 
     protected abstract void doLogic(Frame frame);
+
 }

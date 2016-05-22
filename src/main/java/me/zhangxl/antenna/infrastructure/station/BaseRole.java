@@ -17,22 +17,19 @@ public interface BaseRole {
     }
 
     enum Status {
-        WAITING_NEXT_ROUND,
-        RECEIVING_NEXT_ROUND_FRAME,
         SLOTING,
+        //SLOTING之后是SENDING_RTS
         SENDING_RTS(Mode.WRITE_MODE),
-        RECEIVING_PAIR_FRAME,
+        WAITING_PTS,
+        NAVING,
 
-        WAITING_DATA_FRAME,
-
+        WAITING_DATA,
         SENDING_DATA(Mode.WRITE_MODE),
         RECEIVING_DATA,
 
         WAITING_ACK,
         SENDING_ACK(Mode.WRITE_MODE),
-        RECEIVING_ACK,
-
-        NAVING;
+        RECEIVING_ACK;
 
         private final Mode mode;
 
