@@ -25,11 +25,9 @@ public interface BaseRole {
 
         WAITING_DATA,
         SENDING_DATA(Mode.WRITE_MODE),
-        RECEIVING_DATA,
 
         WAITING_ACK,
-        SENDING_ACK(Mode.WRITE_MODE),
-        RECEIVING_ACK;
+        SENDING_ACK(Mode.WRITE_MODE);
 
         private final Mode mode;
 

@@ -21,16 +21,23 @@ import me.zhangxl.antenna.util.PrecisionUtil;
  */
 public class PtsFrame extends Frame implements Navable{
 
-    private static final long frameLength = Config.getInstance().getPhyHeader() +//物理层的header
+    static final long frameLength = Config.getInstance().getPhyHeader() +//物理层的header
             Config.getInstance().getMacHeader() +//mac层的header
             2 * Config.getInstance().getAddrSize();//两个地址
 
+    static final double baseNav = PrecisionUtil.add(Config.getInstance().getSifs(),
+            PrecisionUtil.div(DataFrame.frameLength,Config.getInstance().getBandWidth()),
+            Config.getInstance().getSifs(),
+            PrecisionUtil.div(AckFrame.ackLength,Config.getInstance().getBandWidth()));
+
     private static final double frameTimeLength = PrecisionUtil.div(frameLength,Config.getInstance().getBandWidth());
     private final boolean passByPcp;
+    private final int leftPtsNum;
 
-    public PtsFrame(int srcId, int targetId, boolean passByPcp) {
+    public PtsFrame(int srcId, int targetId, boolean passByPcp, int leftPts) {
         super(srcId, targetId, frameLength);
         this.passByPcp = passByPcp;
+        this.leftPtsNum = leftPts;
     }
 
     public boolean isPassByPcp(){
@@ -43,8 +50,10 @@ public class PtsFrame extends Frame implements Navable{
 
     @Override
     public double getNavDuration() {
-        // TODO: 16/5/21
-        throw new IllegalStateException();
+        return PrecisionUtil.add(
+                PrecisionUtil.mul(leftPtsNum,
+                        PrecisionUtil.div(frameLength,Config.getInstance().getBandWidth())),
+                baseNav);
     }
 
     public static double getPtsTimeOut(){

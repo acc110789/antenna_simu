@@ -6,6 +6,7 @@ import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
+import me.zhangxl.antenna.infrastructure.medium.DirectMedium;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.StationUtil;
@@ -96,11 +97,11 @@ public class PcpStation implements Locatable {
 
     private void onPreSendPts(){
         assert currentStatus == Status.SENDING_PTS;
-        final boolean passByPcp = false;
         //计算src和target之间的通信过程是否会经过Pcp节点
-        // TODO: 16/5/21
-        PtsFrame frame = new PtsFrame(currentDealingRts.getSrcId(),currentDealingRts.getTargetId(),passByPcp);
-        // TODO: 16/5/21 这里应该是所有的扇区要挨着挨着发送
+        final boolean passByPcp = DirectMedium.cPass(currentDealingRts.getSrcId(),
+                currentDealingRts.getTargetId(),getId());
+        PtsFrame frame = new PtsFrame(currentDealingRts.getSrcId(),
+                currentDealingRts.getTargetId(),passByPcp, -1);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -119,7 +120,7 @@ public class PcpStation implements Locatable {
                     assert currentStatus == Status.NAVING;
                     setCurrentStatus(Status.WAITING_RTS);
                 }
-                // TODO: 16/5/21 计算从NAV中恢复的时间
+                // oTODO: 16/5/21 计算从NAV中恢复的时间
             },-1,TimeTask.SEND);
         }
     }

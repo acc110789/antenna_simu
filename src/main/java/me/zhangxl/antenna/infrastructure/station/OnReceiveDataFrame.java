@@ -17,15 +17,14 @@ public class OnReceiveDataFrame extends OnReceiveFrameLogic {
     @Override
     public void doLogic(final Frame frame) {
         assert frame instanceof DataFrame;
-        assert station.getCurrentStatus() == Status.WAITING_DATA;
-        station.setCurrentStatus(Status.RECEIVING_DATA);
-
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                assert station.getCurrentStatus() == Status.RECEIVING_DATA;
-                station.receivingFrames.remove(frame);
-                station.mReceiver.onPostRecvData((DataFrame) frame);
+                if(!frame.isDirty()){
+                    assert station.getCurrentStatus() == Status.WAITING_DATA;
+                    station.receivingFrames.remove(frame);
+                    station.mReceiver.onPostRecvData((DataFrame) frame);
+                }
             }
         }, frame.getEndDuration());
     }

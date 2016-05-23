@@ -4,7 +4,6 @@ import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
@@ -41,8 +40,6 @@ public class Medium {
                 //触发所有的节点
                 logger.info("定向天线模式,分析所有Station的位置信息......");
                 directMedium.analysisStationLocation();
-                //作为程序开始的起点,让Pcp节点率先发出一个NextRoundFrame
-                PcpStation.getInstance().sendNextRoundFrame();
             }
         });
     }

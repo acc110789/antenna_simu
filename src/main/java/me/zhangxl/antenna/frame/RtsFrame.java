@@ -1,5 +1,6 @@
 package me.zhangxl.antenna.frame;
 
+import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
 
@@ -30,13 +31,25 @@ public class RtsFrame extends Frame implements Navable {
         return rtsTimeOut;
     }
 
+
+    private static final double navDuration =
+            PrecisionUtil.add(
+                    Config.getInstance().getSifs(),
+                    PrecisionUtil.mul(Config.getInstance().getPart(),
+                            PrecisionUtil.div(PtsFrame.frameLength,Config.getInstance().getBandWidth())),
+                    PtsFrame.baseNav);
+
     @Override
     public double getNavDuration() {
-        // TODO: 16/5/21 还没有实现
-        throw new IllegalStateException();
+        return navDuration;
     }
 
     public static double getFrameTimeLength(){
         return frameTimeLength;
+    }
+
+    @Override
+    public int getSendTargetId() {
+        return PcpStation.getInstance().getId();
     }
 }

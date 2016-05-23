@@ -16,15 +16,15 @@ class OnReceiveAckFrame extends OnReceiveFrameLogic {
     @Override
     public void doLogic(final Frame frame) {
         assert frame instanceof AckFrame;
-        assert station.getCurrentStatus() == Status.WAITING_ACK;
-        station.setCurrentStatus(Status.RECEIVING_ACK);
 
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                assert station.getCurrentStatus() == Status.RECEIVING_ACK;
-                station.receivingFrames.remove(frame);
-                station.mSender.onPostRecvACK((AckFrame) frame);
+                if(!frame.isDirty()) {
+                    assert station.getCurrentStatus() == Status.WAITING_ACK;
+                    station.receivingFrames.remove(frame);
+                    station.mSender.onPostRecvACK((AckFrame) frame);
+                }
             }
         }, frame.getEndDuration());
     }

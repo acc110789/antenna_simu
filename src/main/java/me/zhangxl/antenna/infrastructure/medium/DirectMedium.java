@@ -23,6 +23,38 @@ public class DirectMedium extends Medium {
      */
     private static final Map<Locatable, Info> sMap = new HashMap<>();
 
+    /**
+     * @param aId  a节点的id
+     * @param bId   b节点的id
+     * @param cId   c节点的id
+     * @return  c节点是否经过a和b之间的通信,
+     */
+    public static boolean cPass(int aId,int bId,int cId){
+        //先找到三个id对应的节点
+        Locatable a = null,b = null,c = null;
+        for(Locatable locatable : stationList){
+            if(locatable.getId() == aId){
+                a = locatable;
+            } else if(locatable.getId() == bId){
+                b = locatable;
+            } else if(locatable.getId() == cId){
+                c = locatable;
+            }
+        }
+        assert (a != null);
+        assert (b != null);
+        assert (c != null);
+
+        //先以a为基准点,查看b和c是否在a的同一个扇区
+        //具体算法是先找到b所在的扇区,然后看扇区里面是不是有c
+       Info infoa = sMap.get(a);
+        if(infoa.getIndex(b) == infoa.getIndex(c)){
+            return true;
+        }
+        Info infob = sMap.get(b);
+        return infob.getIndex(a) == infob.getIndex(c);
+    }
+
     //先计算出frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
     @Override
     List<Locatable> getStationToReceive(Locatable source, Frame frame) {
@@ -148,6 +180,17 @@ public class DirectMedium extends Medium {
 
         public List<Locatable> getStations(int index) {
             return new ArrayList<>(data[index]);
+        }
+
+        int getIndex(Locatable locatable){
+            for(int index = 0;index < Config.getInstance().getPart();index ++){
+                for(Locatable locatable1 : getStations(index)){
+                    if(locatable1.getId() == locatable.getId()){
+                        return index;
+                    }
+                }
+            }
+            throw new IllegalStateException("not found");
         }
     }
 }
