@@ -35,6 +35,14 @@ public class PcpStation implements Locatable {
     private Status currentStatus = null;
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
     private RtsFrame currentDealingRts;
+    private DirectMedium.Info pcpInfo;
+
+    private DirectMedium.Info getPcpInfo() {
+        if (pcpInfo == null) {
+            pcpInfo = DirectMedium.getPcpInfo();
+        }
+        return pcpInfo;
+    }
 
     public static PcpStation getInstance() {
         return sInstance;
@@ -56,12 +64,12 @@ public class PcpStation implements Locatable {
 
     @Override
     public boolean beginReceiveFrame(final Frame frame) {
-        if(currentStatus == Status.WAITING_RTS) {
+        if (currentStatus == Status.WAITING_RTS) {
             //保证当前接收的frame一定是RtsFrame
             assert frame instanceof RtsFrame;
             //检查是否与已经存在的frame发生任何的碰撞
             for (RtsFrame frame1 : receivingRtss) {
-                if (StationUtil.hasIntersection(frame1,frame)) {
+                if (StationUtil.hasIntersection(frame1, frame)) {
                     frame1.setDirty();
                     frame.setDirty();
                 }
@@ -72,7 +80,7 @@ public class PcpStation implements Locatable {
                 public void run() {
                     receivingRtss.remove(frame);
                     currentDealingRts = (RtsFrame) frame;
-                    if(!frame.isDirty()) {
+                    if (!frame.isDirty()) {
                         onPreSendSifsAndPts();
                     }
                 }
@@ -84,7 +92,7 @@ public class PcpStation implements Locatable {
         }
     }
 
-    private void onPreSendSifsAndPts(){
+    private void onPreSendSifsAndPts() {
         assert currentStatus == Status.WAITING_RTS;
         setCurrentStatus(Status.SENDING_PTS);
         TimeController.getInstance().post(new Runnable() {
@@ -92,27 +100,73 @@ public class PcpStation implements Locatable {
             public void run() {
                 onPreSendPts();
             }
-        },Config.getInstance().getSifs());
+        }, Config.getInstance().getSifs());
     }
 
-    private void onPreSendPts(){
+    private void onPreSendPts() {
         assert currentStatus == Status.SENDING_PTS;
         //计算src和target之间的通信过程是否会经过Pcp节点
         final boolean passByPcp = DirectMedium.cPass(currentDealingRts.getSrcId(),
-                currentDealingRts.getTargetId(),getId());
+                currentDealingRts.getTargetId(), getId());
+        sendPtsToSrc(passByPcp);
+    }
+
+    private int getIndexOfId(int id) {
+        return getPcpInfo().getIndex(id);
+    }
+
+    private void sendPtsToSrc(final boolean passByPcp) {
         PtsFrame frame = new PtsFrame(currentDealingRts.getSrcId(),
-                currentDealingRts.getTargetId(),passByPcp, -1);
+                currentDealingRts.getTargetId(), passByPcp,
+                Config.getInstance().getPart() - 1);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                onPostSendPts(passByPcp);
+                sendPtsToTarget(passByPcp);
             }
-        },frame.getTransmitDuration(),TimeTask.SEND);
+        }, frame.getTransmitDuration(), TimeTask.SEND);
+        Medium.getInstance().putFrame(this, frame, getIndexOfId(currentDealingRts.getSrcId()));
     }
 
-    private void onPostSendPts(boolean passByPcp){
+    private void sendPtsToTarget(final boolean passByPcp) {
+        PtsFrame frame = new PtsFrame(currentDealingRts.getSrcId(),
+                currentDealingRts.getTargetId(), passByPcp,
+                Config.getInstance().getPart() - 2);
+        TimeController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                List<Integer> list = new ArrayList<>();
+                for (int i = 0; i < Config.getInstance().getPart(); i++) {
+                    list.add(i);
+                }
+                list.remove(getIndexOfId(currentDealingRts.getSrcId()));
+                list.remove(getIndexOfId(currentDealingRts.getTargetId()));
+                sendPtsToOthers(passByPcp,list);
+            }
+        }, frame.getTransmitDuration(), TimeTask.SEND);
+        Medium.getInstance().putFrame(this, frame, getIndexOfId(currentDealingRts.getTargetId()));
+    }
+
+    private void sendPtsToOthers(final boolean passByPcp, final List<Integer> sectorToSend) {
+        if(sectorToSend.size() == 0){
+            onPostSendPts(passByPcp);
+        }
+        PtsFrame frame = new PtsFrame(currentDealingRts.getSrcId(),
+                currentDealingRts.getTargetId(), passByPcp,
+                sectorToSend.size() - 1);
+        Integer sector = sectorToSend.remove(0);
+        TimeController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                sendPtsToOthers(passByPcp,sectorToSend);
+            }
+        },frame.getTransmitDuration(),TimeTask.SEND);
+        Medium.getInstance().putFrame(this,frame,sector);
+    }
+
+    private void onPostSendPts(boolean passByPcp) {
         assert currentStatus == Status.SENDING_PTS;
-        if(passByPcp){
+        if (passByPcp) {
             currentStatus = Status.NAVING;
             TimeController.getInstance().post(new Runnable() {
                 @Override
@@ -120,8 +174,7 @@ public class PcpStation implements Locatable {
                     assert currentStatus == Status.NAVING;
                     setCurrentStatus(Status.WAITING_RTS);
                 }
-                // oTODO: 16/5/21 计算从NAV中恢复的时间
-            },-1,TimeTask.SEND);
+            }, PtsFrame.getBaseNav(), TimeTask.SEND);
         }
     }
 

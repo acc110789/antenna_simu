@@ -23,6 +23,17 @@ public class DirectMedium extends Medium {
      */
     private static final Map<Locatable, Info> sMap = new HashMap<>();
 
+    public static Info getPcpInfo(){
+        Locatable target = null;
+        for(Locatable locatable : sMap.keySet()){
+            if (locatable.getId() == PcpStation.getInstance().getId()) {
+                target = locatable;
+            }
+        }
+        assert target != null;
+        return sMap.get(target);
+    }
+
     /**
      * @param aId  a节点的id
      * @param bId   b节点的id
@@ -53,6 +64,16 @@ public class DirectMedium extends Medium {
         }
         Info infob = sMap.get(b);
         return infob.getIndex(a) == infob.getIndex(c);
+    }
+
+    List<Locatable> getStationToReceive(Locatable source ,Frame frame,int sector){
+        if(sector < 0){
+            return getStationToReceive(source,frame);
+        } else {
+            assert sector >= 0;
+            assert sector < Config.getInstance().getPart();
+            return sMap.get(source).getStations(sector);
+        }
     }
 
     //先计算出frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
@@ -191,6 +212,18 @@ public class DirectMedium extends Medium {
                 }
             }
             throw new IllegalStateException("not found");
+        }
+
+        public int getIndex(int id){
+            //先找到id对应的节点
+            Locatable target = null;
+            for(Locatable locatable : stationList){
+                if(locatable.getId() == id){
+                    target = locatable;
+                }
+            }
+            assert target != null;
+            return getIndex(target);
         }
     }
 }

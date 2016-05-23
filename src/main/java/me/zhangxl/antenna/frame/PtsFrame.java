@@ -56,6 +56,10 @@ public class PtsFrame extends Frame implements Navable{
                 baseNav);
     }
 
+    public static double getBaseNav(){
+        return baseNav;
+    }
+
     public static double getPtsTimeOut(){
         return PrecisionUtil.add(frameTimeLength,Config.getInstance().getDifs());
     }

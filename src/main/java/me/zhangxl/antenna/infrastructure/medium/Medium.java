@@ -74,16 +74,13 @@ public class Medium {
         stationList.clear();
     }
 
-    /**
-     * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
-     */
-    public void putFrame(final Locatable source, final Frame frame) {
+    public void putFrame(final Locatable source, final Frame frame, final int sector){
         frame.setStartTimeNow();
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 //定向频率
-                List<Locatable> targets = directMedium.getStationToReceive(source, frame);
+                List<Locatable> targets = directMedium.getStationToReceive(source, frame , sector);
                 for (Locatable station1 : targets) {
                     Frame copy;
                     try {
@@ -98,6 +95,13 @@ public class Medium {
                 }
             }
         }, 0, TimeTask.RECEIVE);
+    }
+
+    /**
+     * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
+     */
+    public void putFrame(final Locatable source, final Frame frame) {
+        putFrame(source,frame,-1);
     }
 
     private void putUnacceptedFrames(final Locatable station, final Frame frame) {
