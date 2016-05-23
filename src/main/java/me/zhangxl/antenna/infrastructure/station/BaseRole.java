@@ -27,7 +27,11 @@ public interface BaseRole {
         SENDING_DATA(Mode.WRITE_MODE),
 
         WAITING_ACK,
-        SENDING_ACK(Mode.WRITE_MODE);
+        SENDING_ACK(Mode.WRITE_MODE),
+
+        RECEIVING,//正在接受东西
+        COOLING, //没有接受东西了,但是仍然冷却一段时间(DIFS,或者EIFS)才能回到SLOTING的状态
+        ;
 
         private final Mode mode;
 

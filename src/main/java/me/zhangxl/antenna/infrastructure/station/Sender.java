@@ -112,8 +112,8 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
     @Override
     public void onPostRecvACK(AckFrame frame){
         onPostRecvMethod(logger, String.format("%d onPostRecvACK()",getId()),
-                frame, Status.RECEIVING_ACK,
-                Status.RECEIVING_ACK, new Runnable() {
+                frame, Status.WAITING_ACK,
+                Status.COOLING, new Runnable() {
                     @Override
                     public void run() {
                         if (TimeLogger.DEBUG_STATION) {

@@ -5,6 +5,7 @@ import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.infrastructure.station.receive_pair.OnReceivePtsFrame;
+import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
@@ -53,24 +54,54 @@ public class Station extends AbstractRole implements Locatable {
         return this.mLocation;
     }
 
+    /**
+     * @return 获取此时等待着被发送的DataFrame的总量
+     */
     int getWaitingRequestNum() {
         return mDataFramesToSend.size();
     }
 
     /**
-     * 遭受到了碰撞
+     * 到了difs完毕的时刻,应该是该时刻的后半时刻,
+     * 要求状态已经设置为SLOTING。
+     * 一个Station的起始点就是这个函数。
      */
-    @Override
-    void backOffDueToTimeout() {
-        TimeController.getInstance().addCollitionTimes();
-        mCurrentSendingFrame.addCollitionTimes();
+    public void onPostDIFS() {
+        logger.debug("%d onPostDIFS", getId());
+        assert getCurrentStatus() == Status.SLOTING;
+        if (mCurrentSendingFrame == null) {
+            getDataFrameToSend();
+        } else {
+            logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
+        }
+        if(!sendDataIfNeed()){
+            scheduleSLOT();
+        }
     }
 
-    @Override
-    void onFinish() {
-        setCommunicationTarget(defaultCommunicationTarget);
-        // TODO: 16/5/22 再想一想这个地方的逻辑部分
-        setCurrentStatus(Status.SLOTING);
+    private void scheduleSLOT() {
+        assert getCurrentStatus() == Status.SLOTING;
+        TimeController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                if(getCurrentStatus() == Status.SLOTING) {
+                    //有可能Station已经作为接收端开始在接受信息了
+                    //这种情况下,不能再执行onPostSLOT()了
+                    onPostSLOT();
+                }
+            }
+        }, Config.getInstance().getSlotLength());
+    }
+
+    private void onPostSLOT() {
+        logger.debug("%d onPostSLOT", getId());
+        assert getCurrentStatus() == Status.SLOTING;
+        assert mCurrentSendingFrame != null;
+        mCurrentSendingFrame.countDownBackOff();
+        logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
+        if(!sendDataIfNeed()){
+            scheduleSLOT();
+        }
     }
 
     /**
@@ -93,7 +124,7 @@ public class Station extends AbstractRole implements Locatable {
      * 如果slot还没有减少到0,则代表没有开始发送一个RtsFrame
      * 这种情况下返回false.
      */
-    boolean sendDataIfNeed() {
+    private boolean sendDataIfNeed() {
         if (mCurrentSendingFrame != null && mCurrentSendingFrame.canBeSent()) {
             //开始进入流程
             if (TimeLogger.DEBUG_STATION) {
@@ -104,6 +135,22 @@ public class Station extends AbstractRole implements Locatable {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 遭受到了碰撞
+     */
+    @Override
+    void backOffDueToTimeout() {
+        TimeController.getInstance().addCollitionTimes();
+        mCurrentSendingFrame.addCollitionTimes();
+    }
+
+    @Override
+    void onFinish() {
+        setCommunicationTarget(defaultCommunicationTarget);
+        // TODO: 16/5/22 再想一想这个地方的逻辑部分
+        setCurrentStatus(Status.SLOTING);
     }
 
     void putDataFrame(int targetId, long length) {

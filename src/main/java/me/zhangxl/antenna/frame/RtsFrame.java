@@ -1,6 +1,5 @@
 package me.zhangxl.antenna.frame;
 
-import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
 
@@ -48,8 +47,4 @@ public class RtsFrame extends Frame implements Navable {
         return frameTimeLength;
     }
 
-    @Override
-    public int getSendTargetId() {
-        return PcpStation.getInstance().getId();
-    }
 }

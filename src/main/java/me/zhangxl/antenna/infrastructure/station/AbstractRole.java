@@ -24,7 +24,7 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
     //需要注意的是一旦一个Station进入了写(发送)模式之后,
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
-    private Status currentStatus = Status.WAITING_NEXT_ROUND;
+    private Status currentStatus = Status.SLOTING;
 
     /**
      * 节点的当前通信对象

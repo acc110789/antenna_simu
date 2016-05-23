@@ -14,7 +14,6 @@ public abstract class Frame implements Cloneable{
     private final int targetId;
     private boolean dirty = false;
     private double startTime = -1;
-    private int sendTargetId = -1;
 
     Frame(int srcId, int targetId, long length){
         this.srcId = srcId;
@@ -52,14 +51,6 @@ public abstract class Frame implements Cloneable{
      */
     public int getTargetId(){
         return targetId;
-    }
-
-    /**
-     * @return 定向天线返回发送扇区中的某一个目标的id,用于反推出给frame是具体向哪一个扇区发送的
-     * 一般情况下与 {@link #getTargetId()}
-     */
-    public int getSendTargetId(){
-        return getTargetId();
     }
 
     public void setStartTimeNow(){
