@@ -3,6 +3,7 @@ package me.zhangxl.antenna.infrastructure.station.receive_logic;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.station.nav.RtsNav;
 
 /**
  * Created by zhangxiaolong on 16/5/13.
@@ -21,8 +22,15 @@ public class OnReceiveRtsFrame extends OnReceiveFrameLogic {
     @Override
     public void onClearFrame() {
         //station 收到rts没有什么用处,等时间到了就不予理睬了
-        // TODO: 16/5/22 要不要assert
-        station.mReceiver.onPostRecvRTS((RtsFrame) frame);
-        // TODO: 16/5/21 要不要再等一段时间然后让station回复到idle的状态
+        // 比如在wait DataFrame期间,对方没有发送DataFrame,但是另外一个节点发送了Rts,这种情况下,
+        //要不要设置nav。
+        // 在这种情况下,暂时先nav吧
+        if(frame.getTargetId() == station.getId()) {
+            station.mReceiver.onPostRecvRTS((RtsFrame) frame);
+        } else {
+            //RTS不是发给自己的,则设置NAV
+            //不是发给本Station的,这种情况下应当设置NAV向量
+            new RtsNav(station).startNav();
+        }
     }
 }

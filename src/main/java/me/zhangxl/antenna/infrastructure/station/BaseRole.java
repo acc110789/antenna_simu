@@ -26,19 +26,19 @@ public interface BaseRole {
 
         //sender发送了PTS之后,以及某接收端接受到RTS之后,恰好这个RTS的target是自己
         //在上述两种情况下接收到任何frame都会由WAITING_PTS跳转到RECEIVING_PTS
-        RECEIVING_PTS,
+        RECEIVING_PTS(true),
 
         //正在接受东西 有可能是receive RTS或者PTS,其它的类型的receive在这种状态忽略
         //
-        RECEIVING,
+        RECEIVING(true),
         NAVING,
 
         WAITING_DATA,
-        RECEIVING_DATA,
+        RECEIVING_DATA(true),
         SENDING_DATA(Mode.WRITE_MODE),
 
         WAITING_ACK,
-        RECEIVING_ACK,
+        RECEIVING_ACK(true),
         SENDING_ACK(Mode.WRITE_MODE),
 
 
@@ -46,12 +46,22 @@ public interface BaseRole {
         ;
 
         private final Mode mode;
+        private boolean isReceiving = false;
 
         private Status(Mode mode){
             this.mode = mode;
         }
         private Status(){
             this(Mode.READ_MODE);
+        }
+
+        private Status(boolean isReceiving){
+            this();
+            this.isReceiving = isReceiving;
+        }
+
+        public boolean isReceiving(){
+            return this.isReceiving;
         }
 
         boolean isReadMode(){

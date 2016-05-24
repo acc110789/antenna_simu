@@ -3,6 +3,7 @@ package me.zhangxl.antenna.infrastructure.station.receive_pair;
 import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.infrastructure.station.BaseRole;
 import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.station.wait.ReceiverPtsTimeOutWaiter;
 
 /**
  * PtsFrame 中的targetId是station
@@ -21,5 +22,6 @@ public class TargetMatchAction extends AbstractPairAction {
     public void action() {
         station.setCommunicationTarget(frame.getSrcId());
         station.setCurrentStatus(BaseRole.Status.WAITING_DATA);
+        new ReceiverPtsTimeOutWaiter(station).await();
     }
 }

@@ -36,6 +36,12 @@ public abstract class OnReceiveFrameLogic {
 
     abstract void onPreFrame();
 
+    /**
+     * 如果收到没有碰撞的桢,判断是不是来自正在通讯的节点的桢
+     * 如果的确是来自正确的通信节点,则交给Sender或者Receiver
+     * 处理。
+     * 如果不是来自恰当的通讯节点,则设置恰当的nav值。
+     */
     abstract void onClearFrame();
 
     private boolean hasReceivingFrames() {

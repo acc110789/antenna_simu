@@ -2,8 +2,8 @@ package me.zhangxl.antenna.infrastructure.station.receive_logic;
 
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.PtsFrame;
-import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
 import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
 import me.zhangxl.antenna.infrastructure.station.nav.PtsNav;
 import me.zhangxl.antenna.infrastructure.station.receive_pair.SrcMatchAction;
 import me.zhangxl.antenna.infrastructure.station.receive_pair.TargetMatchAction;
@@ -26,31 +26,25 @@ public class OnReceivePtsFrame extends OnReceiveFrameLogic {
         assert frame instanceof PtsFrame;
     }
 
-    @Override
-    public void onClearFrame() {
-        //对于正在进行数据通信的节点以及正在nav中的节点,是不可能收到PtsFrame的
-        Status status = station.getCurrentStatus();
-        if(status == Status.SLOTING || status == Status.WAITING_PTS){
-            //是干净的,且是当前状态期待的桢类型
-            deal((PtsFrame) frame);
-        }
-    }
-
     /**
      * 接收到PtsFrame之后根据不同的情况进行相应的处理
      */
-    private void deal(PtsFrame frame){
+    @Override
+    public void onClearFrame() {
         int srcId = frame.getSrcId();
         int targetId = frame.getTargetId();
         if(station.getId() == srcId){
-            new SrcMatchAction(station,frame).action();
+            new SrcMatchAction(station, (PtsFrame) frame).action();
         } else if(station.getId() == targetId){
-            new TargetMatchAction(station,frame).action();
-        } else if(frame.isPassByPcp() || isTargetTakenOver(frame)) {
+            new TargetMatchAction(station, (PtsFrame) frame).action();
+        } else if(((PtsFrame)frame).isPassByPcp() || isTargetTakenOver((PtsFrame) frame)) {
             /**
              * 如果没有关系,就设置NAV
              */
-            new PtsNav(station,frame).startNav();
+            new PtsNav(station, (PtsFrame) frame).startNav();
+        } else {
+            //其它情况的话就当没有收到这个PtsFrame,需要进行状态变更
+            new DifsCooler(station).cool();
         }
     }
 

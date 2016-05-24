@@ -6,7 +6,6 @@ import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
-import me.zhangxl.antenna.infrastructure.station.nav.RtsNav;
 import me.zhangxl.antenna.infrastructure.station.wait.ReceiverPtsTimeOutWaiter;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
@@ -33,14 +32,9 @@ public class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
     @Override
     public void onPostRecvRTS(RtsFrame frame) {
         logger.debug("%d onPostRecvRTS()", getId());
-        if(frame.getTargetId() == mRole.getId()){
-            //如果目标节点是自己,则停止slot,马上进入等待pts的阶段
-            new ReceiverPtsTimeOutWaiter(mRole).await();
-        } else {
-            //RTS不是发给自己的,则设置NAV
-            //不是发给本Station的,这种情况下应当设置NAV向量
-            new RtsNav(mRole).startNav();
-        }
+        //如果目标节点是自己,则停止slot,马上进入等待pts的阶段
+        setCommunicationTarget(frame.getSrcId());
+        new ReceiverPtsTimeOutWaiter(mRole).await();
     }
 
     private void onPreSendSIFSAndACK(final AckFrame frame) {
@@ -50,7 +44,7 @@ public class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     public void run() {
                         onPreSendAck(frame);
                     }
-                }, Config.getInstance().getSifs(),TimeTask.SEND);
+                }, Config.getInstance().getSifs(), TimeTask.SEND);
     }
 
     @Override
@@ -61,7 +55,7 @@ public class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
                     public void run() {
                         onPostSendACK();
                     }
-                }, frame.getTransmitDuration(),TimeTask.SEND);
+                }, frame.getTransmitDuration(), TimeTask.SEND);
         sendFrame(frame);
     }
 

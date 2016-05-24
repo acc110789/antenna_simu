@@ -58,15 +58,20 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
         new SenderPtsTimeOutWaiter(mRole).await();
     }
 
-
+    /**
+     * 原来是等待一个sifs之后发送DataFrame
+     * 现在是现等待Pcp节点给.
+     */
     private void onPreSendSIFSAndDATA() {
+        double waitTime = PrecisionUtil.add(Config.getInstance().getSifs(), PtsFrame.getFrameTimeLength());
+
         onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()", getId()), Status.SENDING_DATA,
                 Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendData(getDataToSend());
                     }
-                }, Config.getInstance().getSifs(), TimeTask.SEND);
+                }, waitTime, TimeTask.SEND);
     }
 
     @Override
@@ -96,13 +101,12 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
     @Override
     public void onPostRecvPTS(PtsFrame frame) {
         onPostRecvMethod(logger, String.format("%d onPostRecvPTS()", getId()),
-                frame, Status.WAITING_PTS, Status.SENDING_DATA, new Runnable() {
+                frame, Status.RECEIVING_PTS, Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendSIFSAndDATA();
                     }
                 });
-        throw new IllegalStateException();
     }
 
     @Override
