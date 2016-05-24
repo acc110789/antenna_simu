@@ -36,7 +36,7 @@ abstract class AbstractRole implements BaseRole {
         this.id = id;
     }
 
-    abstract void backOffDueToTimeout();
+    public abstract void backOffDueToTimeout();
 
     @Override
     public int getCommunicationTarget() {

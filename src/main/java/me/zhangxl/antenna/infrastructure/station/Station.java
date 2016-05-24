@@ -28,8 +28,8 @@ public class Station extends AbstractRole implements Locatable {
     public final Receiver mReceiver;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
     private double lastCoolingTime;
-
-    public DataFrame mCurrentSendingFrame;
+    private DataFrame mCurrentSendingFrame;
+    private Role mRole = Role.RECEIVER;
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
     /**
@@ -39,7 +39,7 @@ public class Station extends AbstractRole implements Locatable {
     /**
      * 正在接受的frames
      */
-    public List<Frame> receivingFrames = new ArrayList<>();
+    private List<Frame> receivingFrames = new ArrayList<>();
 
     public Station(int id) {
         super(id);
@@ -153,7 +153,7 @@ public class Station extends AbstractRole implements Locatable {
      * 遭受到了碰撞
      */
     @Override
-    void backOffDueToTimeout() {
+    public void backOffDueToTimeout() {
         TimeController.getInstance().addCollitionTimes();
         mCurrentSendingFrame.addCollitionTimes();
     }
@@ -227,9 +227,25 @@ public class Station extends AbstractRole implements Locatable {
         }
         return mCurrentSendingFrame;
     }
+
     public List<Frame> getReceivingFrames(){
         return receivingFrames;
     }
 
+    public boolean isSender(){
+        return mRole == Role.SENDER;
+    }
 
+    public void setSender(){
+        mRole = Role.SENDER;
+    }
+
+    public void setReceiver(){
+        mRole = Role.RECEIVER;
+    }
+}
+
+enum Role{
+    SENDER,
+    RECEIVER
 }

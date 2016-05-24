@@ -12,16 +12,20 @@ import org.apache.logging.log4j.Logger;
 /**
  * Created by zhangxiaolong on 16/5/24.
  */
-public abstract class AbstractNav implements NavTimer {
+abstract class AbstractNav implements NavTimer {
     private static final Logger logger = SimuLoggerManager.getLogger(AbstractWaiter.class.getSimpleName());
     final Station station;
 
-    public AbstractNav(Station station) {
+    AbstractNav(Station station) {
         this.station = station;
     }
 
     @Override
     public void startNav(){
+        if(station.isSender()){
+            station.backOffDueToTimeout();
+            station.setReceiver();
+        }
         station.setCurrentStatus(Status.NAVING);
         logger.info("%d set NAV",station.getId());
         TimeController.getInstance().post(new Runnable() {

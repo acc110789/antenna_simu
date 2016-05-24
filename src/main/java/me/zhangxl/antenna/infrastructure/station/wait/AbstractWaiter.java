@@ -15,7 +15,7 @@ public abstract class AbstractWaiter implements Waiter {
     private static final Logger logger = SimuLoggerManager.getLogger(AbstractWaiter.class.getSimpleName());
     final Station station;
 
-    public AbstractWaiter(Station station){
+    AbstractWaiter(Station station){
         this.station = station;
     }
 
@@ -29,6 +29,11 @@ public abstract class AbstractWaiter implements Waiter {
                     String info = getInfoToLog();
                     if(!StringUtils.isEmpty(info)){
                         logger.info(info);
+                    }
+                    //timeout 意味着此次的传输失败,如果是作为发送者传输失败,则需要加大竞争窗口值
+                    if(station.isSender()){
+                        station.backOffDueToTimeout();
+                        station.setReceiver();
                     }
                     station.setCommunicationTarget(Station.defaultCommunicationTarget);
                     station.setCurrentStatus(Status.SLOTING);
@@ -45,4 +50,5 @@ public abstract class AbstractWaiter implements Waiter {
     }
 
     abstract Status getWaitingStatus();
+
 }

@@ -44,6 +44,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
                         onPostSendRTS();
                     }
                 }, frame.getTransmitDuration(), TimeTask.SEND);
+        mStation.setSender();
         setCommunicationTarget(frame.getTargetId());
         sendFrame(frame);
     }
@@ -114,10 +115,5 @@ public class Sender extends BaseRoleFilter implements SenderRole {
         onPostRecvMethod(logger, String.format("%d onPostRecvACK()", getId()),
                 frame, Status.WAITING_ACK, null, null);
         new SenderDifsCooler(mStation).cool();
-    }
-
-    @Override
-    public void onSendSuccess() {
-        mStation.onSendSuccess();
     }
 }
