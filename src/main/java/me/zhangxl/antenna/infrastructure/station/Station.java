@@ -146,13 +146,6 @@ public class Station extends AbstractRole implements Locatable {
         mCurrentSendingFrame.addCollitionTimes();
     }
 
-    @Override
-    void onFinish() {
-        setCommunicationTarget(defaultCommunicationTarget);
-        // TODO: 16/5/22 再想一想这个地方的逻辑部分
-        setCurrentStatus(Status.SLOTING);
-    }
-
     void putDataFrame(int targetId, long length) {
         mDataFramesToSend.add(new DataFrame(getId(), targetId));
     }

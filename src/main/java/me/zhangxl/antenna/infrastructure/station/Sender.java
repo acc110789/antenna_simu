@@ -5,7 +5,10 @@ import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
+import me.zhangxl.antenna.infrastructure.station.wait.AckTimeOutWaiter;
+import me.zhangxl.antenna.infrastructure.station.wait.SenderPtsTimeOutWaiter;
 import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.PrecisionUtil;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
 import org.apache.logging.log4j.Logger;
@@ -17,13 +20,21 @@ import org.apache.logging.log4j.Logger;
 public class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     private static final Logger logger = SimuLoggerManager.getLogger(Sender.class.getSimpleName());
-    private final SendBaseRole mRole;
+    private final Station mRole;
+    private final double ptsTimeOut = PrecisionUtil.add(
+            Config.getInstance().getSifs(),
+            PtsFrame.getFrameTimeLength(),
+            Config.getInstance().getDifs());
 
-    Sender(SendBaseRole role){
+    Sender(Station role) {
         super(role);
         this.mRole = role;
     }
 
+    /**
+     * @param frame 待发送的RTS
+     *              在这个时刻状态从SLOTING变成SENDING_RTS
+     */
     @Override
     public void onPreSendRTS(RtsFrame frame) {
         onSendMethod(logger, String.format("%d onPreSendRTS()", getId()),
@@ -32,64 +43,49 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
                     public void run() {
                         onPostSendRTS();
                     }
-                }, frame.getTransmitDuration(),TimeTask.SEND);
+                }, frame.getTransmitDuration(), TimeTask.SEND);
         setCommunicationTarget(frame.getTargetId());
         sendFrame(frame);
     }
 
+    /**
+     * RTS发送完成之后,还需要为PTS超时做准备
+     * 设置PTS超时之后执行的代码。
+     */
     @Override
     public void onPostSendRTS() {
-        onSendMethod(logger, String.format("%d onPostSendRTS()", getId()), Status.SENDING_RTS,
-                Status.WAITING_PTS, new Runnable() {
-                    @Override
-                    public void run() {
-                        if (getCurrentStatus() == Status.WAITING_PTS) {
-                            logger.info("%d after onPostSendRTS() wait PTS timeout",getId());
-                            // TODO: 16/5/21 这个应该是超时的那种失败
-                            endCommunication(true);
-                        }
-                    }
-                }, PtsFrame.getPtsTimeOut(), TimeTask.PTS_TIMEOUT);
+        onSendMethod(logger, String.format("%d onPostSendRTS()", getId()), Status.SENDING_RTS, null, null, 0.0, 0);
+        new SenderPtsTimeOutWaiter(mRole).await();
     }
 
 
     private void onPreSendSIFSAndDATA() {
-        onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()",getId()), Status.SENDING_DATA,
+        onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()", getId()), Status.SENDING_DATA,
                 Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendData(getDataToSend());
                     }
-                }, Config.getInstance().getSifs(),TimeTask.SEND);
+                }, Config.getInstance().getSifs(), TimeTask.SEND);
     }
 
     @Override
     public void onPreSendData(DataFrame dataFrame) {
-        onSendMethod(logger, String.format("%d onPreSendData()",getId()),
+        onSendMethod(logger, String.format("%d onPreSendData()", getId()),
                 Status.SENDING_DATA, Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendDATA();
                     }
-                }, dataFrame.getTransmitDuration(),TimeTask.SEND);
+                }, dataFrame.getTransmitDuration(), TimeTask.SEND);
         sendFrame(dataFrame);
     }
 
     @Override
     public void onPostSendDATA() {
-        onSendMethod(logger, String.format("%d onPostSendDATA()",getId()), Status.SENDING_DATA,
-                Status.WAITING_ACK, new Runnable() {
-                    @Override
-                    public void run() {
-                        //超时,对方没有发送ACK,应该不可能执行到这里
-                        if (getCurrentStatus() == Status.WAITING_ACK) {
-                            logger.info("%d after onPostSendDATA(),wait ack timeout",getId());
-                            // TODO: 16/5/21 这也是一次失败的传输
-                            endCommunication(true);
-                        }
-
-                    }
-                }, AckFrame.getAckTimeOut(),TimeTask.ACK_TIMEOUT);
+        onSendMethod(logger, String.format("%d onPostSendDATA()", getId()), Status.SENDING_DATA,
+                Status.WAITING_ACK, null, 0.0, 0);
+        new AckTimeOutWaiter(mRole).await();
     }
 
     /**
@@ -110,8 +106,8 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
     }
 
     @Override
-    public void onPostRecvACK(AckFrame frame){
-        onPostRecvMethod(logger, String.format("%d onPostRecvACK()",getId()),
+    public void onPostRecvACK(AckFrame frame) {
+        onPostRecvMethod(logger, String.format("%d onPostRecvACK()", getId()),
                 frame, Status.WAITING_ACK,
                 Status.COOLING, new Runnable() {
                     @Override

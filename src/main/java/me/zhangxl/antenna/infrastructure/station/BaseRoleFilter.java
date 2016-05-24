@@ -92,7 +92,9 @@ class BaseRoleFilter implements BaseRole {
                       Status currentStatus, Runnable toPost, double postTime, int priority){
         senderLogger.debug(info);
         assert getCurrentStatus() == lastStatus;
-        setCurrentStatus(currentStatus);
+        if(currentStatus != null) {
+            setCurrentStatus(currentStatus);
+        }
         if(toPost != null) {
             TimeController.getInstance().post(toPost, postTime, priority);
         }

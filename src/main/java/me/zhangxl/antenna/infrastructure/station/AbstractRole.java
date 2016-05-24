@@ -38,14 +38,11 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
 
     abstract void backOffDueToTimeout();
 
-    abstract void onFinish();
-
     @Override
     public void endCommunication(boolean isSender){
         if(isSender){
             onSendSuccess();
         }
-        onFinish();
     }
 
 

@@ -102,16 +102,10 @@ public class TimeController {
                 text = "EIFS";
             } else if(PrecisionUtil.sub(time, RtsFrame.getFrameTimeLength()) == 0){
                 text = "RTS";
-            } else if(PrecisionUtil.sub(time, CtsFrame.getFrameTimeLength()) == 0){
-                text = "CTS/ACK";
-            } else if(PrecisionUtil.sub(time, DataFrame.getFrameTimeLength()) == 0){
+            }  else if(PrecisionUtil.sub(time, DataFrame.getFrameTimeLength()) == 0){
                 text = "DATA";
             } else if(PrecisionUtil.sub(time,RtsFrame.getRtsTimeOut()) == 0){
                 text = "RTS timeout";
-            } else if(PrecisionUtil.sub(time,CtsFrame.getCtsTimeOut()) == 0){
-                text = "CTS/ACK timeout";
-            } else if(PrecisionUtil.sub(time, NextRoundFrame.getFrameTimeLength()) == 0){
-                text = "NextRound";
             } else if(PrecisionUtil.sub(time, PtsFrame.getFrameTimeLength()) == 0){
                 text = "Pair";
             } else {

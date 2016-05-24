@@ -20,6 +20,8 @@ public interface BaseRole {
         SLOTING,
         //SLOTING之后是SENDING_RTS
         SENDING_RTS(Mode.WRITE_MODE),
+        //只有发送者发送完RTS之后 或者 接收者收到了发送者发出的RTS
+        //这两种情况下发送者和接收者分别进入这种状态
         WAITING_PTS,
         NAVING,
 

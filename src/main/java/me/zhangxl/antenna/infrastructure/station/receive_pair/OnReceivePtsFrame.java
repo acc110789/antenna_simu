@@ -7,6 +7,7 @@ import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
 import me.zhangxl.antenna.infrastructure.station.OnReceiveFrameLogic;
 import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
 
 /**
  * 接受到正确的PairFrame之后的route
@@ -58,8 +59,7 @@ public class OnReceivePtsFrame extends OnReceiveFrameLogic {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    // TODO: 16/5/22 这里还有问题
-                    station.setCurrentStatus(Status.SLOTING);
+                    new DifsCooler(station).cool();
                 }
             },frame.getNavDuration(), TimeTask.SEND);
         }

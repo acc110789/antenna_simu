@@ -162,14 +162,6 @@ public class Config {
 
     }
 
-    public int getRtsFreCount(){
-        return this.rtsFreCount;
-    }
-
-    public int getDataFreCount(){
-        return this.dataFreCount;
-    }
-
     public long getDataLength() {
         return this.dataLength;
     }
