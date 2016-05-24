@@ -4,7 +4,10 @@ import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.infrastructure.station.receive_pair.OnReceivePtsFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveAckFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveDataFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceivePtsFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveRtsFrame;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.SimuLoggerManager;
@@ -22,7 +25,7 @@ public class Station extends AbstractRole implements Locatable {
 
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
     public final Sender mSender;
-    final Receiver mReceiver;
+    public final Receiver mReceiver;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
     private double lastCoolingTime;
 
@@ -172,7 +175,7 @@ public class Station extends AbstractRole implements Locatable {
      * @param frame Station接受的桢从理论上说是不可能发生任何冲突的
      * @return
      */
-    public boolean beginReceiveFrame(Frame frame){
+    public boolean beginReceiveFrame(final Frame frame){
         //如果频率不是这个station care的频率,就跟这个频率好像不存在是一样的
         if(getCurrentStatus() == Status.NAVING || !getCurrentStatus().isReadMode()){
             return false;
@@ -185,14 +188,33 @@ public class Station extends AbstractRole implements Locatable {
         }
         receivingFrames.add(frame);
 
+        //防止timeout,一旦接收到任何信息,跳出waiting的状态
+        if(getCurrentStatus() == Status.WAITING_ACK){
+            setCurrentStatus(Status.RECEIVING_ACK);
+        } else if(getCurrentStatus() == Status.WAITING_DATA){
+            setCurrentStatus(Status.RECEIVING_DATA);
+        } else if(getCurrentStatus() == Status.WAITING_PTS){
+            setCurrentStatus(Status.RECEIVING_PTS);
+        } else if(getCurrentStatus() != Status.RECEIVING_ACK &&
+                getCurrentStatus() != Status.RECEIVING_DATA &&
+                getCurrentStatus() != Status.RECEIVING_PTS) {
+            setCurrentStatus(Status.RECEIVING);
+        }
+        //此时,所有的状态里面都应该有RECEIVING这个字段
+        boolean isNowReceiving = getCurrentStatus() == Status.RECEIVING_DATA ||
+                getCurrentStatus() == Status.RECEIVING ||
+                getCurrentStatus() == Status.RECEIVING_ACK ||
+                getCurrentStatus() == Status.RECEIVING_PTS;
+        assert isNowReceiving;
+
         if(frame instanceof RtsFrame){
-            new OnReceiveRtsFrame(this).doLogic(frame);
+            new OnReceiveRtsFrame(this,frame).doLogic();
         } else if(frame instanceof PtsFrame){
-            new OnReceivePtsFrame(this).doLogic(frame);
+            new OnReceivePtsFrame(this,frame).doLogic();
         } else if(frame instanceof DataFrame){
-            new OnReceiveDataFrame(this).doLogic(frame);
+            new OnReceiveDataFrame(this,frame).doLogic();
         } else if(frame instanceof  AckFrame){
-            new OnReceiveAckFrame(this).doLogic(frame);
+            new OnReceiveAckFrame(this,frame).doLogic();
         } else {
             throw new IllegalStateException();
         }
@@ -205,6 +227,9 @@ public class Station extends AbstractRole implements Locatable {
             getDataFrameToSend();
         }
         return mCurrentSendingFrame;
+    }
+    public List<Frame> getReceivingFrames(){
+        return receivingFrames;
     }
 
 

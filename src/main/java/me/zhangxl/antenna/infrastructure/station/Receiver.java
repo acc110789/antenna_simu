@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
  * 凡是收到的数据一定是没有遭受到碰撞的数据
  * Created by zhangxiaolong on 16/4/15.
  */
-class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
+public class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
     private static final Logger logger = SimuLoggerManager.getLogger(Receiver.class.getSimpleName());
     private final Station mRole;
     private final double ptsTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),

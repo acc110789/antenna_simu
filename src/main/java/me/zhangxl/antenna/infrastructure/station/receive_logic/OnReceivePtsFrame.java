@@ -1,12 +1,12 @@
-package me.zhangxl.antenna.infrastructure.station.receive_pair;
+package me.zhangxl.antenna.infrastructure.station.receive_logic;
 
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.PtsFrame;
-import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
-import me.zhangxl.antenna.infrastructure.station.OnReceiveFrameLogic;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.nav.PtsNav;
+import me.zhangxl.antenna.infrastructure.station.receive_pair.SrcMatchAction;
+import me.zhangxl.antenna.infrastructure.station.receive_pair.TargetMatchAction;
 
 /**
  * 接受到正确的PairFrame之后的route
@@ -17,27 +17,23 @@ import me.zhangxl.antenna.infrastructure.station.nav.PtsNav;
  */
 public class OnReceivePtsFrame extends OnReceiveFrameLogic {
 
-    public OnReceivePtsFrame(Station station) {
-        super(station);
+    public OnReceivePtsFrame(Station station, Frame frame) {
+        super(station, frame);
     }
 
     @Override
-    public void doLogic(final Frame frame) {
+    void onPreFrame() {
         assert frame instanceof PtsFrame;
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                station.receivingFrames.remove(frame);
-                if(!frame.isDirty()){
-                    //对于正在进行数据通信的节点以及正在nav中的节点,是不可能收到PtsFrame的
-                    Status status = station.getCurrentStatus();
-                    if(status == Status.SLOTING || status == Status.WAITING_PTS){
-                        //是干净的,且是当前状态期待的桢类型
-                        deal((PtsFrame) frame);
-                    }
-                }
-            }
-        }, frame.getEndDuration());
+    }
+
+    @Override
+    public void onClearFrame() {
+        //对于正在进行数据通信的节点以及正在nav中的节点,是不可能收到PtsFrame的
+        Status status = station.getCurrentStatus();
+        if(status == Status.SLOTING || status == Status.WAITING_PTS){
+            //是干净的,且是当前状态期待的桢类型
+            deal((PtsFrame) frame);
+        }
     }
 
     /**

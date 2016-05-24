@@ -23,15 +23,25 @@ public interface BaseRole {
         //只有发送者发送完RTS之后 或者 接收者收到了发送者发出的RTS
         //这两种情况下发送者和接收者分别进入这种状态
         WAITING_PTS,
+
+        //sender发送了PTS之后,以及某接收端接受到RTS之后,恰好这个RTS的target是自己
+        //在上述两种情况下接收到任何frame都会由WAITING_PTS跳转到RECEIVING_PTS
+        RECEIVING_PTS,
+
+        //正在接受东西 有可能是receive RTS或者PTS,其它的类型的receive在这种状态忽略
+        //
+        RECEIVING,
         NAVING,
 
         WAITING_DATA,
+        RECEIVING_DATA,
         SENDING_DATA(Mode.WRITE_MODE),
 
         WAITING_ACK,
+        RECEIVING_ACK,
         SENDING_ACK(Mode.WRITE_MODE),
 
-        RECEIVING,//正在接受东西
+
         COOLING, //没有接受东西了,但是仍然冷却一段时间(DIFS,或者EIFS)才能回到SLOTING的状态
         ;
 
