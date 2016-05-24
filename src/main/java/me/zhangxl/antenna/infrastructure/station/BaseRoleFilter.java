@@ -39,11 +39,6 @@ class BaseRoleFilter implements BaseRole {
     }
 
     @Override
-    public void endCommunication(boolean isSender) {
-        mBaseRole.endCommunication(isSender);
-    }
-
-    @Override
     public int getCommunicationTarget() {
         return mBaseRole.getCommunicationTarget();
     }

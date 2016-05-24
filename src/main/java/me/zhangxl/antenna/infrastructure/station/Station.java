@@ -162,7 +162,6 @@ public class Station extends AbstractRole implements Locatable {
         mDataFramesToSend.add(new DataFrame(getId(), targetId));
     }
 
-    @Override
     public void onSendSuccess() {
         logger.info("%d send a data successfully",getId());
         TimeController.getInstance().addSuccessTimes();

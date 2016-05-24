@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
  *
  * Created by zhangxiaolong on 16/4/15.
  */
-abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
+abstract class AbstractRole implements BaseRole {
 
     private static Logger logger = SimuLoggerManager.getLogger(AbstractRole.class.getSimpleName());
     private final int id;
@@ -37,14 +37,6 @@ abstract class AbstractRole implements ReceiveBaseRole,SendBaseRole {
     }
 
     abstract void backOffDueToTimeout();
-
-    @Override
-    public void endCommunication(boolean isSender){
-        if(isSender){
-            onSendSuccess();
-        }
-    }
-
 
     @Override
     public int getCommunicationTarget() {

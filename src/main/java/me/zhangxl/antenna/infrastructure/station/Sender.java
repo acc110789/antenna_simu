@@ -17,10 +17,10 @@ import org.apache.logging.log4j.Logger;
  * 一次通信过程中的发送者角色
  * Created by zhangxiaolong on 16/4/15.
  */
-public class Sender extends BaseRoleFilter implements SenderExpandRole {
+public class Sender extends BaseRoleFilter implements SenderRole {
 
     private static final Logger logger = SimuLoggerManager.getLogger(Sender.class.getSimpleName());
-    private final Station mRole;
+    private final Station mStation;
     private final double ptsTimeOut = PrecisionUtil.add(
             Config.getInstance().getSifs(),
             PtsFrame.getFrameTimeLength(),
@@ -28,7 +28,7 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
 
     Sender(Station role) {
         super(role);
-        this.mRole = role;
+        this.mStation = role;
     }
 
     /**
@@ -55,7 +55,7 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
     @Override
     public void onPostSendRTS() {
         onSendMethod(logger, String.format("%d onPostSendRTS()", getId()), Status.SENDING_RTS, null, null, 0.0, 0);
-        new SenderPtsTimeOutWaiter(mRole).await();
+        new SenderPtsTimeOutWaiter(mStation).await();
     }
 
     /**
@@ -90,7 +90,7 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
     public void onPostSendDATA() {
         onSendMethod(logger, String.format("%d onPostSendDATA()", getId()), Status.SENDING_DATA,
                 Status.WAITING_ACK, null, 0.0, 0);
-        new AckTimeOutWaiter(mRole).await();
+        new AckTimeOutWaiter(mStation).await();
     }
 
     /**
@@ -113,11 +113,11 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
     public void onPostRecvACK(AckFrame frame) {
         onPostRecvMethod(logger, String.format("%d onPostRecvACK()", getId()),
                 frame, Status.WAITING_ACK, null, null);
-        new SenderDifsCooler(mRole).cool();
+        new SenderDifsCooler(mStation).cool();
     }
 
     @Override
     public void onSendSuccess() {
-        mRole.onSendSuccess();
+        mStation.onSendSuccess();
     }
 }

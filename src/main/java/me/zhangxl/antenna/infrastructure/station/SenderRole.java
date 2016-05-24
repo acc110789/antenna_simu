@@ -8,7 +8,7 @@ import me.zhangxl.antenna.frame.RtsFrame;
 /**
  * Created by zhangxiaolong on 16/4/15.
  */
-interface SenderExpandRole extends SendBaseRole {
+interface SenderRole extends BaseRole {
 
     /**
      * 这个时刻表示是RTS开始的那一刻,立刻进入写模式

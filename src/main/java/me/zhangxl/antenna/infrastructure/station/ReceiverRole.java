@@ -7,7 +7,7 @@ import me.zhangxl.antenna.frame.RtsFrame;
 /**
  * Created by zhangxiaolong on 16/4/15.
  */
-interface ReceiverExpandRole extends ReceiveBaseRole {
+interface ReceiverRole extends BaseRole {
 
     void onPostRecvRTS(RtsFrame frame);
 

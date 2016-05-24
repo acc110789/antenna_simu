@@ -17,16 +17,16 @@ import org.apache.logging.log4j.Logger;
  * 凡是收到的数据一定是没有遭受到碰撞的数据
  * Created by zhangxiaolong on 16/4/15.
  */
-public class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
+public class Receiver extends BaseRoleFilter implements ReceiverRole {
     private static final Logger logger = SimuLoggerManager.getLogger(Receiver.class.getSimpleName());
-    private final Station mRole;
+    private final Station mStation;
     private final double ptsTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),
             PrecisionUtil.mul(2, PtsFrame.getFrameTimeLength()),
             Config.getInstance().getDifs());
 
     Receiver(Station role) {
         super(role);
-        this.mRole = role;
+        this.mStation = role;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
         logger.debug("%d onPostRecvRTS()", getId());
         //如果目标节点是自己,则停止slot,马上进入等待pts的阶段
         setCommunicationTarget(frame.getSrcId());
-        new ReceiverPtsTimeOutWaiter(mRole).await();
+        new ReceiverPtsTimeOutWaiter(mStation).await();
     }
 
     private void onPreSendSIFSAndACK(final AckFrame frame) {
@@ -63,7 +63,7 @@ public class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
     public void onPostSendACK() {
         logger.debug("%d onPostSendACK()", getId());
         assert getCurrentStatus() == Status.SENDING_ACK;
-        new DifsCooler(mRole).cool();
+        new DifsCooler(mStation).cool();
     }
 
     /**
