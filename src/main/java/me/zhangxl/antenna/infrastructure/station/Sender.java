@@ -5,12 +5,12 @@ import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
+import me.zhangxl.antenna.infrastructure.station.cool.SenderDifsCooler;
 import me.zhangxl.antenna.infrastructure.station.wait.AckTimeOutWaiter;
 import me.zhangxl.antenna.infrastructure.station.wait.SenderPtsTimeOutWaiter;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
 import me.zhangxl.antenna.util.SimuLoggerManager;
-import me.zhangxl.antenna.util.TimeLogger;
 import org.apache.logging.log4j.Logger;
 
 /**
@@ -108,16 +108,8 @@ public class Sender extends BaseRoleFilter implements SenderExpandRole {
     @Override
     public void onPostRecvACK(AckFrame frame) {
         onPostRecvMethod(logger, String.format("%d onPostRecvACK()", getId()),
-                frame, Status.WAITING_ACK,
-                Status.COOLING, new Runnable() {
-                    @Override
-                    public void run() {
-                        if (TimeLogger.DEBUG_STATION) {
-                            logger.debug("%d send a data successfully...", getId());
-                        }
-                        endCommunication(true);
-                    }
-                });
+                frame, Status.WAITING_ACK, null, null);
+        new SenderDifsCooler(mRole).cool();
     }
 
     @Override

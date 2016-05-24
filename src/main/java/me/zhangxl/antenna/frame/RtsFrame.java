@@ -43,6 +43,10 @@ public class RtsFrame extends Frame implements Navable {
         return navDuration;
     }
 
+    public static double getRtsNavDuration(){
+        return navDuration;
+    }
+
     public static double getFrameTimeLength(){
         return frameTimeLength;
     }

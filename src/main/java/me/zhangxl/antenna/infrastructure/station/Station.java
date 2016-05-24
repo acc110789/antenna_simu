@@ -24,6 +24,7 @@ public class Station extends AbstractRole implements Locatable {
     public final Sender mSender;
     final Receiver mReceiver;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
+    private double lastCoolingTime;
 
     public DataFrame mCurrentSendingFrame;
     //wait list
@@ -48,6 +49,14 @@ public class Station extends AbstractRole implements Locatable {
     public Station(int id, double xAxis, double yAxis) {
         this(id);
         this.mLocation = new Pair<>(xAxis, yAxis);
+    }
+
+    public void setLastCoolingTimeToNow(){
+        this.lastCoolingTime = TimeController.getInstance().getCurrentTime();
+    }
+
+    public double getLastCoolingTime(){
+        return this.lastCoolingTime;
     }
 
     public Pair<Double,Double> getAxis(){
@@ -192,6 +201,9 @@ public class Station extends AbstractRole implements Locatable {
 
     @Override
     public DataFrame getDataToSend() {
+        if(mCurrentSendingFrame == null){
+            getDataFrameToSend();
+        }
         return mCurrentSendingFrame;
     }
 

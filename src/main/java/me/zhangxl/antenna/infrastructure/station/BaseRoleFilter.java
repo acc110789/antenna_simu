@@ -71,7 +71,9 @@ class BaseRoleFilter implements BaseRole {
             } else if(getId() != frame.getTargetId()){
                 receiverLogger.debug("%d this frame from %d is not sent to %d",frame.getSrcId(),getId());
             } else {
-                setCurrentStatus(currentStatus);
+                if(currentStatus != null) {
+                    setCurrentStatus(currentStatus);
+                }
                 if(nextAction != null){
                     nextAction.run();
                 }

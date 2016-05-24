@@ -4,9 +4,9 @@ import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
-import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
+import me.zhangxl.antenna.infrastructure.station.nav.RtsNav;
 import me.zhangxl.antenna.infrastructure.station.wait.ReceiverPtsTimeOutWaiter;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
@@ -39,15 +39,7 @@ class Receiver extends BaseRoleFilter implements ReceiverExpandRole {
         } else {
             //RTS不是发给自己的,则设置NAV
             //不是发给本Station的,这种情况下应当设置NAV向量
-                setCurrentStatus(Status.NAVING);
-                logger.info("%d set NAV",getId());
-                TimeController.getInstance().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        logger.info("%d NAV finish",getId());
-                        endCommunication(false);
-                    }
-                },frame.getNavDuration(),TimeTask.RECEIVE);
+            new RtsNav(mRole).startNav();
         }
     }
 

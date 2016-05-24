@@ -3,11 +3,10 @@ package me.zhangxl.antenna.infrastructure.station.receive_pair;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
-import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
 import me.zhangxl.antenna.infrastructure.station.OnReceiveFrameLogic;
 import me.zhangxl.antenna.infrastructure.station.Station;
-import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
+import me.zhangxl.antenna.infrastructure.station.nav.PtsNav;
 
 /**
  * 接受到正确的PairFrame之后的route
@@ -51,17 +50,21 @@ public class OnReceivePtsFrame extends OnReceiveFrameLogic {
             new SrcMatchAction(station,frame).action();
         } else if(station.getId() == targetId){
             new TargetMatchAction(station,frame).action();
-        } else {
+        } else if(frame.isPassByPcp() || isTargetTakenOver(frame)) {
             /**
              * 如果没有关系,就设置NAV
              */
-            station.setCurrentStatus(Status.NAVING);
-            TimeController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    new DifsCooler(station).cool();
-                }
-            },frame.getNavDuration(), TimeTask.SEND);
+            new PtsNav(station,frame).startNav();
         }
+    }
+
+    /**
+     * @param frame ptsframe
+     * @return 如果本station要传输的dataFrame的目标地址恰好是ptsframe
+     * 中指定的src或者target之一,则返回true
+     */
+    private boolean isTargetTakenOver(PtsFrame frame){
+        int targetId  = station.getDataToSend().getTargetId();
+        return targetId == frame.getSrcId() || targetId == frame.getTargetId();
     }
 }
