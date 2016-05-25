@@ -2,7 +2,7 @@ package me.zhangxl.antenna.infrastructure.station.cool;
 
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
+import me.zhangxl.antenna.infrastructure.station.Stateful;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.PrecisionUtil;
 
@@ -23,7 +23,7 @@ public abstract class AbstractCooler implements Cooler {
     public void cool(){
         toRunBeforeCool();
         station.setLastCoolingTimeToNow();
-        station.setCurrentStatus(Status.COOLING);
+        station.setCurrentStatus(Stateful.Status.COOLING);
         station.setCommunicationTarget(Station.defaultCommunicationTarget);
         if(station.isSender()) {
             station.backOffDueToTimeout();
@@ -32,9 +32,9 @@ public abstract class AbstractCooler implements Cooler {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if(station.getCurrentStatus() == Status.COOLING
+                if(station.getCurrentStatus() == Stateful.Status.COOLING
                         && isCoolingNotInterrupted()){
-                    station.setCurrentStatus(Status.SLOTING);
+                    station.setCurrentStatus(Stateful.Status.SLOTING);
                     station.onPostDIFS();
                 }
             }

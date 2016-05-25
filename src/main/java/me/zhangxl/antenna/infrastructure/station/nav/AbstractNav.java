@@ -2,7 +2,7 @@ package me.zhangxl.antenna.infrastructure.station.nav;
 
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
+import me.zhangxl.antenna.infrastructure.station.Stateful;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
 import me.zhangxl.antenna.infrastructure.station.wait.AbstractWaiter;
@@ -27,7 +27,7 @@ abstract class AbstractNav implements NavTimer {
             station.backOffDueToTimeout();
             station.setReceiver();
         }
-        station.setCurrentStatus(Status.NAVING);
+        station.setCurrentStatus(Stateful.Status.NAVING);
 
         String format = "%d ";
         if(!StringUtils.isEmpty(getInfoToLog())){

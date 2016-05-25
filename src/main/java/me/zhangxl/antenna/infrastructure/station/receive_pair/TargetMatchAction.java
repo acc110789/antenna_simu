@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.station.receive_pair;
 
 import me.zhangxl.antenna.frame.PtsFrame;
-import me.zhangxl.antenna.infrastructure.station.BaseRole;
+import me.zhangxl.antenna.infrastructure.station.Stateful;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.wait.ReceiverDataTimeOutWaiter;
 
@@ -21,7 +21,7 @@ public class TargetMatchAction extends AbstractPairAction {
     @Override
     public void action() {
         station.setCommunicationTarget(frame.getSrcId());
-        station.setCurrentStatus(BaseRole.Status.WAITING_DATA);
+        station.setCurrentStatus(Stateful.Status.WAITING_DATA);
         new ReceiverDataTimeOutWaiter(station).await();
     }
 }

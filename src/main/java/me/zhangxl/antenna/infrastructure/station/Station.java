@@ -175,7 +175,6 @@ public class Station extends AbstractRole implements Locatable {
      * @return
      */
     public boolean beginReceiveFrame(final Frame frame){
-        //如果频率不是这个station care的频率,就跟这个频率好像不存在是一样的
         if(getCurrentStatus() == Status.NAVING || !getCurrentStatus().isReadMode()){
             return false;
         }

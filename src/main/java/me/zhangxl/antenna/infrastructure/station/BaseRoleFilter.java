@@ -19,12 +19,12 @@ class BaseRoleFilter implements BaseRole {
     }
 
     @Override
-    public Status getCurrentStatus() {
+    public Stateful.Status getCurrentStatus() {
         return mBaseRole.getCurrentStatus();
     }
 
     @Override
-    public void setCurrentStatus(Status status) {
+    public void setCurrentStatus(Stateful.Status status) {
         mBaseRole.setCurrentStatus(status);
     }
 
@@ -57,7 +57,7 @@ class BaseRoleFilter implements BaseRole {
     }
 
     void onPostRecvMethod(Logger receiverLogger, String info, Frame frame,
-                          Status lastStatus, Status currentStatus, Runnable nextAction){
+                          Stateful.Status lastStatus, Stateful.Status currentStatus, Runnable nextAction){
         receiverLogger.debug(info);
         if(getCurrentStatus() == lastStatus){
             if(getCommunicationTarget() != frame.getSrcId()){
@@ -79,14 +79,14 @@ class BaseRoleFilter implements BaseRole {
         }
     }
 
-    void onSendMethod(Logger senderLogger, String info, Status lastStatus,
-                      Status currentStatus, Runnable toPost, double postTime){
+    void onSendMethod(Logger senderLogger, String info, Stateful.Status lastStatus,
+                      Stateful.Status currentStatus, Runnable toPost, double postTime){
         onSendMethod(senderLogger, info, lastStatus,
                 currentStatus, toPost, postTime, TimeTask.COMMON_PRIORITY);
     }
 
-    void onSendMethod(Logger senderLogger, String info, Status lastStatus,
-                      Status currentStatus, Runnable toPost, double postTime, int priority){
+    void onSendMethod(Logger senderLogger, String info, Stateful.Status lastStatus,
+                      Stateful.Status currentStatus, Runnable toPost, double postTime, int priority){
         senderLogger.debug(info);
         assert getCurrentStatus() == lastStatus;
         if(currentStatus != null) {

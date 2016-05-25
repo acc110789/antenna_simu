@@ -24,7 +24,7 @@ abstract class AbstractRole implements BaseRole {
     //需要注意的是一旦一个Station进入了写(发送)模式之后,
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
-    private Status currentStatus = Status.SLOTING;
+    private Stateful.Status currentStatus = Stateful.Status.SLOTING;
 
     /**
      * 节点的当前通信对象
@@ -49,12 +49,12 @@ abstract class AbstractRole implements BaseRole {
     }
 
     @Override
-    public Status getCurrentStatus() {
+    public Stateful.Status getCurrentStatus() {
         return this.currentStatus;
     }
 
     @Override
-    public void setCurrentStatus(Status status) {
+    public void setCurrentStatus(Stateful.Status status) {
         //Status previous = this.currentStatus;
         this.currentStatus = status;
     }

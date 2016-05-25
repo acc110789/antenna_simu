@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.station.wait;
 
 import me.zhangxl.antenna.frame.PtsFrame;
-import me.zhangxl.antenna.infrastructure.station.BaseRole;
+import me.zhangxl.antenna.infrastructure.station.Stateful;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
@@ -30,7 +30,7 @@ public class SenderPtsTimeOutWaiter extends AbstractWaiter {
     }
 
     @Override
-    BaseRole.Status getWaitingStatus() {
-        return BaseRole.Status.WAITING_PTS;
+    Stateful.Status getWaitingStatus() {
+        return Stateful.Status.WAITING_PTS;
     }
 }

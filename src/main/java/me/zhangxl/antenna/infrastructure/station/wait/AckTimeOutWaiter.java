@@ -1,7 +1,8 @@
 package me.zhangxl.antenna.infrastructure.station.wait;
 
 import me.zhangxl.antenna.frame.AckFrame;
-import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
+import me.zhangxl.antenna.infrastructure.station.Stateful.Status;
+import me.zhangxl.antenna.infrastructure.station.Stateful;
 import me.zhangxl.antenna.infrastructure.station.Station;
 
 /**
@@ -21,7 +22,7 @@ public class AckTimeOutWaiter extends AbstractWaiter{
 
     @Override
     Status getWaitingStatus() {
-        return Status.WAITING_ACK;
+        return Stateful.Status.WAITING_ACK;
     }
 
     @Override

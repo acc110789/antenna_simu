@@ -32,6 +32,12 @@ public class PcpStation implements Locatable {
     private final Pair<Double, Double> mLocation = new Pair<>(0.0, 0.0);
     private final int id = 0;
     private final List<RtsFrame> receivingRtss = new ArrayList<>();
+    /**
+     * Pcp节点仅仅涉及到3种状态,分别是
+     * 1. NAV
+     * 2. WAITING_RTS
+     * 3. SENDING_PTS
+     */
     private Status currentStatus = null;
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
     private RtsFrame currentDealingRts;
@@ -64,6 +70,9 @@ public class PcpStation implements Locatable {
 
     @Override
     public boolean beginReceiveFrame(final Frame frame) {
+        if(getCurrentStatus() == Status.NAVING || !getCurrentStatus().isReadMode()){
+            return false;
+        }
         if (currentStatus == Status.WAITING_RTS) {
             //保证当前接收的frame一定是RtsFrame
             assert frame instanceof RtsFrame;
@@ -79,12 +88,13 @@ public class PcpStation implements Locatable {
                 @Override
                 public void run() {
                     receivingRtss.remove(frame);
-                    currentDealingRts = (RtsFrame) frame;
                     if (!frame.isDirty()) {
+                        currentDealingRts = (RtsFrame) frame;
                         onPreSendSifsAndPts();
                     }
+                    //如果是dirty的话,直接ignore,仅仅处理clean的frame
                 }
-            }, frame.getTransmitDuration(), TimeTask.RECEIVE);
+            }, frame.getEndDuration(), TimeTask.RECEIVE);
             return true;
         } else {
             //包括两个sending data和nav
@@ -115,19 +125,42 @@ public class PcpStation implements Locatable {
         return getPcpInfo().getIndex(id);
     }
 
+    /**
+     * @param passByPcp 将PTS发送给src所在的扇区(即RTSFrame的sender所在的山区)
+     */
     private void sendPtsToSrc(final boolean passByPcp) {
         PtsFrame frame = new PtsFrame(currentDealingRts.getSrcId(),
                 currentDealingRts.getTargetId(), passByPcp,
                 Config.getInstance().getPart() - 1);
+
+        final int srcSector = getIndexOfId(currentDealingRts.getSrcId());
+        final int targetSector = getIndexOfId(currentDealingRts.getTargetId());
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                sendPtsToTarget(passByPcp);
+                if(srcSector != targetSector) {
+                    sendPtsToTarget(passByPcp);
+                } else {
+                    sendPtsToOthers(passByPcp,getOthersSector());
+                }
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
-        Medium.getInstance().putFrame(this, frame, getIndexOfId(currentDealingRts.getSrcId()));
+        Medium.getInstance().putFrame(this, frame, srcSector);
     }
 
+    private List<Integer> getOthersSector(){
+        List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < Config.getInstance().getPart(); i++) {
+            list.add(i);
+        }
+        list.remove(getIndexOfId(currentDealingRts.getSrcId()));
+        list.remove(getIndexOfId(currentDealingRts.getTargetId()));
+        return list;
+    }
+
+    /**
+     * @param passByPcp 将PTS发送给target所在的扇区
+     */
     private void sendPtsToTarget(final boolean passByPcp) {
         PtsFrame frame = new PtsFrame(currentDealingRts.getSrcId(),
                 currentDealingRts.getTargetId(), passByPcp,
@@ -135,18 +168,17 @@ public class PcpStation implements Locatable {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                List<Integer> list = new ArrayList<>();
-                for (int i = 0; i < Config.getInstance().getPart(); i++) {
-                    list.add(i);
-                }
-                list.remove(getIndexOfId(currentDealingRts.getSrcId()));
-                list.remove(getIndexOfId(currentDealingRts.getTargetId()));
-                sendPtsToOthers(passByPcp,list);
+                sendPtsToOthers(passByPcp,getOthersSector());
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
         Medium.getInstance().putFrame(this, frame, getIndexOfId(currentDealingRts.getTargetId()));
     }
 
+    /**
+     * @param passByPcp
+     * @param sectorToSend
+     * 将PTS发送到剩余的扇区
+     */
     private void sendPtsToOthers(final boolean passByPcp, final List<Integer> sectorToSend) {
         if(sectorToSend.size() == 0){
             onPostSendPts(passByPcp);
@@ -178,20 +210,12 @@ public class PcpStation implements Locatable {
         }
     }
 
-    private void setCurrentStatus(Status status) {
+    public void setCurrentStatus(Status status) {
         currentStatus = status;
     }
-}
 
-/**
- * {@link PcpStation} 的状态
- * 状态转移图
- * <p>
- * sending_next_round --> waiting_rts --> sending_pair --> sending_next_round --> .........
- * sending_next_round --> ........
- */
-enum Status {
-    NAVING,
-    SENDING_PTS,
-    WAITING_RTS,//就是idle状态了
+    @Override
+    public Status getCurrentStatus() {
+        return currentStatus;
+    }
 }

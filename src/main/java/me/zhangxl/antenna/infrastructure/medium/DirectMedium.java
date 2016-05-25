@@ -70,7 +70,6 @@ public class DirectMedium extends Medium {
         if(sector < 0){
             return getStationToReceive(source,frame);
         } else {
-            assert sector >= 0;
             assert sector < Config.getInstance().getPart();
             return sMap.get(source).getStations(sector);
         }

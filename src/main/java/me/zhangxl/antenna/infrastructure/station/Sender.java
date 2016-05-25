@@ -38,7 +38,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
     @Override
     public void onPreSendRTS(RtsFrame frame) {
         onSendMethod(logger, String.format("%d onPreSendRTS()", getId()),
-                Status.SLOTING, Status.SENDING_RTS, new Runnable() {
+                Stateful.Status.SLOTING, Stateful.Status.SENDING_RTS, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendRTS();
@@ -55,7 +55,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
      */
     @Override
     public void onPostSendRTS() {
-        onSendMethod(logger, String.format("%d onPostSendRTS()", getId()), Status.SENDING_RTS, null, null, 0.0, 0);
+        onSendMethod(logger, String.format("%d onPostSendRTS()", getId()), Stateful.Status.SENDING_RTS, null, null, 0.0, 0);
         new SenderPtsTimeOutWaiter(mStation).await();
     }
 
@@ -66,8 +66,8 @@ public class Sender extends BaseRoleFilter implements SenderRole {
     private void onPreSendSIFSAndDATA() {
         double waitTime = PrecisionUtil.add(Config.getInstance().getSifs(), PtsFrame.getFrameTimeLength());
 
-        onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()", getId()), Status.SENDING_DATA,
-                Status.SENDING_DATA, new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()", getId()), Stateful.Status.SENDING_DATA,
+                Stateful.Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendData(getDataToSend());
@@ -78,7 +78,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
     @Override
     public void onPreSendData(DataFrame dataFrame) {
         onSendMethod(logger, String.format("%d onPreSendData()", getId()),
-                Status.SENDING_DATA, Status.SENDING_DATA, new Runnable() {
+                Stateful.Status.SENDING_DATA, Stateful.Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendDATA();
@@ -89,8 +89,8 @@ public class Sender extends BaseRoleFilter implements SenderRole {
 
     @Override
     public void onPostSendDATA() {
-        onSendMethod(logger, String.format("%d onPostSendDATA()", getId()), Status.SENDING_DATA,
-                Status.WAITING_ACK, null, 0.0, 0);
+        onSendMethod(logger, String.format("%d onPostSendDATA()", getId()), Stateful.Status.SENDING_DATA,
+                Stateful.Status.WAITING_ACK, null, 0.0, 0);
         new AckTimeOutWaiter(mStation).await();
     }
 
@@ -102,7 +102,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
     @Override
     public void onPostRecvPTS(PtsFrame frame) {
         onPostRecvMethod(logger, String.format("%d onPostRecvPTS()", getId()),
-                frame, Status.RECEIVING_PTS, Status.SENDING_DATA, new Runnable() {
+                frame, Stateful.Status.RECEIVING_PTS, Stateful.Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendSIFSAndDATA();
@@ -113,7 +113,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
     @Override
     public void onPostRecvACK(AckFrame frame) {
         onPostRecvMethod(logger, String.format("%d onPostRecvACK()", getId()),
-                frame, Status.WAITING_ACK, null, null);
+                frame, Stateful.Status.WAITING_ACK, null, null);
         new SenderDifsCooler(mStation).cool();
     }
 }

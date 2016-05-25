@@ -2,7 +2,8 @@ package me.zhangxl.antenna.infrastructure.station.wait;
 
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
+import me.zhangxl.antenna.infrastructure.station.Stateful.Status;
+import me.zhangxl.antenna.infrastructure.station.Stateful;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +37,7 @@ public abstract class AbstractWaiter implements Waiter {
                         station.setReceiver();
                     }
                     station.setCommunicationTarget(Station.defaultCommunicationTarget);
-                    station.setCurrentStatus(Status.SLOTING);
+                    station.setCurrentStatus(Stateful.Status.SLOTING);
                     station.onPostDIFS();
                 }
             }

@@ -1,7 +1,8 @@
 package me.zhangxl.antenna.infrastructure.station.wait;
 
 import me.zhangxl.antenna.frame.DataFrame;
-import me.zhangxl.antenna.infrastructure.station.BaseRole.Status;
+import me.zhangxl.antenna.infrastructure.station.Stateful.Status;
+import me.zhangxl.antenna.infrastructure.station.Stateful;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
@@ -28,7 +29,7 @@ public class ReceiverDataTimeOutWaiter extends AbstractWaiter {
 
     @Override
     Status getWaitingStatus() {
-        return Status.WAITING_DATA;
+        return Stateful.Status.WAITING_DATA;
     }
 
     @Override
