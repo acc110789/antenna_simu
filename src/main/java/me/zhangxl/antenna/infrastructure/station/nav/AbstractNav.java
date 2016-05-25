@@ -5,7 +5,6 @@ import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.station.Stateful;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
-import me.zhangxl.antenna.infrastructure.station.wait.AbstractWaiter;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -14,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  * Created by zhangxiaolong on 16/5/24.
  */
 abstract class AbstractNav implements NavTimer {
-    private static final Logger logger = SimuLoggerManager.getLogger(AbstractWaiter.class.getSimpleName());
+    private static final Logger logger = SimuLoggerManager.getLogger("NAV");
     final Station station;
 
     AbstractNav(Station station) {

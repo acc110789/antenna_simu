@@ -18,6 +18,7 @@ public class SrcMatchAction extends AbstractPairAction {
 
     @Override
     public void action() {
+        logger.info("%d src received PtsFrame",station.getId());
         station.setCommunicationTarget(frame.getTargetId());
         station.mSender.onPostRecvPTS(frame);
     }

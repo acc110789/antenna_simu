@@ -8,7 +8,6 @@ import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.DirectMedium;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.StationUtil;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.Pair;
@@ -27,7 +26,7 @@ import java.util.List;
  * Created by zhangxiaolong on 16/5/12.
  */
 public class PcpStation implements Locatable {
-
+    private static final Logger logger = SimuLoggerManager.getLogger("Pcp");
     private static PcpStation sInstance = new PcpStation();
     private final Pair<Double, Double> mLocation = new Pair<>(0.0, 0.0);
     private final int id = 0;
@@ -39,7 +38,6 @@ public class PcpStation implements Locatable {
      * 3. SENDING_PTS
      */
     private Status currentStatus = Status.WAITING_RTS;
-    private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
     private RtsFrame currentDealingRts;
     private DirectMedium.Info pcpInfo;
 
@@ -90,6 +88,7 @@ public class PcpStation implements Locatable {
                     receivingRtss.remove(frame);
                     if (!frame.isDirty()) {
                         currentDealingRts = (RtsFrame) frame;
+                        logger.info("received rts from: %d",currentDealingRts.getSrcId());
                         onPreSendSifsAndPts();
                     }
                     //如果是dirty的话,直接ignore,仅仅处理clean的frame
@@ -104,6 +103,7 @@ public class PcpStation implements Locatable {
 
     private void onPreSendSifsAndPts() {
         assert currentStatus == Status.WAITING_RTS;
+        logger.debug("onPreSendSifsAndPts()");
         setCurrentStatus(Status.SENDING_PTS);
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -115,6 +115,7 @@ public class PcpStation implements Locatable {
 
     private void onPreSendPts() {
         assert currentStatus == Status.SENDING_PTS;
+        logger.debug("onPreSendPts()");
         //计算src和target之间的通信过程是否会经过Pcp节点
         final boolean passByPcp = DirectMedium.cPass(currentDealingRts.getSrcId(),
                 currentDealingRts.getTargetId(), getId());

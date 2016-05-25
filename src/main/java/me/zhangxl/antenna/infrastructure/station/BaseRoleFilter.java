@@ -14,7 +14,7 @@ class BaseRoleFilter implements BaseRole {
 
     private final BaseRole mBaseRole;
 
-    BaseRoleFilter(BaseRole baseRole){
+    BaseRoleFilter(BaseRole baseRole) {
         this.mBaseRole = baseRole;
     }
 
@@ -48,7 +48,7 @@ class BaseRoleFilter implements BaseRole {
         mBaseRole.setCommunicationTarget(id);
     }
 
-    void sendFrame(Frame frame){
+    void sendFrame(Frame frame) {
         try {
             Medium.getInstance().putFrame((Station) mBaseRole, (Frame) frame.clone());
         } catch (CloneNotSupportedException e) {
@@ -57,42 +57,38 @@ class BaseRoleFilter implements BaseRole {
     }
 
     void onPostRecvMethod(Logger receiverLogger, String info, Frame frame,
-                          Stateful.Status lastStatus, Stateful.Status currentStatus, Runnable nextAction){
+                          Stateful.Status lastStatus, Stateful.Status currentStatus, Runnable nextAction) {
         receiverLogger.debug(info);
-        if(getCurrentStatus() == lastStatus){
-            if(getCommunicationTarget() != frame.getSrcId()){
-                receiverLogger.debug("%d this frame is not from its' communication target :%d",
-                        getId(),getCommunicationTarget());
-            } else if(getId() != frame.getTargetId()){
-                receiverLogger.debug("%d this frame from %d is not sent to %d",frame.getSrcId(),getId());
-            } else {
-                if(currentStatus != null) {
-                    setCurrentStatus(currentStatus);
-                }
-                if(nextAction != null){
-                    nextAction.run();
-                }
-            }
+        assert getCurrentStatus() == lastStatus;
+        if (getCommunicationTarget() != frame.getSrcId()) {
+            receiverLogger.debug("%d this frame is not from its' communication target :%d",
+                    getId(), getCommunicationTarget());
+        } else if (getId() != frame.getTargetId()) {
+            receiverLogger.debug("%d this frame from %d is not sent to %d", frame.getSrcId(), getId());
         } else {
-            receiverLogger.debug("%d receive a unexpected frame,ignore this frame :%s :%s",
-                    getId(),getCurrentStatus().toString(),frame.getClass().getSimpleName());
+            if (currentStatus != null) {
+                setCurrentStatus(currentStatus);
+            }
+            if (nextAction != null) {
+                nextAction.run();
+            }
         }
     }
 
     void onSendMethod(Logger senderLogger, String info, Stateful.Status lastStatus,
-                      Stateful.Status currentStatus, Runnable toPost, double postTime){
+                      Stateful.Status currentStatus, Runnable toPost, double postTime) {
         onSendMethod(senderLogger, info, lastStatus,
                 currentStatus, toPost, postTime, TimeTask.COMMON_PRIORITY);
     }
 
     void onSendMethod(Logger senderLogger, String info, Stateful.Status lastStatus,
-                      Stateful.Status currentStatus, Runnable toPost, double postTime, int priority){
+                      Stateful.Status currentStatus, Runnable toPost, double postTime, int priority) {
         senderLogger.debug(info);
         assert getCurrentStatus() == lastStatus;
-        if(currentStatus != null) {
+        if (currentStatus != null) {
             setCurrentStatus(currentStatus);
         }
-        if(toPost != null) {
+        if (toPost != null) {
             TimeController.getInstance().post(toPost, postTime, priority);
         }
     }

@@ -38,7 +38,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
     @Override
     public void onPreSendRTS(RtsFrame frame) {
         onSendMethod(logger, String.format("%d onPreSendRTS()", getId()),
-                Stateful.Status.SLOTING, Stateful.Status.SENDING_RTS, new Runnable() {
+                Status.SLOTING, Status.SENDING_RTS, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendRTS();
@@ -55,7 +55,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
      */
     @Override
     public void onPostSendRTS() {
-        onSendMethod(logger, String.format("%d onPostSendRTS()", getId()), Stateful.Status.SENDING_RTS, null, null, 0.0, 0);
+        onSendMethod(logger, String.format("%d onPostSendRTS()", getId()), Status.SENDING_RTS, null, null, 0.0, 0);
         new SenderPtsTimeOutWaiter(mStation).await();
     }
 
@@ -63,11 +63,11 @@ public class Sender extends BaseRoleFilter implements SenderRole {
      * 原来是等待一个sifs之后发送DataFrame
      * 现在是现等待Pcp节点给.
      */
-    private void onPreSendSIFSAndDATA() {
+    private void onPreSendPTSSIFSAndDATA() {
         double waitTime = PrecisionUtil.add(Config.getInstance().getSifs(), PtsFrame.getFrameTimeLength());
 
-        onSendMethod(logger, String.format("%d onPreSendSIFSAndDATA()", getId()), Stateful.Status.SENDING_DATA,
-                Stateful.Status.SENDING_DATA, new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendPTSSIFSAndDATA()", getId()), Status.SENDING_DATA,
+                Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendData(getDataToSend());
@@ -78,7 +78,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
     @Override
     public void onPreSendData(DataFrame dataFrame) {
         onSendMethod(logger, String.format("%d onPreSendData()", getId()),
-                Stateful.Status.SENDING_DATA, Stateful.Status.SENDING_DATA, new Runnable() {
+                Status.SENDING_DATA, Status.SENDING_DATA, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendDATA();
@@ -89,31 +89,27 @@ public class Sender extends BaseRoleFilter implements SenderRole {
 
     @Override
     public void onPostSendDATA() {
-        onSendMethod(logger, String.format("%d onPostSendDATA()", getId()), Stateful.Status.SENDING_DATA,
-                Stateful.Status.WAITING_ACK, null, 0.0, 0);
+        onSendMethod(logger, String.format("%d onPostSendDATA()", getId()), Status.SENDING_DATA,
+                Status.WAITING_ACK, null, 0.0, 0);
         new AckTimeOutWaiter(mStation).await();
     }
 
     /**
      * 在真实的环境下,只有没有被碰撞的frame才能收到,所以当发生碰撞时,不打log
-     * {@link #onPreSendSIFSAndDATA()}
-     * @param frame
+     * {@link #onPreSendPTSSIFSAndDATA()}
      */
     @Override
     public void onPostRecvPTS(PtsFrame frame) {
-        onPostRecvMethod(logger, String.format("%d onPostRecvPTS()", getId()),
-                frame, Stateful.Status.RECEIVING_PTS, Stateful.Status.SENDING_DATA, new Runnable() {
-                    @Override
-                    public void run() {
-                        onPreSendSIFSAndDATA();
-                    }
-                });
+        logger.debug(String.format("%d onPostRecvPTS()", getId()));
+        assert getCurrentStatus() == Status.RECEIVING_PTS;
+        setCurrentStatus(Status.SENDING_DATA);
+        onPreSendPTSSIFSAndDATA();
     }
 
     @Override
     public void onPostRecvACK(AckFrame frame) {
         onPostRecvMethod(logger, String.format("%d onPostRecvACK()", getId()),
-                frame, Stateful.Status.WAITING_ACK, null, null);
+                frame, Status.RECEIVING_ACK, null, null);
         new SenderDifsCooler(mStation).cool();
     }
 }

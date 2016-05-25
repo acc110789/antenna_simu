@@ -136,6 +136,7 @@ public class TestStation {
         logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
         logger.info("%-13s%#.14f", "rts  timeout", RtsFrame.getRtsTimeOut());
         logger.info("%-13s%#.14f", "eifs length", Config.getInstance().getEifs());
+        logger.info("%-13s%d", "parts", Config.getInstance().getPart());
         logger.ln();
         logger.info("**************************************");
         logger.info("**************************************");

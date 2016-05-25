@@ -38,8 +38,8 @@ public class Receiver extends BaseRoleFilter implements ReceiverRole {
     }
 
     private void onPreSendSIFSAndACK(final AckFrame frame) {
-        onSendMethod(logger, String.format("%d onPreSendSIFSAndACK()", getId()), Stateful.Status.SENDING_ACK,
-                Stateful.Status.SENDING_ACK, new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendSIFSAndACK()", getId()), Status.SENDING_ACK,
+                Status.SENDING_ACK, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendAck(frame);
@@ -49,8 +49,8 @@ public class Receiver extends BaseRoleFilter implements ReceiverRole {
 
     @Override
     public void onPreSendAck(AckFrame frame) {
-        onSendMethod(logger, String.format("%d onPreSendAck()", getId()), Stateful.Status.SENDING_ACK,
-                Stateful.Status.SENDING_ACK, new Runnable() {
+        onSendMethod(logger, String.format("%d onPreSendAck()", getId()), Status.SENDING_ACK,
+                Status.SENDING_ACK, new Runnable() {
                     @Override
                     public void run() {
                         onPostSendACK();
@@ -62,7 +62,7 @@ public class Receiver extends BaseRoleFilter implements ReceiverRole {
     @Override
     public void onPostSendACK() {
         logger.debug("%d onPostSendACK()", getId());
-        assert getCurrentStatus() == Stateful.Status.SENDING_ACK;
+        assert getCurrentStatus() == Status.SENDING_ACK;
         new DifsCooler(mStation).cool();
     }
 
@@ -71,8 +71,8 @@ public class Receiver extends BaseRoleFilter implements ReceiverRole {
      */
     @Override
     public void onPostRecvData(final DataFrame frame) {
-        onPostRecvMethod(logger, String.format("%d onPostRecvData()", getId()), frame, Stateful.Status.WAITING_DATA,
-                Stateful.Status.SENDING_ACK, new Runnable() {
+        onPostRecvMethod(logger, String.format("%d onPostRecvData()", getId()), frame, Status.RECEIVING_DATA,
+                Status.SENDING_ACK, new Runnable() {
                     @Override
                     public void run() {
                         onPreSendSIFSAndACK(frame.generateAckFrame());
