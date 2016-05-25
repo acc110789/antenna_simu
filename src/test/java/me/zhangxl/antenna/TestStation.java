@@ -75,7 +75,6 @@ public class TestStation {
         TimeController.getInstance().loop();
     }
 
-
     @Test
     public void twoStation() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
         printConfig();
@@ -135,10 +134,8 @@ public class TestStation {
         logger.info("%-13s%#.14f", "slot length", Config.getInstance().getSlotLength());
         logger.info("%-13s%#.14f", "rts  length", RtsFrame.getFrameTimeLength());
         logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
-        logger.info("%-13s%#.14f", "cts  timeout", CtsFrame.getCtsTimeOut());
         logger.info("%-13s%#.14f", "rts  timeout", RtsFrame.getRtsTimeOut());
         logger.info("%-13s%#.14f", "eifs length", Config.getInstance().getEifs());
-        logger.info("%-13s%#.14f", "next length", NextRoundFrame.getFrameTimeLength());
         logger.ln();
         logger.info("**************************************");
         logger.info("**************************************");

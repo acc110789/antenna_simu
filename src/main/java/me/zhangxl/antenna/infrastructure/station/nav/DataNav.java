@@ -22,4 +22,9 @@ public class DataNav extends AbstractNav {
                 DataFrame.getFrameTimeLength(),
                 Config.getInstance().getDifs());
     }
+
+    @Override
+    String getInfoToLog() {
+        return "receive a unknown DataFrame";
+    }
 }

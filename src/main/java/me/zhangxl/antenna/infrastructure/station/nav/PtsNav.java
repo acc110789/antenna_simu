@@ -22,4 +22,9 @@ public class PtsNav extends AbstractNav {
     double getNavDuration() {
         return frame.getNavDuration();
     }
+
+    @Override
+    String getInfoToLog() {
+        return "receive a PtsFrame";
+    }
 }

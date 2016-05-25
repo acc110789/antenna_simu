@@ -19,4 +19,9 @@ public class RtsNav extends AbstractNav {
     double getNavDuration() {
         return RtsFrame.getRtsNavDuration();
     }
+
+    @Override
+    String getInfoToLog() {
+        return "receive a unknown RtsFrame";
+    }
 }

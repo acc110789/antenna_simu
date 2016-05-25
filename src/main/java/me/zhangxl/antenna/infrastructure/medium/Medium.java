@@ -40,6 +40,11 @@ public class Medium {
                 //触发所有的节点
                 logger.info("定向天线模式,分析所有Station的位置信息......");
                 directMedium.analysisStationLocation();
+                for(Locatable locatable : stationList){
+                    if(locatable instanceof Station){
+                        ((Station) locatable).onPostDIFS();
+                    }
+                }
             }
         });
     }

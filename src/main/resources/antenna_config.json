@@ -6,9 +6,9 @@
   "MAX_CW": 5,
   "CURRENT_VERSION": "802.11CUSTOM",
   "802.11CUSTOM": {
-    "SLOT_LENGTH": 20e-6,
+    "SLOT_LENGTH": 20e-5,
     "SIFS": 10e-6,
-    "DEFAULT_CW": 3
+    "DEFAULT_CW": 4
   },
   "802.11B": {
     "SLOT_LENGTH": 20e-6,

@@ -7,6 +7,7 @@ import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
 import me.zhangxl.antenna.infrastructure.station.wait.AbstractWaiter;
 import me.zhangxl.antenna.util.SimuLoggerManager;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
 /**
@@ -27,7 +28,14 @@ abstract class AbstractNav implements NavTimer {
             station.setReceiver();
         }
         station.setCurrentStatus(Status.NAVING);
-        logger.info("%d set NAV",station.getId());
+
+        String format = "%d ";
+        if(!StringUtils.isEmpty(getInfoToLog())){
+            format += getInfoToLog();
+        }
+        format += " setNAV";
+        logger.info(format,station.getId());
+
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -38,4 +46,8 @@ abstract class AbstractNav implements NavTimer {
     }
 
     abstract double getNavDuration();
+
+    String getInfoToLog(){
+        return null;
+    }
 }
