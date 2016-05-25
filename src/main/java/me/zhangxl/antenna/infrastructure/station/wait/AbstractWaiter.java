@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  * Created by zhangxiaolong on 16/5/23.
  */
 public abstract class AbstractWaiter implements Waiter {
-    private static final Logger logger = SimuLoggerManager.getLogger(AbstractWaiter.class.getSimpleName());
+    private static final Logger logger = SimuLoggerManager.getLogger("Waiter");
     final Station station;
 
     AbstractWaiter(Station station){

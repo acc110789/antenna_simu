@@ -38,7 +38,7 @@ public class PcpStation implements Locatable {
      * 2. WAITING_RTS
      * 3. SENDING_PTS
      */
-    private Status currentStatus = null;
+    private Status currentStatus = Status.WAITING_RTS;
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
     private RtsFrame currentDealingRts;
     private DirectMedium.Info pcpInfo;
@@ -135,6 +135,7 @@ public class PcpStation implements Locatable {
 
         final int srcSector = getIndexOfId(currentDealingRts.getSrcId());
         final int targetSector = getIndexOfId(currentDealingRts.getTargetId());
+
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -145,17 +146,12 @@ public class PcpStation implements Locatable {
                 }
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
-        Medium.getInstance().putFrame(this, frame, srcSector);
-    }
-
-    private List<Integer> getOthersSector(){
-        List<Integer> list = new ArrayList<>();
-        for (int i = 0; i < Config.getInstance().getPart(); i++) {
-            list.add(i);
+        if(srcSector == targetSector) {
+            logger.info("PcpStation begin send pts to src and target sector: %d",srcSector);
+        } else {
+            logger.info("PcpStation begin send pts to src sector: %d",srcSector);
         }
-        list.remove(getIndexOfId(currentDealingRts.getSrcId()));
-        list.remove(getIndexOfId(currentDealingRts.getTargetId()));
-        return list;
+        Medium.getInstance().putFrame(this, frame, srcSector);
     }
 
     /**
@@ -171,7 +167,20 @@ public class PcpStation implements Locatable {
                 sendPtsToOthers(passByPcp,getOthersSector());
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
-        Medium.getInstance().putFrame(this, frame, getIndexOfId(currentDealingRts.getTargetId()));
+
+        int targetSector = getIndexOfId(currentDealingRts.getTargetId());
+        logger.info("PcpStation begin send pts to target sector: %d",targetSector);
+        Medium.getInstance().putFrame(this, frame,targetSector);
+    }
+
+    private List<Integer> getOthersSector(){
+        List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < Config.getInstance().getPart(); i++) {
+            list.add(i);
+        }
+        list.remove(getIndexOfId(currentDealingRts.getSrcId()));
+        list.remove(getIndexOfId(currentDealingRts.getTargetId()));
+        return list;
     }
 
     /**
@@ -182,6 +191,7 @@ public class PcpStation implements Locatable {
     private void sendPtsToOthers(final boolean passByPcp, final List<Integer> sectorToSend) {
         if(sectorToSend.size() == 0){
             onPostSendPts(passByPcp);
+            return;
         }
         PtsFrame frame = new PtsFrame(currentDealingRts.getSrcId(),
                 currentDealingRts.getTargetId(), passByPcp,
@@ -193,17 +203,21 @@ public class PcpStation implements Locatable {
                 sendPtsToOthers(passByPcp,sectorToSend);
             }
         },frame.getTransmitDuration(),TimeTask.SEND);
+        logger.debug("pcp send pts to sector: %d",sector);
         Medium.getInstance().putFrame(this,frame,sector);
     }
 
     private void onPostSendPts(boolean passByPcp) {
+        logger.debug("Pcp onPostSendRts");
         assert currentStatus == Status.SENDING_PTS;
         if (passByPcp) {
             currentStatus = Status.NAVING;
+            logger.debug("Pcp setNav");
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
                     assert currentStatus == Status.NAVING;
+                    logger.debug("Pcp unSetNav");
                     setCurrentStatus(Status.WAITING_RTS);
                 }
             }, PtsFrame.getBaseNav(), TimeTask.SEND);
