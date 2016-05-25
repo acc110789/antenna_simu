@@ -231,6 +231,9 @@ public class Station extends AbstractRole implements Locatable {
         return receivingFrames;
     }
 
+    /**
+     * @return 如果已经发送了RTS,说明已经是sender的角色
+     */
     public boolean isSender(){
         return mRole == Role.SENDER;
     }

@@ -44,6 +44,10 @@ public class OnReceivePtsFrame extends OnReceiveFrameLogic {
             new PtsNav(station, (PtsFrame) frame).startNav();
         } else {
             //其它情况的话就当没有收到这个PtsFrame,需要进行状态变更
+            if(station.isSender()){
+                station.backOffDueToTimeout();
+                station.setReceiver();
+            }
             new DifsCooler(station).cool();
         }
     }

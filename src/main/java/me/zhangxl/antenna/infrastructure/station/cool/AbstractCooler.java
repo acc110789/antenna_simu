@@ -21,14 +21,9 @@ public abstract class AbstractCooler implements Cooler {
      * {@link Station#onPostDIFS()}
      */
     public void cool(){
-        toRunBeforeCool();
         station.setLastCoolingTimeToNow();
         station.setCurrentStatus(Stateful.Status.COOLING);
         station.setCommunicationTarget(Station.defaultCommunicationTarget);
-        if(station.isSender()) {
-            station.backOffDueToTimeout();
-            station.setReceiver();
-        }
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -42,8 +37,6 @@ public abstract class AbstractCooler implements Cooler {
     }
 
     abstract double getCoolDuration();
-
-    void toRunBeforeCool(){}
 
     /**
      * @return 这个cooling的过程没有被打断

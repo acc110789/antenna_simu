@@ -28,6 +28,10 @@ public abstract class OnReceiveFrameLogic {
                     onClearFrame();
                 } else if (!hasReceivingFrames()) {
                     //是最后一个脏的frame,则马上等待信道冷却
+                    if(station.isSender()){
+                        station.backOffDueToTimeout();
+                        station.setReceiver();
+                    }
                     new EifsCooler(station).cool();
                 }
             }

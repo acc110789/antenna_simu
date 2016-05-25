@@ -5,7 +5,7 @@ import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.infrastructure.station.cool.SenderDifsCooler;
+import me.zhangxl.antenna.infrastructure.station.cool.DifsCooler;
 import me.zhangxl.antenna.infrastructure.station.wait.AckTimeOutWaiter;
 import me.zhangxl.antenna.infrastructure.station.wait.SenderPtsTimeOutWaiter;
 import me.zhangxl.antenna.util.Config;
@@ -110,6 +110,8 @@ public class Sender extends BaseRoleFilter implements SenderRole {
     public void onPostRecvACK(AckFrame frame) {
         onPostRecvMethod(logger, String.format("%d onPostRecvACK()", getId()),
                 frame, Status.RECEIVING_ACK, null, null);
-        new SenderDifsCooler(mStation).cool();
+        mStation.onSendSuccess();
+        mStation.setReceiver();
+        new DifsCooler(mStation).cool();
     }
 }

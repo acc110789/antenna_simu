@@ -24,6 +24,10 @@ public class OnReceiveAckFrame extends OnReceiveFrameLogic {
         if(frame.getTargetId() == station.getId()) {
             station.mSender.onPostRecvACK((AckFrame) frame);
         } else {
+            if(station.isSender()){
+                station.backOffDueToTimeout();
+                station.setReceiver();
+            }
             new DifsCooler(station).cool();
         }
     }
