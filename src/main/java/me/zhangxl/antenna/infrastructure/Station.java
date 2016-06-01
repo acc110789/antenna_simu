@@ -1,13 +1,15 @@
 package me.zhangxl.antenna.infrastructure;
 
-import me.zhangxl.antenna.frame.*;
+import me.zhangxl.antenna.frame.AckFrame;
+import me.zhangxl.antenna.frame.CtsFrame;
+import me.zhangxl.antenna.frame.DataFrame;
+import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.frame_process.ProcessorHelper;
+import me.zhangxl.antenna.frame_process.SendRtsProcessor;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.Pair;
-import me.zhangxl.antenna.util.SimuLoggerManager;
-import me.zhangxl.antenna.util.TimeLogger;
+import me.zhangxl.antenna.util.*;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -20,13 +22,12 @@ import java.util.List;
 public class Station extends AbstractRole{
 
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
-    private final Sender mSender;
-    private final Receiver mReceiver;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
 
     private DataFrame mCurrentSendingFrame;
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
+    private double mLastCoolTime = 0;
     /**
      * 已经发送成功的frames
      */
@@ -38,8 +39,6 @@ public class Station extends AbstractRole{
 
     public Station(int id) {
         super(id);
-        this.mSender = new Sender(this);
-        this.mReceiver = new Receiver(this);
         StationUtil.stationList.add(this);
         Medium.getInstance().register(this);
     }
@@ -53,7 +52,7 @@ public class Station extends AbstractRole{
         return this.mLocation;
     }
 
-    int getWaitingRequestNum() {
+    public int getWaitingRequestNum() {
         return mDataFramesToSend.size();
     }
 
@@ -143,11 +142,11 @@ public class Station extends AbstractRole{
                 logger.debug("%d start transmit data frame sendDataIfNeed", this.getId());
             }
             mCurrentSendingFrame.setStartTimeNow();
-            mSender.onPreSendRTS(mCurrentSendingFrame.generateRtsFrame());
+            new SendRtsProcessor(this).process(mCurrentSendingFrame.generateRtsFrame());
         }
     }
 
-    void putDataFrame(int targetId, long length) {
+    public void putDataFrame(int targetId, long length) {
         mDataFramesToSend.add(new DataFrame(getId(), targetId));
     }
 
@@ -173,7 +172,7 @@ public class Station extends AbstractRole{
      */
     public boolean beginReceiveFrame(final Frame frame){
         //当station处于写数据模式  或者 处于NAV中时,不接受数据
-        if(!getCurrentStatus().isReadMode()){
+        if(getCurrentStatus() == Status.NAV || !getCurrentStatus().isReadMode()){
             return false;
         }
         for(Frame frame1 : receivingFrames){
@@ -205,17 +204,7 @@ public class Station extends AbstractRole{
                 receivingFrames.remove(frame);
                 if(!frame.isDirty()) {
                     //接收成功
-                    if (frame instanceof RtsFrame) {
-                        mReceiver.onPostRecvRTS((RtsFrame) frame);
-                    } else if (frame instanceof CtsFrame) {
-                        mSender.onPostRecvCTS((CtsFrame) frame);
-                    } else if (frame instanceof DataFrame) {
-                        mReceiver.onPostRecvData((DataFrame) frame);
-                    } else if (frame instanceof AckFrame) {
-                        mSender.onPostRecvACK((AckFrame) frame);
-                    } else {
-                        throw new IllegalArgumentException("unspecified frame type " + frame.getClass().getSimpleName());
-                    }
+                    ProcessorHelper.process(Station.this,frame);
                 } else if(getCurrentStatus() == Status.IDLE_RECEIVING && receivingFrames.isEmpty()) {
                     //接收失败且当前状态处于IDLE_RECEIVING状态
                     setCurrentStatus(Status.IDLE2);
@@ -229,6 +218,14 @@ public class Station extends AbstractRole{
     @Override
     public DataFrame getDataToSend() {
         return mCurrentSendingFrame;
+    }
+
+    public void setLastCoolTimeNow(){
+        this.mLastCoolTime = TimeController.getInstance().getCurrentTime();
+    }
+
+    public double getLastCoolTime(){
+        return this.mLastCoolTime;
     }
 
 

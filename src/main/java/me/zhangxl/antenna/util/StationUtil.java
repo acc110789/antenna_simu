@@ -1,7 +1,7 @@
-package me.zhangxl.antenna.infrastructure;
+package me.zhangxl.antenna.util;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.infrastructure.Station;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ public class StationUtil {
 
     private static Random random = new Random(System.currentTimeMillis());
 
-    static final List<Station> stationList = new ArrayList<>();
+    public static final List<Station> stationList = new ArrayList<>();
 
     public static void clear(){
         stationList.clear();
@@ -44,7 +44,7 @@ public class StationUtil {
     /**
      * @return frame1 和 frame2有重叠部分,即使没有交集,表明不会发生碰撞
      */
-    static boolean hasIntersection(Frame frame1, Frame frame2){
+    public static boolean hasIntersection(Frame frame1, Frame frame2){
         return frame2.getStartTime() < frame1.getEndTime()
                 && frame1.getStartTime() < frame2.getEndTime();
     }
