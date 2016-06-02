@@ -2,7 +2,6 @@ package me.zhangxl.antenna.frame;
 
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.PrecisionUtil;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
 import org.apache.logging.log4j.Logger;
@@ -17,13 +16,13 @@ import java.util.Random;
 public class DataFrame extends Frame {
 
     private static Logger logger = SimuLoggerManager.getLogger(DataFrame.class.getSimpleName());
-    static final long frameLength = Config.getInstance().getFixDataLength()
+    //整个桢的长度,包括物理层的header,mac层的header,包括数据的长度
+    private static final long frameLength = Config.getInstance().getFixDataLength()
             + Config.getInstance().getPhyHeader()
             + Config.getInstance().getMacCtsOrAckHeader();
-    private static final double frameTimeLength;
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
-    //数据部分的长度
+    //仅仅数据部分的长度
     private static long dataLength = Config.getInstance().getFixDataLength();
     private double startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
     private int failTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
@@ -34,22 +33,9 @@ public class DataFrame extends Frame {
         this(srcId, targetId, nextSerialNum());
     }
 
-    public DataFrame(int srcId, int targetId, int id) {
+    private DataFrame(int srcId, int targetId, int id) {
         super(srcId, targetId, frameLength);
         this.id = id;
-    }
-
-    private static double dataTimeOut ;
-    static {
-        frameTimeLength = PrecisionUtil.div(frameLength,Config.getInstance().getBandWidth());
-        dataTimeOut = PrecisionUtil.add(Config.getInstance().getSifs(),
-                Config.getInstance().getDifs(),
-                frameTimeLength);
-        dataTimeOut = PrecisionUtil.sub(dataTimeOut,Config.getInstance().getDifs());
-    }
-
-    public static double getDataTimeOut() {
-        return dataTimeOut;
     }
 
     private static int nextSerialNum() {
@@ -96,7 +82,7 @@ public class DataFrame extends Frame {
         return backOff == 0;
     }
 
-    public int getBackOff(){
+    public int getBackOff() {
         return backOff;
     }
 
@@ -106,17 +92,7 @@ public class DataFrame extends Frame {
         }
     }
 
-    @Override
-    public double getNavDuration() {
-        throw new IllegalStateException("data frame can not hava nav");
-    }
-
     public long getLength() {
         return dataLength;
     }
-
-    public static double getFrameTimeLength(){
-        return frameTimeLength;
-    }
-
 }

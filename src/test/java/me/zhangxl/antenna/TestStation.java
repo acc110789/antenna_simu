@@ -1,15 +1,10 @@
 package me.zhangxl.antenna;
 
-import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Station;
-import me.zhangxl.antenna.util.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.PrecisionUtil;
-import me.zhangxl.antenna.util.SimuLoggerManager;
-import me.zhangxl.antenna.util.TimeLogger;
+import me.zhangxl.antenna.util.*;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -133,8 +128,7 @@ public class TestStation {
         logger.info("%-13s%#.14f", "slot length", Config.getInstance().getSlotLength());
         logger.info("%-13s%#.14f", "rts  length", new RtsFrame(-1, -1).getTransmitDuration());
         logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
-        logger.info("%-13s%#.14f", "cts  timeout", CtsFrame.getCtsTimeOut());
-        logger.info("%-13s%#.14f", "rts  timeout", RtsFrame.getRtsTimeOut());
+        logger.info("%-13s%#.14f", "cts  timeout", Constant.getCtsTimeOut());
         logger.info("%-13s%#.14f", "eifs length", Config.getInstance().getEifs());
         logger.ln();
         logger.info("**************************************");
@@ -171,7 +165,7 @@ public class TestStation {
     @Test
     public void testFourStationLong() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
-        testStations(4, 0, 100);
+        testStations(4, 0, 2);
     }
 
     @Test

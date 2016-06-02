@@ -1,12 +1,6 @@
 package me.zhangxl.antenna.infrastructure.clock;
 
-import me.zhangxl.antenna.frame.CtsFrame;
-import me.zhangxl.antenna.frame.DataFrame;
-import me.zhangxl.antenna.frame.RtsFrame;
-import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.PrecisionUtil;
-import me.zhangxl.antenna.util.SimuLoggerManager;
-import me.zhangxl.antenna.util.TimeLogger;
+import me.zhangxl.antenna.util.*;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -102,15 +96,13 @@ public class TimeController {
                 text = "SLOT";
             } else if(PrecisionUtil.sub(time,Config.getInstance().getEifs()) == 0){
                 text = "EIFS";
-            } else if(PrecisionUtil.sub(time, RtsFrame.getTimeLength()) == 0){
+            } else if(PrecisionUtil.sub(time, Constant.getRtsTimeLength()) == 0){
                 text = "RTS";
-            } else if(PrecisionUtil.sub(time, CtsFrame.getCtsTimeLength()) == 0){
+            } else if(PrecisionUtil.sub(time, Constant.getCtsTimeLength()) == 0){
                 text = "CTS/ACK";
-            } else if(PrecisionUtil.sub(time, DataFrame.getFrameTimeLength()) == 0){
+            } else if(PrecisionUtil.sub(time, Constant.getDataTimeLength()) == 0){
                 text = "DATA";
-            } else if(PrecisionUtil.sub(time,RtsFrame.getRtsTimeOut()) == 0){
-                text = "RTS timeout";
-            } else if(PrecisionUtil.sub(time,CtsFrame.getCtsTimeOut()) == 0){
+            }  else if(PrecisionUtil.sub(time,Constant.getCtsTimeOut()) == 0){
                 text = "CTS/ACK timeout";
             } else {
                 text = String.format("%#.14f", time);

@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.nav;
 
-import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.util.Constant;
 
 /**
  * Created by zhangxiaolong on 16/6/2.
@@ -14,6 +14,6 @@ public class CtsNav extends AbstractNav {
 
     @Override
     double getNavDuration() {
-        return CtsFrame.getStaticNavDuration();
+        return Constant.getCtsNav();
     }
 }

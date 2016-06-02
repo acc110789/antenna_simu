@@ -34,6 +34,11 @@ public class SendRtsProcessor extends AbstractProcessor {
         sendFrame(frame);
     }
 
+    @Override
+    Status getRightStatus() {
+        return null;
+    }
+
     private void onPostSendRTS() {
         logger.debug("%d onPostSendRTS()",station.getId());
         assert station.getCurrentStatus() == Status.SENDING_RTS;

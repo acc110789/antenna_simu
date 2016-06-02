@@ -65,4 +65,47 @@ public class Constant {
         return ackTimeOut;
     }
 
+    private static final double rtsTimeLength = PrecisionUtil.div(Config.getInstance().getRtsLength(),
+            Config.getInstance().getBandWidth());
+    /**
+     * @return 同样是rtsFrame那一小段时间片的长度
+     */
+    public static double getRtsTimeLength(){
+        return rtsTimeLength;
+    }
+
+    //没有一个所谓的rtsTimeOut
+
+    //下面是各种nav的函数
+
+    //收到一个不认识的ack是没有nav的,或者说ack的nav就是0吧
+
+    private static final double dataNav = PrecisionUtil.add(Config.getInstance().getSifs(),
+            getAckTimeLength());
+    /**
+     * @return 收到一个不认识的DataFrame之后应该设置的nav长度
+     */
+    public static double getDataNav(){
+        return dataNav;
+    }
+
+    private static final double ctsNav = PrecisionUtil.add(Config.getInstance().getSifs(),
+            getDataTimeLength(),getDataNav());
+    /**
+     * @return 收到不认识的cts之后应该设置的nav的长度
+     */
+    public static double getCtsNav(){
+        return ctsNav;
+    }
+
+    private static final double rtsNav = PrecisionUtil.add(Config.getInstance().getSifs(),
+            getCtsTimeLength(),getCtsNav());
+
+    /**
+     * @return 收到不认识的rts之后应该设置的nav的长度
+     */
+    public static double getRtsNav(){
+        return rtsNav;
+    }
+
 }

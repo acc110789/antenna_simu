@@ -32,14 +32,6 @@ public abstract class Frame implements Cloneable{
         return dirty;
     }
 
-    /**
-     * 收到与不是自己节点的Frame的时候,要设置NAV
-     * NAV完毕之后,立马启动一个DIFS,DIFS之后则
-     * 开始backOff
-     * @return NAV持续的时间
-     */
-    public abstract double getNavDuration();
-
     public double getEndDuration(){
         return PrecisionUtil.sub(getEndTime(),TimeController.getInstance().getCurrentTime());
     }

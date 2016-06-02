@@ -57,7 +57,6 @@ class DataProcessor extends AbstractProcessor {
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
         sendFrame(frame);
-        sendFrame(frame);
     }
 
     private void onPostSendACK() {

@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.nav;
 
-import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.util.Constant;
 
 /**
  * Created by zhangxiaolong on 16/6/1.
@@ -14,6 +14,6 @@ public class RtsNav extends AbstractNav {
 
     @Override
     double getNavDuration() {
-        return RtsFrame.getStaticNavDuration();
+        return Constant.getRtsNav();
     }
 }
