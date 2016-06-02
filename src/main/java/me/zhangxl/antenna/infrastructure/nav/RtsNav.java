@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.nav;
+package me.zhangxl.antenna.infrastructure.nav;
 
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.util.Constant;

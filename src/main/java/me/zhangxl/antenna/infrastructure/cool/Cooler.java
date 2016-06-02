@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.cool;
+package me.zhangxl.antenna.infrastructure.cool;
 
 /**
  * Created by zhangxiaolong on 16/6/1.

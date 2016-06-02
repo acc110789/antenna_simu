@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.cool;
+package me.zhangxl.antenna.infrastructure.cool;
 
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;

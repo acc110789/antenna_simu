@@ -1,6 +1,6 @@
 package me.zhangxl.antenna.infrastructure.frame_process;
 
-import me.zhangxl.antenna.cool.DifsCool;
+import me.zhangxl.antenna.infrastructure.cool.DifsCool;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;

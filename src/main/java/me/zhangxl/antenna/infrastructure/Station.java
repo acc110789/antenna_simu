@@ -1,6 +1,6 @@
 package me.zhangxl.antenna.infrastructure;
 
-import me.zhangxl.antenna.cool.EifsCool;
+import me.zhangxl.antenna.infrastructure.cool.EifsCool;
 import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.DataFrame;

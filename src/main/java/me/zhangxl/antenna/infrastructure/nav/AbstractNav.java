@@ -1,6 +1,6 @@
-package me.zhangxl.antenna.nav;
+package me.zhangxl.antenna.infrastructure.nav;
 
-import me.zhangxl.antenna.cool.DifsCool;
+import me.zhangxl.antenna.infrastructure.cool.DifsCool;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;

@@ -8,7 +8,7 @@ import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.timeout.WaitDataTimeOut;
-import me.zhangxl.antenna.nav.RtsNav;
+import me.zhangxl.antenna.infrastructure.nav.RtsNav;
 import me.zhangxl.antenna.util.Config;
 
 import static me.zhangxl.antenna.infrastructure.base.BaseRole.defaultCommunicationTarget;
