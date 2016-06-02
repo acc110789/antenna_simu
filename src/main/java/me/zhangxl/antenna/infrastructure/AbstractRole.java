@@ -2,9 +2,7 @@ package me.zhangxl.antenna.infrastructure;
 
 import me.zhangxl.antenna.infrastructure.base.BaseRole;
 import me.zhangxl.antenna.infrastructure.base.Stateful;
-import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.util.Config;
 
 /**
  * 对于全向天线来说,所有的Statin的状态都是同步的.
@@ -34,28 +32,6 @@ abstract class AbstractRole implements BaseRole {
         this.id = id;
     }
 
-    abstract void backOffDueToTimeout();
-    abstract void onFinish();
-    abstract void onSendSuccess();
-
-    @Override
-    public void endCommunication(boolean success, boolean fail){
-        assert getCurrentStatus() != Stateful.Status.IDLE1;
-        assert getCurrentStatus() != Stateful.Status.IDLE2;
-        if(getCurrentStatus().isSender()) {
-            //如果发送成功,则统计数据
-            if (success) {
-                onSendSuccess();
-            }
-            //如果发送失败,则将backOff窗口加倍
-            if (fail) {
-                backOffDueToTimeout();
-            }
-        }
-        onFinish();
-    }
-
-
     @Override
     public int getCommunicationTarget() {
         return this.currentCommunicationTarget;
@@ -71,8 +47,6 @@ abstract class AbstractRole implements BaseRole {
         return this.currentStatus;
     }
 
-    abstract void onPostDIFS();
-
     abstract void assertNoReceivingFrameOnWriteMode();
 
     @Override
@@ -85,28 +59,6 @@ abstract class AbstractRole implements BaseRole {
         if(this.currentStatus.isWriteMode()){
             //保证在writeMode的时候没有正在接受的frame
             assertNoReceivingFrameOnWriteMode();
-        }
-        if(getCurrentStatus() == Stateful.Status.IDLE1) {
-            TimeController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    if(getCurrentStatus() == Stateful.Status.IDLE1){
-                        setCurrentStatus(Stateful.Status.SLOTING);
-                    }
-                }
-            }, Config.getInstance().getDifs());
-        } else if(getCurrentStatus() == Stateful.Status.IDLE2){
-            TimeController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    if(getCurrentStatus() == Stateful.Status.IDLE2){
-                        setCurrentStatus(Stateful.Status.SLOTING);
-                    }
-                }
-            },Config.getInstance().getEifs());
-        }
-        else if(getCurrentStatus() == Stateful.Status.SLOTING){
-            onPostDIFS();
         }
     }
 

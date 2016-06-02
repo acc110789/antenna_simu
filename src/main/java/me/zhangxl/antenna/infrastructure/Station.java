@@ -1,11 +1,12 @@
 package me.zhangxl.antenna.infrastructure;
 
+import me.zhangxl.antenna.cool.EifsCool;
 import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.frame_process.ProcessorHelper;
-import me.zhangxl.antenna.frame_process.SendRtsProcessor;
+import me.zhangxl.antenna.infrastructure.frame_process.ProcessorHelper;
+import me.zhangxl.antenna.infrastructure.frame_process.SendRtsProcessor;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
@@ -23,7 +24,6 @@ public class Station extends AbstractRole{
 
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
     private Pair<Double, Double> mLocation; //定向天线时需要保证
-
     private DataFrame mCurrentSendingFrame;
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
@@ -59,27 +59,11 @@ public class Station extends AbstractRole{
     /**
      * 遭受到了碰撞
      */
-    @Override
-    void backOffDueToTimeout() {
+    public void onFail() {
         TimeController.getInstance().addCollitionTimes();
         mCurrentSendingFrame.addCollitionTimes();
     }
 
-    @Override
-    void onFinish() {
-        setCommunicationTarget(defaultCommunicationTarget);
-        Medium.getInstance().notify(this);
-        for(Frame frame : receivingFrames){
-            frame.setDirty();
-        }
-        if(receivingFrames.isEmpty()){
-            setCurrentStatus(Status.IDLE1);
-        } else {
-            setCurrentStatus(Status.IDLE_RECEIVING);
-        }
-    }
-
-    @Override
     public void onPostDIFS() {
         logger.debug("%d onPostDIFS", getId());
         assert getCurrentStatus() == Status.SLOTING;
@@ -150,8 +134,7 @@ public class Station extends AbstractRole{
         mDataFramesToSend.add(new DataFrame(getId(), targetId));
     }
 
-    @Override
-    public void onSendSuccess() {
+    public void onSuccess() {
         logger.info("%d send a data successfully",getId());
         TimeController.getInstance().addSuccessTimes();
         TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
@@ -205,9 +188,9 @@ public class Station extends AbstractRole{
                 if(!frame.isDirty()) {
                     //接收成功
                     ProcessorHelper.process(Station.this,frame);
-                } else if(getCurrentStatus() == Status.IDLE_RECEIVING && receivingFrames.isEmpty()) {
-                    //接收失败且当前状态处于IDLE_RECEIVING状态
-                    setCurrentStatus(Status.IDLE2);
+                } else if(receivingFrames.isEmpty()) {
+                    //最后一个脏的桢之后进入eifs信道冷却
+                    new EifsCool(Station.this).cool();
                 }
                 //接收失败且当前状态不是处于IDLE_RECEIVING的状态的时候就当作没有什么都没有发生过,上层发现timeout之后会自行处理
             }

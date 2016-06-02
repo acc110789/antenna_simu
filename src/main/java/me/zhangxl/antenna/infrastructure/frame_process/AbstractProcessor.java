@@ -1,4 +1,4 @@
-package me.zhangxl.antenna.frame_process;
+package me.zhangxl.antenna.infrastructure.frame_process;
 
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
@@ -8,6 +8,9 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
+ * 这里指定一个原则:如果在不恰当的阶段收到了一个完全不相关的桢
+ * 则设置这个桢对应的nav。
+ * 原来的原则是直接ignore。
  * Created by zhangxiaolong on 16/6/1.
  */
 abstract class AbstractProcessor implements Processor {

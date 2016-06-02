@@ -8,7 +8,7 @@ import me.zhangxl.antenna.util.Config;
  */
 public class EifsCool extends AbstractCool {
 
-    EifsCool(Station station) {
+    public EifsCool(Station station) {
         super(station);
     }
 

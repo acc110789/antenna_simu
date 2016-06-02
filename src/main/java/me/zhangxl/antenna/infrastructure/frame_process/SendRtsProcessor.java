@@ -1,12 +1,12 @@
-package me.zhangxl.antenna.frame_process;
+package me.zhangxl.antenna.infrastructure.frame_process;
 
-import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
+import me.zhangxl.antenna.infrastructure.timeout.WaitCtsTimeOut;
 
 /**
  * 发送Rts的逻辑部分
@@ -37,15 +37,6 @@ public class SendRtsProcessor extends AbstractProcessor {
     private void onPostSendRTS() {
         logger.debug("%d onPostSendRTS()",station.getId());
         assert station.getCurrentStatus() == Status.SENDING_RTS;
-        station.setCurrentStatus(Status.WAITING_CTS);
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                if (station.getCurrentStatus() == Status.WAITING_CTS) {
-                    logger.info("%d after onPostSendRTS() wait CTS timeout",station.getId());
-                    station.endCommunication(false,true);
-                }
-            }
-        }, CtsFrame.getCtsTimeOut(), TimeTask.CTS_TIMEOUT);
+        new WaitCtsTimeOut(station).await();
     }
 }

@@ -42,6 +42,10 @@ public class RtsFrame extends Frame {
         return navDuration;
     }
 
+    public static double getStaticNavDuration(){
+        return navDuration;
+    }
+
     public static double getTimeLength(){
         return rtsTimeLength;
     }

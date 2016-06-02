@@ -1,5 +1,6 @@
-package me.zhangxl.antenna.frame_process;
+package me.zhangxl.antenna.infrastructure.frame_process;
 
+import me.zhangxl.antenna.cool.DifsCool;
 import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
@@ -7,6 +8,8 @@ import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.util.Config;
+
+import static me.zhangxl.antenna.infrastructure.base.BaseRole.defaultCommunicationTarget;
 
 /**
  * 收到DataFrame之后的处理逻辑
@@ -40,7 +43,7 @@ class DataProcessor extends AbstractProcessor {
     private void onPreSendSIFSAndACK(final AckFrame frame) {
         logger.debug("%d onPreSendSIFSAndACK()", station.getId());
         assert station.getCurrentStatus() == Status.RECEIVING_DATA;
-        station.setCurrentStatus(Status.SENDING_SIFS_ACK);
+        station.setCurrentStatus(Status.SENDING_ACK);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -51,8 +54,7 @@ class DataProcessor extends AbstractProcessor {
 
     private void onPreSendAck(AckFrame frame) {
         logger.debug("%d onPreSendAck()", station.getId());
-        assert station.getCurrentStatus() == Status.SENDING_SIFS_ACK;
-        station.setCurrentStatus(Status.SENDING_ACK);
+        assert station.getCurrentStatus() == Status.SENDING_ACK;
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -66,6 +68,7 @@ class DataProcessor extends AbstractProcessor {
     private void onPostSendACK() {
         logger.debug("%d onPostSendACK()", station.getId());
         assert station.getCurrentStatus() == Status.SENDING_ACK;
-        station.endCommunication(true, false);
+        station.setCommunicationTarget(defaultCommunicationTarget);
+        new DifsCool(station).cool();
     }
 }

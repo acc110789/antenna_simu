@@ -25,13 +25,13 @@ public interface Stateful {
          */
         IDLE_RECEIVING(false, Mode.READ_MODE),
 
+        COOLING(false,Mode.READ_MODE),
         SLOTING(false, Mode.READ_MODE),
         //note: 没有WAITING_RTS这个状态
         SENDING_RTS(true, Mode.WRITE_MODE),
         RECEIVING_RTS(false, Mode.READ_MODE),
         WAITING_CTS(true, Mode.READ_MODE),
 
-        SENDING_SIFS_CTS(false, Mode.WRITE_MODE),
         SENDING_CTS(false, Mode.WRITE_MODE),
         RECEIVING_CTS(true, Mode.READ_MODE),
         WAITING_DATA(false, Mode.READ_MODE),
@@ -45,7 +45,7 @@ public interface Stateful {
         SENDING_ACK(false, Mode.WRITE_MODE),
         RECEIVING_ACK(true, Mode.READ_MODE),
 
-        COOLING(false,Mode.READ_MODE),
+
         NAV(false,null);
 
         final Boolean sender;

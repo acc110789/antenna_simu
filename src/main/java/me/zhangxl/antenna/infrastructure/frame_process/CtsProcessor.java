@@ -1,13 +1,12 @@
-package me.zhangxl.antenna.frame_process;
+package me.zhangxl.antenna.infrastructure.frame_process;
 
-import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
-import me.zhangxl.antenna.infrastructure.base.Stateful;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
+import me.zhangxl.antenna.infrastructure.timeout.WaitAckTimeOut;
 import me.zhangxl.antenna.util.Config;
 
 /**
@@ -41,7 +40,7 @@ class CtsProcessor extends AbstractProcessor {
     private void onPreSendSIFSAndDATA() {
         logger.debug("%d onPreSendSIFSAndDATA()", station.getId());
         assert station.getCurrentStatus() == Status.RECEIVING_CTS;
-        station.setCurrentStatus(Status.SENDING_SIFS_DATA);
+        station.setCurrentStatus(Status.SENDING_DATA);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -52,8 +51,7 @@ class CtsProcessor extends AbstractProcessor {
 
     private void onPreSendData(DataFrame dataFrame) {
         logger.debug("%d onPreSendData()", station.getId());
-        assert station.getCurrentStatus() == Status.SENDING_SIFS_DATA;
-        station.setCurrentStatus(Status.SENDING_DATA);
+        assert station.getCurrentStatus() == Status.SENDING_DATA;
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -66,15 +64,6 @@ class CtsProcessor extends AbstractProcessor {
     private void onPostSendDATA() {
         logger.debug("%d onPostSendDATA()", station.getId());
         assert station.getCurrentStatus() == Status.SENDING_DATA;
-        station.setCurrentStatus(Status.WAITING_ACK);
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                if (station.getCurrentStatus() == Stateful.Status.WAITING_ACK) {
-                    logger.info("%d after onPostSendDATA(),wait ack timeout", station.getId());
-                    station.endCommunication(false, true);
-                }
-            }
-        }, AckFrame.getAckTimeOut(), TimeTask.ACK_TIMEOUT);
+        new WaitAckTimeOut(station).await();
     }
 }
