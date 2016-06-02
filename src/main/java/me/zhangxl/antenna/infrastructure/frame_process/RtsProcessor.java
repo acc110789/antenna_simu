@@ -18,29 +18,29 @@ import static me.zhangxl.antenna.infrastructure.base.BaseRole.defaultCommunicati
  * 收到Rts之后的处理逻辑
  * Created by zhangxiaolong on 16/6/1.
  */
-class RtsProcessor extends AbstractProcessor{
+class RtsProcessor extends AbstractProcessor {
     RtsProcessor(Station station) {
         super(station);
     }
 
     @Override
-    public void process(Frame frame) {
+    public void processInner(Frame frame) {
         logger.debug("%d onPostRecvRTS()", station.getId());
-        if(station.getCurrentStatus() == Status.IDLE_RECEIVING){
-            assert station.getCommunicationTarget() == defaultCommunicationTarget;
-            if(frame.getTargetId() == station.getId()){
-                //的确是发给本Station的,则开启会话
-                station.setCommunicationTarget(frame.getSrcId());
-                station.setCurrentStatus(Status.RECEIVING_RTS);
-                onPreSendSIFSAndCTS((RtsFrame) frame);
-            } else {
-                //不是发给本Station的,这种情况下应当设置NAV向量
-                new RtsNav(station).startNav();
-            }
+        assert station.getCommunicationTarget() == defaultCommunicationTarget;
+        if (frame.getTargetId() == station.getId()) {
+            //的确是发给本Station的,则开启会话
+            station.setCommunicationTarget(frame.getSrcId());
+            station.setCurrentStatus(Status.RECEIVING_RTS);
+            onPreSendSIFSAndCTS((RtsFrame) frame);
         } else {
-            logger.debug("%d ignore RTS because currentStatus is :%s",
-                    station.getId(),station.getCurrentStatus().toString());
+            //不是发给本Station的,这种情况下应当设置NAV向量
+            new RtsNav(station).startNav();
         }
+    }
+
+    @Override
+    Status getRightStatus() {
+        return Status.RECEIVING_RTS;
     }
 
     private void onPreSendSIFSAndCTS(final RtsFrame frame) {
@@ -52,7 +52,7 @@ class RtsProcessor extends AbstractProcessor{
             public void run() {
                 onPreSendCTS(frame.generateCtsFrame());
             }
-        },Config.getInstance().getSifs(),TimeTask.SEND);
+        }, Config.getInstance().getSifs(), TimeTask.SEND);
     }
 
     private void onPreSendCTS(CtsFrame frame) {
@@ -63,7 +63,7 @@ class RtsProcessor extends AbstractProcessor{
             public void run() {
                 onPostSendCTS();
             }
-        },frame.getTransmitDuration(),TimeTask.SEND);
+        }, frame.getTransmitDuration(), TimeTask.SEND);
         sendFrame(frame);
     }
 

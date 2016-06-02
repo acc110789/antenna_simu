@@ -19,7 +19,7 @@ public class SendRtsProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void process(Frame frame) {
+    public void processInner(Frame frame) {
         assert frame instanceof RtsFrame;
         logger.debug("%d onPreSendRTS()", station.getId());
         assert station.getCurrentStatus() == Status.SLOTING;

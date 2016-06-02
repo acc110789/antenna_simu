@@ -5,10 +5,12 @@ import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.PrecisionUtil;
 
+import static me.zhangxl.antenna.infrastructure.base.BaseRole.defaultCommunicationTarget;
+
 /**
  * Created by zhangxiaolong on 16/6/1.
  */
-abstract class AbstractCool implements Cool {
+abstract class AbstractCool implements Cooler {
     final Station station;
 
     AbstractCool(Station station) {
@@ -19,6 +21,7 @@ abstract class AbstractCool implements Cool {
     public void cool() {
         station.setLastCoolTimeNow();
         station.setCurrentStatus(Status.COOLING);
+        station.setCommunicationTarget(defaultCommunicationTarget);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {

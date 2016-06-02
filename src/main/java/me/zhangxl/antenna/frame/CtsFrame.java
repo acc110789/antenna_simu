@@ -40,6 +40,10 @@ public class CtsFrame extends Frame {
         return navDuration;
     }
 
+    public static double getStaticNavDuration(){
+        return navDuration;
+    }
+
     public static double getCtsTimeLength(){
         return ctsTimeLength;
     }

@@ -7,9 +7,11 @@ import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.timeout.WaitAckTimeOut;
+import me.zhangxl.antenna.nav.CtsNav;
 import me.zhangxl.antenna.util.Config;
 
 /**
+ * 收到CtsFrame之后的处理逻辑
  * Created by zhangxiaolong on 16/6/1.
  */
 class CtsProcessor extends AbstractProcessor {
@@ -18,23 +20,18 @@ class CtsProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void process(Frame frame) {
+    public void processInner(Frame frame) {
         logger.debug("%d onPostRecvCTS()", station.getId());
-        if (station.getCurrentStatus() == Status.WAITING_CTS) {
-            if (station.getCommunicationTarget() != frame.getSrcId()) {
-                logger.debug("%d this frame is not from its' communication target :%d",
-                        station.getId(), station.getCommunicationTarget());
-            } else if (station.getId() != frame.getTargetId()) {
-                logger.debug("%d this frame from %d is not sent to %d", frame.getSrcId(), station.getId());
-            } else {
-                station.setCurrentStatus(Status.RECEIVING_CTS);
-                onPreSendSIFSAndDATA();
-            }
+        if(needNavById(frame)){
+            new CtsNav(station).startNav();
         } else {
-            logger.debug("%d receive a unexpected frame,ignore this frame :%s :%s",
-                    station.getId(), station.getCurrentStatus().toString(),
-                    frame.getClass().getSimpleName());
+            onPreSendSIFSAndDATA();
         }
+    }
+
+    @Override
+    Status getRightStatus() {
+        return Status.RECEIVING_CTS;
     }
 
     private void onPreSendSIFSAndDATA() {

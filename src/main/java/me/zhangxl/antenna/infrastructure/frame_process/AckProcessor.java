@@ -5,10 +5,8 @@ import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 
-import static me.zhangxl.antenna.infrastructure.base.BaseRole.defaultCommunicationTarget;
-
 /**
- * 收到Ack之后的处理逻辑
+ * sender收到Ack之后的处理逻辑
  * Created by zhangxiaolong on 16/6/1.
  */
 class AckProcessor extends AbstractProcessor {
@@ -17,22 +15,26 @@ class AckProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void process(Frame frame) {
+    public void processInner(Frame frame) {
         logger.debug("%d onPostRecvACK()", station.getId());
-        if(station.getCommunicationTarget() != frame.getSrcId()){
+        if(needNavById(frame)){
+            //这里ack的nav值应该是0,所以直接进入difs
             logger.info("this ack is from a unknown peer,nav is 0,will switch to cooling");
+            station.onFail();
             //开始difs冷却
-            station.setCommunicationTarget(defaultCommunicationTarget);
-            // TODO: 16/6/2 这里如果是sender的话要将backoff加倍
             new DifsCool(station).cool();
         } else {
             //桢是来自正确的节点
-            assert station.getCurrentStatus() == Status.WAITING_ACK;
+            assert station.getCurrentStatus() == Status.RECEIVING_ACK;
             assert frame.getTargetId() == station.getId();
             //说明本节点发送数据成功
-            station.setCommunicationTarget(defaultCommunicationTarget);
             station.onSuccess();
             new DifsCool(station).cool();
         }
+    }
+
+    @Override
+    Status getRightStatus() {
+        return Status.RECEIVING_ACK;
     }
 }

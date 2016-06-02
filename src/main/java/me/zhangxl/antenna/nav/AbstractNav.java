@@ -8,8 +8,6 @@ import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import org.apache.logging.log4j.Logger;
 
-import static me.zhangxl.antenna.infrastructure.base.BaseRole.defaultCommunicationTarget;
-
 /**
  * Created by zhangxiaolong on 16/6/1.
  */
@@ -23,7 +21,6 @@ abstract class AbstractNav implements Navable{
     @Override
     public void startNav(){
         station.setCurrentStatus(Status.NAV);
-        station.setCommunicationTarget(defaultCommunicationTarget);
         logger.info("%d set NAV",station.getId());
         TimeController.getInstance().post(new Runnable() {
             @Override

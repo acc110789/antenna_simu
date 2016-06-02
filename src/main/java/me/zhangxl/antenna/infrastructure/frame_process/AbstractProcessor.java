@@ -1,8 +1,13 @@
 package me.zhangxl.antenna.infrastructure.frame_process;
 
-import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.cool.DifsCool;
+import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
+import me.zhangxl.antenna.nav.CtsNav;
+import me.zhangxl.antenna.nav.DataNav;
+import me.zhangxl.antenna.nav.RtsNav;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,4 +32,48 @@ abstract class AbstractProcessor implements Processor {
             throw new IllegalStateException(e);
         }
     }
+
+    @Override
+    public void process(Frame frame) {
+        if(station.getCurrentStatus() != getRightStatus()){
+            //比如如果接受rtsFrame,则station此刻的状态必须是receingrts
+            //即接收的桢类型必须和station的状态相符合,如果不符,则设置nav
+            //并直接返回
+            setNav(frame);
+        } else {
+            processInner(frame);
+        }
+    }
+
+    abstract void processInner(Frame frame);
+
+    abstract Status getRightStatus();
+
+    private void setNav(Frame frame){
+        if(station.getCurrentStatus().isSender()){
+            station.onFail();
+        }
+        if(frame instanceof RtsFrame){
+            new RtsNav(station).startNav();
+        } else if(frame instanceof CtsFrame){
+            new CtsNav(station).startNav();
+        } else if(frame instanceof DataFrame){
+            new DataNav(station).startNav();
+        } else if(frame instanceof AckFrame){
+            new DifsCool(station).cool();
+        }
+    }
+
+    boolean needNavById(Frame frame){
+        if (station.getCommunicationTarget() != frame.getSrcId()) {
+            logger.debug("%d this frame is not from its' communication target :%d",
+                    station.getId(), station.getCommunicationTarget());
+            return true;
+        } else if (station.getId() != frame.getTargetId()) {
+            logger.debug("%d this frame from %d is not sent to %d", frame.getSrcId(), station.getId());
+            return true;
+        }
+        return false;
+    }
+
 }

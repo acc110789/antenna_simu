@@ -126,7 +126,7 @@ public class Station extends AbstractRole{
                 logger.debug("%d start transmit data frame sendDataIfNeed", this.getId());
             }
             mCurrentSendingFrame.setStartTimeNow();
-            new SendRtsProcessor(this).process(mCurrentSendingFrame.generateRtsFrame());
+            new SendRtsProcessor(this).processInner(mCurrentSendingFrame.generateRtsFrame());
         }
     }
 
@@ -165,10 +165,19 @@ public class Station extends AbstractRole{
             }
         }
         receivingFrames.add(frame);
-        if(getCurrentStatus() == Status.SLOTING ||
-                getCurrentStatus() == Status.IDLE1 ||
-                getCurrentStatus() == Status.IDLE2){
-            setCurrentStatus(Status.IDLE_RECEIVING);
+        if(getCurrentStatus() == Status.COOLING || getCurrentStatus() == Status.SLOTING){
+            setCurrentStatus(Status.RECEIVING_RTS);
+        } else if(getCurrentStatus() == Status.WAITING_CTS){
+            setCurrentStatus(Status.RECEIVING_CTS);
+        } else if(getCurrentStatus() == Status.WAITING_DATA){
+            setCurrentStatus(Status.RECEIVING_DATA);
+        } else if(getCurrentStatus() == Status.WAITING_ACK){
+            setCurrentStatus(Status.RECEIVING_ACK);
+        } else if(getCurrentStatus() != Status.RECEIVING_RTS &&
+                getCurrentStatus() != Status.RECEIVING_CTS &&
+                getCurrentStatus() != Status.RECEIVING_DATA &&
+                getCurrentStatus() != Status.RECEIVING_ACK){
+            throw new IllegalStateException();
         }
         int priority = TimeTask.COMMON_PRIORITY;
         if(frame instanceof CtsFrame){
@@ -181,18 +190,14 @@ public class Station extends AbstractRole{
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                assert getCurrentStatus() != Status.IDLE2;
-                assert getCurrentStatus() != Status.IDLE1;
-                assert getCurrentStatus() != Status.SLOTING;
                 receivingFrames.remove(frame);
                 if(!frame.isDirty()) {
-                    //接收成功
+                    //接收成功一个干净的桢
                     ProcessorHelper.process(Station.this,frame);
                 } else if(receivingFrames.isEmpty()) {
-                    //最后一个脏的桢之后进入eifs信道冷却
+                    //如果是脏的桢且是最后一个脏的桢,则在成功接受之后进入eifs信道冷却
                     new EifsCool(Station.this).cool();
                 }
-                //接收失败且当前状态不是处于IDLE_RECEIVING的状态的时候就当作没有什么都没有发生过,上层发现timeout之后会自行处理
             }
         },frame.getEndDuration(),priority);
         return true;
