@@ -72,8 +72,7 @@ public class Station extends AbstractRole{
         } else {
             logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
         }
-        sendDataIfNeed();
-        if(getCurrentStatus() == Status.SLOTING){
+        if(!sendDataIfNeed()){
             scheduleSLOT();
         }
     }
@@ -98,8 +97,7 @@ public class Station extends AbstractRole{
         assert mCurrentSendingFrame != null;
         mCurrentSendingFrame.countDownBackOff();
         logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
-        sendDataIfNeed();
-        if(getCurrentStatus() == Status.SLOTING){
+        if(!sendDataIfNeed()){
             scheduleSLOT();
         }
     }
@@ -119,7 +117,10 @@ public class Station extends AbstractRole{
         }
     }
 
-    private void sendDataIfNeed() {
+    /**
+     * @return 如果确实已经开始发送rts则返回true,如没有开始发送过程返回false
+     */
+    private boolean sendDataIfNeed() {
         if (mCurrentSendingFrame != null && mCurrentSendingFrame.canBeSent()) {
             //开始进入流程
             if (TimeLogger.DEBUG_STATION) {
@@ -127,7 +128,9 @@ public class Station extends AbstractRole{
             }
             mCurrentSendingFrame.setStartTimeNow();
             new SendRtsProcessor(this).processInner(mCurrentSendingFrame.generateRtsFrame());
+            return true;
         }
+        return false;
     }
 
     public void putDataFrame(int targetId, long length) {

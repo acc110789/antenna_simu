@@ -33,6 +33,11 @@ abstract class AbstractRole implements BaseRole {
     }
 
     @Override
+    public int getId() {
+        return this.id;
+    }
+
+    @Override
     public int getCommunicationTarget() {
         return this.currentCommunicationTarget;
     }
@@ -43,7 +48,7 @@ abstract class AbstractRole implements BaseRole {
     }
 
     @Override
-    public Stateful.Status getCurrentStatus() {
+    public Status getCurrentStatus() {
         return this.currentStatus;
     }
 
@@ -60,10 +65,5 @@ abstract class AbstractRole implements BaseRole {
             //保证在writeMode的时候没有正在接受的frame
             assertNoReceivingFrameOnWriteMode();
         }
-    }
-
-    @Override
-    public int getId() {
-        return this.id;
     }
 }
