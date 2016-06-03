@@ -26,7 +26,7 @@ public class Constant {
 
 
     private static final double dataTimeLength = PrecisionUtil.div(
-            Config.getInstance().getFixDataLength() +
+            Config.getInstance().getPayLoad() +
                     Config.getInstance().getPhyHeader() +
                     Config.getInstance().getMacHeader(),
             Config.getInstance().getBandWidth());

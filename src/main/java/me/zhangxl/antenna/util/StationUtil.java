@@ -23,7 +23,7 @@ public class StationUtil {
     //保证每个Station有足够的数据待发送,使之饱和
     public static void guaranteeEnoughFrame(Station station) {
         for (int i = station.getWaitingRequestNum(); i < 100; i++) {
-            station.putDataFrame(getRandomTargetId(station.getId()), Config.getInstance().getFixDataLength());
+            station.putDataFrame(getRandomTargetId(station.getId()), Config.getInstance().getPayLoad());
         }
     }
 

@@ -17,13 +17,13 @@ public class DataFrame extends Frame {
 
     private static Logger logger = SimuLoggerManager.getLogger(DataFrame.class.getSimpleName());
     //整个桢的长度,包括物理层的header,mac层的header,包括数据的长度
-    private static final long frameLength = Config.getInstance().getFixDataLength()
+    private static final long frameLength = Config.getInstance().getPayLoad()
             + Config.getInstance().getPhyHeader()
             + Config.getInstance().getMacHeader();
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
     //仅仅数据部分的长度
-    private static long dataLength = Config.getInstance().getFixDataLength();
+    private static long dataLength = Config.getInstance().getPayLoad();
     private double startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
     private int failTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
     private int backOff;

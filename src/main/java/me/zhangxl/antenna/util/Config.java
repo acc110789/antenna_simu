@@ -5,8 +5,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import java.io.*;
-import java.util.Properties;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * 配置信息
@@ -43,14 +43,13 @@ public class Config {
     private int phyHeader = -1;
     //ACK,CTS
     private int macHeader = -1;
-    private int macRtsHeader = -1;
     private int rtsLength = -1;
     private int ctsLength = -1;
     private int ackLength = -1;
     private double bandWidth = -1;
     private double simulationDuration = -1;
     private double warmUp = -1;
-    private long fixDataLength = -1;
+    private long payLoad = -1;
     private double eifs= -1;
     private int antennaMode = -1;
     private int part = -1;
@@ -66,42 +65,6 @@ public class Config {
 
     public static Config getInstance() {
         return sInstance;
-    }
-
-    @Deprecated
-    private void loadConfigProperties() throws IOException {
-        Properties properties = new Properties();
-        Reader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(Config.class.
-                    getClassLoader().getResourceAsStream("antenna_config.properties")));
-            properties.load(reader);
-
-            this.stationNum = Integer.valueOf(properties.getProperty("STATION_NUM"));
-            this.maxCW = Integer.valueOf(properties.getProperty("MAX_CW"));
-
-            String currentVersion = properties.getProperty("CURRENT_VERSION");
-            this.slotLength = PrecisionUtil.round(Double.valueOf(properties.getProperty(currentVersion + "_SLOT_LENGTH")));
-            this.sifs = PrecisionUtil.round(Double.valueOf(properties.getProperty(currentVersion + "_SIFS")));
-            this.defaultCW = Integer.valueOf(properties.getProperty(currentVersion + "_DEFAULT_CW"));
-
-            this.bandWidth = PrecisionUtil.round(Double.valueOf(properties.getProperty("BAND_WIDTH")));
-            this.phyHeader = Integer.valueOf(properties.getProperty("PHY_HEADER"));
-            this.macHeader = Integer.valueOf(properties.getProperty("MAC_HEADER"));
-            this.macRtsHeader = Integer.valueOf(properties.getProperty("MAC_RTS_HEADER"));
-
-            this.simulationDuration = PrecisionUtil.round(Double.valueOf(properties.getProperty("SIMULATION_DURATION")));
-            this.warmUp = PrecisionUtil.round(Double.valueOf(properties.getProperty("WARM_UP")));
-            this.fixDataLength = Long.valueOf(properties.getProperty("FIX_DATA_LENGTH"));
-
-            difs = PrecisionUtil.add(PrecisionUtil.mul(2.0,slotLength),sifs);
-            rtsLength = phyHeader + macRtsHeader;
-            ctsLength = phyHeader + macHeader;
-            ackLength = phyHeader + macHeader;
-            eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
-        } finally {
-            IOUtils.closeQuietly(reader);
-        }
     }
 
     private void loadConfigJSON() throws IOException {
@@ -124,16 +87,15 @@ public class Config {
             this.bandWidth = PrecisionUtil.round(object.getDouble("BAND_WIDTH"));
             this.phyHeader = object.getInt("PHY_HEADER");
             this.macHeader = object.getInt("MAC_DATA_HEADER");
-            this.macRtsHeader = object.getInt("MAC_RTS_HEADER");
 
             this.simulationDuration = PrecisionUtil.round(object.getDouble("SIMULATION_DURATION"));
             this.warmUp = PrecisionUtil.round(object.getDouble("WARM_UP"));
-            this.fixDataLength = object.getLong("FIX_DATA_LENGTH");
+            this.payLoad = object.getLong("PAYLOAD");
             this.antennaMode = object.getInt("ANTENNA_MODE");
             //part的含义:具体将一个圆周分成多少份
             this.part = object.getInt("PART");
 
-            rtsLength = phyHeader + macRtsHeader;
+            rtsLength = phyHeader + object.getInt("MAC_RTS_HEADER");
             ctsLength = phyHeader + object.getInt("MAC_CTS_HEADER");
             ackLength = phyHeader + object.getInt("MAC_ACK_HEADER");
             eifs = PrecisionUtil.add(sifs , PrecisionUtil.div(ackLength,bandWidth) , difs);
@@ -145,8 +107,8 @@ public class Config {
 
     }
 
-    public long getFixDataLength() {
-        return this.fixDataLength;
+    public long getPayLoad() {
+        return this.payLoad;
     }
 
     public double getWarmUp() {
@@ -187,10 +149,6 @@ public class Config {
 
     public int getMacHeader() {
         return macHeader;
-    }
-
-    public int getMacRtsHeader() {
-        return macRtsHeader;
     }
 
     public int getRtsLength() {

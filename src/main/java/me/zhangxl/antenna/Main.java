@@ -61,9 +61,6 @@ public class Main {
         if (Config.getInstance().getMacHeader() <= 0) {
             errInfo += "    macHeader is less than or equal 0";
         }
-        if (Config.getInstance().getMacRtsHeader() <= 0) {
-            errInfo += "    macRtsHeader is less than or equal 0";
-        }
         if (Config.getInstance().getRtsLength() <= 0) {
             errInfo += "    rtsLength is less than or equal 0";
         }
@@ -86,7 +83,7 @@ public class Main {
         if (Config.getInstance().getWarmUp() > Config.getInstance().getSimulationDuration()) {
             errInfo += "    warm up time is larger than simulation duration";
         }
-        if (Config.getInstance().getFixDataLength() <= 0) {
+        if (Config.getInstance().getPayLoad() <= 0) {
             errInfo += "    fix data length is less than 0";
         }
         if (Config.getInstance().getAntennaMode() != Medium.DIRECT_MODE
