@@ -18,9 +18,12 @@ public class Main {
 
         //新建站点
         List<Station> stationList = new ArrayList<>();
-        stationList.add(new Station(1,1,0));
-        stationList.add(new Station(2,0,1));
-        stationList.add(new Station(3,-1,0));
+//        stationList.add(new Station(1,1,0));
+//        stationList.add(new Station(2,0,1));
+//        stationList.add(new Station(3,-1,0));
+        for (int i = 1; i <= Config.getInstance().getStationNum(); i++) {
+            stationList.add(new Station(i));
+        }
 
         //激活所有的站点
         for (Station station : stationList) {
@@ -37,64 +40,64 @@ public class Main {
         if (Config.getInstance().getStationNum() <= 0) {
             errInfo += "    userNum is negative";
         }
-        if(Config.getInstance().getDifs() <= Config.getInstance().getSifs()){
+        if (Config.getInstance().getDifs() <= Config.getInstance().getSifs()) {
             errInfo += "    difs is less than or equal sifs";
         }
-        if(Config.getInstance().getSifs() <= 0){
+        if (Config.getInstance().getSifs() <= 0) {
             errInfo += "    sifs is less than or equal 0";
         }
-        if(Config.getInstance().getSlotLength() <= 0){
+        if (Config.getInstance().getSlotLength() <= 0) {
             errInfo += "    slotlength is less than or equal 0";
         }
-        if(Config.getInstance().getMaxCW() <= Config.getInstance().getDefaultCW()){
+        if (Config.getInstance().getMaxCW() <= Config.getInstance().getDefaultCW()) {
             errInfo += "    maxCW is less than or equal defaultCW";
         }
-        if(Config.getInstance().getDefaultCW() < 0){
+        if (Config.getInstance().getDefaultCW() < 0) {
             errInfo += "    defaultCW is less than 0";
         }
-        if(Config.getInstance().getPhyHeader() <= 0){
+        if (Config.getInstance().getPhyHeader() <= 0) {
             errInfo += "    phyHeader is less than or equal 0";
         }
-        if(Config.getInstance().getMacCtsOrAckHeader() <= 0){
+        if (Config.getInstance().getMacHeader() <= 0) {
             errInfo += "    macHeader is less than or equal 0";
         }
-        if(Config.getInstance().getMacRtsHeader() <= 0){
+        if (Config.getInstance().getMacRtsHeader() <= 0) {
             errInfo += "    macRtsHeader is less than or equal 0";
         }
-        if(Config.getInstance().getRtsLength() <= 0){
+        if (Config.getInstance().getRtsLength() <= 0) {
             errInfo += "    rtsLength is less than or equal 0";
         }
-        if(Config.getInstance().getCtsLength() <= 0){
+        if (Config.getInstance().getCtsLength() <= 0) {
             errInfo += "    ctsLength is less than or equal 0";
         }
-        if(Config.getInstance().getAckLength() <= 0){
+        if (Config.getInstance().getAckLength() <= 0) {
             errInfo += "    ackLength is less than or equal 0";
         }
-        if(Config.getInstance().getBandWidth() <= 0){
+        if (Config.getInstance().getBandWidth() <= 0) {
             errInfo += "    bandwidth is less than or equal 0";
         }
-        if(Config.getInstance().getSimulationDuration() <= 0){
+        if (Config.getInstance().getSimulationDuration() <= 0) {
             errInfo += "    simulationDuration less than or equal 0";
         }
-        if(Config.getInstance().getWarmUp() <= 0){
+        if (Config.getInstance().getWarmUp() <= 0) {
             errInfo += "    warm up time is less than 0";
         }
         //warp up的时间不能太长,即不能超过仿真时间的一半
-        if(Config.getInstance().getWarmUp() >= Config.getInstance().getSimulationDuration()/2){
+        if (Config.getInstance().getWarmUp() >= Config.getInstance().getSimulationDuration() / 2) {
             errInfo += "    warm up time is larger than a half of simulation duration";
         }
-        if(Config.getInstance().getFixDataLength() <= 0){
+        if (Config.getInstance().getFixDataLength() <= 0) {
             errInfo += "    fix data length is less than 0";
         }
-        if(Config.getInstance().getAntennaMode() != Medium.DIRECT_MODE
-                && Config.getInstance().getAntennaMode() != Medium.OMNI_MODE){
+        if (Config.getInstance().getAntennaMode() != Medium.DIRECT_MODE
+                && Config.getInstance().getAntennaMode() != Medium.OMNI_MODE) {
             throw new RuntimeException("incorrect mode");
         }
         int part = Config.getInstance().getPart();
-        if(part <= 1 || part == 7 || part == 11 || part > 12){
+        if (part <= 1 || part == 7 || part == 11 || part > 12) {
             throw new RuntimeException("incorrect part num");
         }
-        if(!errInfo.isEmpty()){
+        if (!errInfo.isEmpty()) {
             throw new IllegalArgumentException(errInfo);
         }
     }

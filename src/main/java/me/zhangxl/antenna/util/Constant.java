@@ -28,7 +28,7 @@ public class Constant {
     private static final double dataTimeLength = PrecisionUtil.div(
             Config.getInstance().getFixDataLength() +
                     Config.getInstance().getPhyHeader() +
-                    Config.getInstance().getMacCtsOrAckHeader(),
+                    Config.getInstance().getMacHeader(),
             Config.getInstance().getBandWidth());
     /**
      * @return dataFrame那一小段对应的时间片

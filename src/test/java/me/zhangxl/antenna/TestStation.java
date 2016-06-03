@@ -2,6 +2,7 @@ package me.zhangxl.antenna;
 
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.clock.Statistic;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.*;
@@ -63,6 +64,7 @@ public class TestStation {
         Medium.reset();
         StationUtil.clear();
         TimeController.getInstance().clear();
+        Statistic.clear();
         for (Station station : getStations(num)) {
             StationUtil.guaranteeEnoughFrame(station);
         }
@@ -96,6 +98,7 @@ public class TestStation {
         setWarmUpTime(0);
         Medium.reset();
         TimeController.getInstance().clear();
+        Statistic.clear();
 
         Station station1 = new Station(1, 1, 0);
         Station station2 = new Station(2, 0, 1);

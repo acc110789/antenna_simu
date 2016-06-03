@@ -19,7 +19,7 @@ public class DataFrame extends Frame {
     //整个桢的长度,包括物理层的header,mac层的header,包括数据的长度
     private static final long frameLength = Config.getInstance().getFixDataLength()
             + Config.getInstance().getPhyHeader()
-            + Config.getInstance().getMacCtsOrAckHeader();
+            + Config.getInstance().getMacHeader();
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
     //仅仅数据部分的长度

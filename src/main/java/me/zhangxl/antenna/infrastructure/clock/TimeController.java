@@ -23,23 +23,6 @@ public class TimeController {
     private Runnable loopCallBack;
     private double currentTime = 0;
 
-    /**
-     * 统计的阀门,只有当持续时间过了warmUp时间之后,才真的开始统计
-     */
-    private boolean statValve = false;
-    /**
-     * 统计总的数据量(bytes)
-     */
-    private long totalDataAmount = 0;
-    /**
-     * 总的碰撞次数
-     */
-    private long totalCollitionTimes = 0;
-    /**
-     * 总的发送次数
-     */
-    private long totalSuccessTimes = 0;
-
     private TimeController(){}
 
     public static TimeController getInstance(){
@@ -64,24 +47,6 @@ public class TimeController {
 
     public void deActive(){
         active.set(false);
-    }
-
-    public void addCollitionTimes(){
-        if(statValve){
-            totalCollitionTimes ++;
-        }
-    }
-
-    public void addSuccessTimes(){
-        if(statValve){
-            totalSuccessTimes++;
-        }
-    }
-
-    public void addDataAmount(long length){
-        if(statValve){
-            totalDataAmount += length;
-        }
     }
 
     private void printTimeHint(double time){
@@ -134,9 +99,6 @@ public class TimeController {
             }
             printTimeHint(time);
 
-            if(!statValve && currentTime >= Config.getInstance().getWarmUp()){
-                statValve = true;
-            }
             //下面开始执行任务
             if (TimeLogger.DEBUG_CLOCK) {
                 logger.debug("do a task...");
@@ -161,25 +123,7 @@ public class TimeController {
     }
 
     private void postLoop(){
-        logger.unLogHeader();
-        logger.ln();
-        logger.ln();
-        logger.info("*************************************************");
-        logger.info("*************************************************");
-        logger.info("成功的数据传输量(bytes): %d", totalDataAmount);
-        logger.ln();
-        long totalAmount = totalSuccessTimes + totalCollitionTimes;
-        logger.info("总的发送次数: %d", totalAmount);
-        logger.ln();
-        logger.info("总的碰撞次数: %d",totalCollitionTimes);
-        logger.ln();
-        if(totalSuccessTimes > 0) {
-            logger.info("碰撞发生的概率: %f", PrecisionUtil.div(totalCollitionTimes, totalAmount));
-            logger.ln();
-        }
-        logger.info("*************************************************");
-        logger.info("*************************************************");
-        logger.logHeader();
+        Statistic.printResult();
     }
 
     private void preLoop(){
@@ -191,10 +135,6 @@ public class TimeController {
     public void clear(){
         tasks.clear();
         currentTime = 0.0;
-        statValve = false;
-        totalDataAmount = 0;
-        totalCollitionTimes = 0;
-        totalSuccessTimes = 0;
     }
 
     public void setLoopCallBack(Runnable callBack){

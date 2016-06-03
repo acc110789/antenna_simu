@@ -1,5 +1,6 @@
 package me.zhangxl.antenna.infrastructure;
 
+import me.zhangxl.antenna.infrastructure.clock.Statistic;
 import me.zhangxl.antenna.infrastructure.cool.EifsCool;
 import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.CtsFrame;
@@ -56,14 +57,6 @@ public class Station extends AbstractRole{
         return mDataFramesToSend.size();
     }
 
-    /**
-     * 遭受到了碰撞
-     */
-    public void onFail() {
-        TimeController.getInstance().addCollitionTimes();
-        mCurrentSendingFrame.addCollitionTimes();
-    }
-
     public void onPostDIFS() {
         logger.debug("%d onPostDIFS", getId());
         assert getCurrentStatus() == Status.SLOTING;
@@ -72,6 +65,17 @@ public class Station extends AbstractRole{
         } else {
             logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
         }
+        if(!sendDataIfNeed()){
+            scheduleSLOT();
+        }
+    }
+
+    private void onPostSLOT() {
+        logger.debug("%d onPostSLOT", getId());
+        assert getCurrentStatus() == Status.SLOTING;
+        assert mCurrentSendingFrame != null;
+        mCurrentSendingFrame.countDownBackOff();
+        logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
         if(!sendDataIfNeed()){
             scheduleSLOT();
         }
@@ -91,16 +95,6 @@ public class Station extends AbstractRole{
         }, Config.getInstance().getSlotLength());
     }
 
-    private void onPostSLOT() {
-        logger.debug("%d onPostSLOT", getId());
-        assert getCurrentStatus() == Status.SLOTING;
-        assert mCurrentSendingFrame != null;
-        mCurrentSendingFrame.countDownBackOff();
-        logger.info("%d current window: %d",getId(),mCurrentSendingFrame.getBackOff());
-        if(!sendDataIfNeed()){
-            scheduleSLOT();
-        }
-    }
 
     /**
      * 如果存在待发送的Frame,则取出一个
@@ -137,12 +131,23 @@ public class Station extends AbstractRole{
         mDataFramesToSend.add(new DataFrame(getId(), targetId));
     }
 
+    /**
+     * 作为发送端发送成功时,加入一些统计数据
+     */
     public void onSuccess() {
         logger.info("%d send a data successfully",getId());
-        TimeController.getInstance().addSuccessTimes();
-        TimeController.getInstance().addDataAmount(mCurrentSendingFrame.getLength() / 8);
+        Statistic.addSuccessTimes();
+        Statistic.addDataAmount(mCurrentSendingFrame.getLength() / 8);
         mDataFrameSent.add(mCurrentSendingFrame);
         mCurrentSendingFrame = null;
+    }
+
+    /**
+     * 遭受到了碰撞
+     */
+    public void onFail() {
+        Statistic.addCollitionTimes();
+        mCurrentSendingFrame.addCollitionTimes();
     }
 
     @Override
