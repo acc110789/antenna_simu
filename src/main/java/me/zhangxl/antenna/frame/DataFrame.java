@@ -64,9 +64,9 @@ public class DataFrame extends Frame {
     }
 
     private void updateBackOff() {
-        int contentionWindow = Math.min(Config.getInstance().getDefaultCW() + this.failTimes, Config.getInstance().getMaxCW());
-        int window = (int) Math.pow(2, contentionWindow);
-        backOff = random.nextInt(window);
+        int failWindow = (1 << this.failTimes) * Config.getInstance().getDefaultCW();
+        int contentionWindow = Math.min(failWindow, Config.getInstance().getMaxCW());
+        backOff = random.nextInt(contentionWindow);
         if (TimeLogger.DEBUG_FRAME) {
             logger.info("source station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);
         }

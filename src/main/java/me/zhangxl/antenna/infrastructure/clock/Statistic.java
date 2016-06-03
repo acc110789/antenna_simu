@@ -6,6 +6,7 @@ import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
 
 /**
+ * 一些实验的统计数据
  * Created by zhangxiaolong on 16/6/3.
  */
 public class Statistic {
@@ -55,7 +56,14 @@ public class Statistic {
         logger.ln();
         logger.info("*************************************************");
         logger.info("*************************************************");
-        logger.info("成功的数据传输量(bytes): %d", totalDataAmount);
+        //以M(兆)为单位的数据单位
+        double MDataAmount = PrecisionUtil.div(totalDataAmount,1024*1024);
+        logger.info("有效的仿真时间: %f",PrecisionUtil.sub(Config.getInstance().getSimulationDuration(),
+                Config.getInstance().getWarmUp()));
+        logger.info("成功的数据传输量(Mbit): %f", MDataAmount);
+        double idealFullDataAmount = PrecisionUtil.mul(Config.getInstance().getBandWidth(),
+                PrecisionUtil.sub(Config.getInstance().getSimulationDuration(),Config.getInstance().getWarmUp()));
+        logger.info("数据的吞吐比例: %f",PrecisionUtil.div(totalDataAmount,idealFullDataAmount));
         logger.ln();
         long totalAmount = totalSuccessTimes + totalCollitionTimes;
         logger.info("总的发送次数: %d", totalAmount);

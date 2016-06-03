@@ -137,7 +137,7 @@ public class Station extends AbstractRole{
     public void onSuccess() {
         logger.info("%d send a data successfully",getId());
         Statistic.addSuccessTimes();
-        Statistic.addDataAmount(mCurrentSendingFrame.getLength() / 8);
+        Statistic.addDataAmount(mCurrentSendingFrame.getLength());
         mDataFrameSent.add(mCurrentSendingFrame);
         mCurrentSendingFrame = null;
     }
@@ -204,6 +204,7 @@ public class Station extends AbstractRole{
                     ProcessorHelper.process(Station.this,frame);
                 } else if(receivingFrames.isEmpty()) {
                     //如果是脏的桢且是最后一个脏的桢,则在成功接受之后进入eifs信道冷却
+                    logger.info("%d begin eifs",getId());
                     new EifsCool(Station.this).cool();
                 }
             }

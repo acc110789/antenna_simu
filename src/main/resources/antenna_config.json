@@ -1,29 +1,29 @@
 {
   "STATION_NUM": 10,
-  "MAX_CW": 10,
+  "MAX_CW": 1024,
   "CURRENT_VERSION": "802.11CUSTOM",
   "802.11CUSTOM": {
     "SLOT_LENGTH": 50e-6,
     "SIFS": 28e-6,
-    "DEFAULT_CW": 5,
+    "DEFAULT_CW": 32,
     "DIFS": 128e-6
   },
   "802.11B": {
     "SLOT_LENGTH": 20e-6,
     "SIFS": 10e-6,
-    "DEFAULT_CW": 5,
+    "DEFAULT_CW": 32,
     "DIFS": 128e-6
   },
   "802.11A": {
     "SLOT_LENGTH": 9e-6,
     "SIFS": 16e-6,
-    "DEFAULT_CW": 4,
+    "DEFAULT_CW": 16,
     "DIFS": 128e-6
   },
   "802.11G": {
     "SLOT_LENGTH": 20e-6,
     "SIFS": 10e-6,
-    "DEFAULT_CW": 5,
+    "DEFAULT_CW": 32,
     "DIFS": 128e-6
   },
   "COMMENT": "BAND_WIDTH 是bit单位的,实际上就是 1Mbit/s",
@@ -33,9 +33,9 @@
   "MAC_CTS_HEADER": 112,
   "MAC_DATA_HEADER": 272,
   "MAC_ACK_HEADER": 112,
-  "WARM_UP": 2,
-  "SIMULATION_DURATION": 10,
   "FIX_DATA_LENGTH": 8184,
   "ANTENNA_MODE": 2,
-  "PART": 8
+  "PART": 8,
+  "WARM_UP": 5,
+  "SIMULATION_DURATION": 20
 }

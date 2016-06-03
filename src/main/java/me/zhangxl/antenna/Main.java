@@ -83,8 +83,8 @@ public class Main {
             errInfo += "    warm up time is less than 0";
         }
         //warp up的时间不能太长,即不能超过仿真时间的一半
-        if (Config.getInstance().getWarmUp() >= Config.getInstance().getSimulationDuration() / 2) {
-            errInfo += "    warm up time is larger than a half of simulation duration";
+        if (Config.getInstance().getWarmUp() > Config.getInstance().getSimulationDuration()) {
+            errInfo += "    warm up time is larger than simulation duration";
         }
         if (Config.getInstance().getFixDataLength() <= 0) {
             errInfo += "    fix data length is less than 0";
