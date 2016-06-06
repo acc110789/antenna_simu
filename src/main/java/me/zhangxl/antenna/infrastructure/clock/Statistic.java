@@ -23,6 +23,7 @@ public class Statistic {
      * 总的发送次数
      */
     private static long totalSuccessTimes = 0;
+    private static TransmitCounter sTransmitCounter = new TransmitCounter();
 
     public static void addCollitionTimes(){
         if(canCount()){
@@ -42,6 +43,10 @@ public class Statistic {
         }
     }
 
+    public static void addTranmitCount(int count){
+        sTransmitCounter.addTransmitCount(count);
+    }
+
     /**
      * @return 当前时刻是否应该进行数据的统计
      */
@@ -54,6 +59,13 @@ public class Statistic {
         logger.unLogHeader();
         logger.ln();
         logger.ln();
+        logger.info("*************************************************");
+        logger.info("*************************************************");
+        logger.info("配置信息如下:");
+        logger.info("CWmin:%d",Config.getInstance().getDefaultCW());
+        logger.info("CWmax:%d",Config.getInstance().getMaxCW());
+        logger.info("stationNum:%d",Config.getInstance().getStationNum());
+        logger.info("DataPayLoad:%d",Config.getInstance().getPayLoad());
         logger.info("*************************************************");
         logger.info("*************************************************");
         //以M(兆)为单位的数据单位
@@ -74,14 +86,37 @@ public class Statistic {
             logger.info("碰撞发生的概率: %f", PrecisionUtil.div(totalCollitionTimes, totalAmount));
             logger.ln();
         }
+        logger.info("每个数据桢的平均传输次数: %f",sTransmitCounter.getMeanTransmitCountPerFrame());
+        logger.ln();
         logger.info("*************************************************");
         logger.info("*************************************************");
         logger.logHeader();
+        System.out.println("\7");
     }
 
     public static void clear(){
         totalDataAmount = 0;
         totalCollitionTimes = 0;
         totalSuccessTimes = 0;
+        sTransmitCounter.clear();
+    }
+}
+
+class TransmitCounter {
+    private int totalTrasmitFrameCount = 0;
+    private int totalFrameCount = 0;
+    void addTransmitCount(int count){
+        totalFrameCount ++;
+        totalTrasmitFrameCount += count;
+    }
+    double getMeanTransmitCountPerFrame(){
+        if(totalFrameCount == 0){
+            return 0;
+        }
+        return PrecisionUtil.div(totalTrasmitFrameCount,totalFrameCount);
+    }
+    void clear(){
+        this.totalTrasmitFrameCount = 0;
+        this.totalFrameCount = 0;
     }
 }

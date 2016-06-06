@@ -95,4 +95,8 @@ public class DataFrame extends Frame {
     public long getLength() {
         return dataLength;
     }
+
+    public int getFailTimes(){
+        return this.failTimes;
+    }
 }

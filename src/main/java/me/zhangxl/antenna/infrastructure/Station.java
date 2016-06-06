@@ -138,6 +138,7 @@ public class Station extends AbstractRole{
         logger.info("%d send a data successfully",getId());
         Statistic.addSuccessTimes();
         Statistic.addDataAmount(mCurrentSendingFrame.getLength());
+        Statistic.addTranmitCount(mCurrentSendingFrame.getFailTimes() + 1);
         mDataFrameSent.add(mCurrentSendingFrame);
         mCurrentSendingFrame = null;
     }
