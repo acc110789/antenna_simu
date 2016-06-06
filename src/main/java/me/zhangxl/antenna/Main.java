@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-
+        checkConfig();
         //新建站点
         List<Station> stationList = new ArrayList<>();
 //        stationList.add(new Station(1,1,0));
