@@ -1,5 +1,6 @@
 package me.zhangxl.antenna.infrastructure.cool;
 
+import me.zhangxl.antenna.infrastructure.PostDifsLogic;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
@@ -29,7 +30,7 @@ abstract class AbstractCool implements Cooler {
                 if(station.getCurrentStatus() == Status.COOLING &&
                         coolingNotInterrupted()){
                     station.setCurrentStatus(Status.SLOTING);
-                    station.onPostDIFS();
+                    new PostDifsLogic(station).process();
                 }
             }
         }, getCoolDuration());

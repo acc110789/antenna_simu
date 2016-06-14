@@ -1,5 +1,6 @@
 package me.zhangxl.antenna.infrastructure.timeout;
 
+import me.zhangxl.antenna.infrastructure.PostDifsLogic;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
@@ -37,7 +38,7 @@ abstract class AbstractWaiter implements Waiter {
                     }
                     station.setCommunicationTarget(defaultCommunicationTarget);
                     station.setCurrentStatus(Status.SLOTING);
-                    station.onPostDIFS();
+                    new PostDifsLogic(station).process();
                 }
             }
         },getWaitDuration());

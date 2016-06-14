@@ -6,20 +6,24 @@ import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
+import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.infrastructure.timeout.WaitCtsTimeOut;
+
+import static me.zhangxl.antenna.infrastructure.frame_process.AbstractProcessor.logger;
 
 /**
  * 发送Rts的逻辑部分
  * Created by zhangxiaolong on 16/6/1.
  */
-public class SendRtsProcessor extends AbstractProcessor {
+public class SendRtsProcessor implements Processor {
+    private final Station station;
 
     public SendRtsProcessor(Station station) {
-        super(station);
+        this.station = station;
     }
 
     @Override
-    public void processInner(Frame frame) {
+    public void process(Frame frame) {
         assert frame instanceof RtsFrame;
         logger.debug("%d onPreSendRTS()", station.getId());
         assert station.getCurrentStatus() == Status.SLOTING;
@@ -34,14 +38,18 @@ public class SendRtsProcessor extends AbstractProcessor {
         sendFrame(frame);
     }
 
-    @Override
-    Status getRightStatus() {
-        return null;
-    }
-
     private void onPostSendRTS() {
         logger.debug("%d onPostSendRTS()",station.getId());
         assert station.getCurrentStatus() == Status.SENDING_RTS;
         new WaitCtsTimeOut(station).await();
     }
+
+    private void sendFrame(Frame frame) {
+        try {
+            Medium.getInstance().putFrame(station, (Frame) frame.clone());
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
 }

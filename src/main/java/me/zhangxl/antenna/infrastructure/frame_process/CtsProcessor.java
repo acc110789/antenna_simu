@@ -41,7 +41,7 @@ class CtsProcessor extends AbstractProcessor {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                onPreSendData(station.getDataToSend());
+                onPreSendData(station.getDataFrameToSend());
             }
         }, Config.getInstance().getSifs(), TimeTask.SEND);
     }

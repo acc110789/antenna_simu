@@ -9,7 +9,7 @@ public interface BaseRole extends Locatable {
 
     int defaultCommunicationTarget = -1;
 
-    DataFrame getDataToSend();
+    DataFrame getDataFrameToSend();
 
     int getId();
 

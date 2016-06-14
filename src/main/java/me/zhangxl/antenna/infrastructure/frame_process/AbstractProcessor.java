@@ -25,7 +25,7 @@ abstract class AbstractProcessor implements Processor {
         this.station = station;
     }
 
-    void sendFrame(Frame frame){
+    void  sendFrame(Frame frame){
         try {
             Medium.getInstance().putFrame(station, (Frame) frame.clone());
         } catch (CloneNotSupportedException e) {
@@ -36,7 +36,7 @@ abstract class AbstractProcessor implements Processor {
     @Override
     public void process(Frame frame) {
         if(station.getCurrentStatus() != getRightStatus()){
-            //比如如果接受rtsFrame,则station此刻的状态必须是receingrts
+            //比如如果接受rtsFrame,则station此刻的状态必须是recievingRts
             //即接收的桢类型必须和station的状态相符合,如果不符,则设置nav
             //并直接返回
             setNav(frame);

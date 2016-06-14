@@ -1,6 +1,7 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.infrastructure.PostDifsLogic;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
@@ -43,7 +44,7 @@ public abstract class Medium {
                     logger.info("全向天线模式");
                 }
                 for(Station station : stationList){
-                    station.onPostDIFS();
+                    new PostDifsLogic(station).process();
                 }
             }
         });
