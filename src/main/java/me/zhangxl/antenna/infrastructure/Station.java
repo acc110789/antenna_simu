@@ -10,7 +10,6 @@ import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.cool.EifsCool;
 import me.zhangxl.antenna.infrastructure.frame_process.ProcessorHelper;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.StationUtil;
 import org.apache.logging.log4j.Logger;
@@ -25,33 +24,30 @@ import java.util.List;
 public class Station extends AbstractRole{
 
     private static final Logger logger = SimuLoggerManager.getLogger(Station.class.getSimpleName());
-    private Pair<Double, Double> mLocation; //定向天线时需要保证
+    //当前要发送的DataFrame
     private DataFrame mCurrentSendingFrame;
-    //wait list
-    private List<DataFrame> mDataFramesToSend = new ArrayList<>();
+    //当进行difs或者eifs的时候需要记录开始冷却的时间
     private double mLastCoolTime = 0;
-    /**
-     * 已经发送成功的frames
-     */
+    //等待被发送的frames
+    private List<DataFrame> mDataFramesToSend = new ArrayList<>();
+    //已经发送成功的frames
     private List<DataFrame> mDataFrameSent = new ArrayList<>();
-    /**
-     * 正在接受的frames
-     */
+    //当前正在接受的frames
     private List<Frame> receivingFrames = new ArrayList<>();
 
     public Station(int id) {
         super(id);
-        StationUtil.stationList.add(this);
-        Medium.getInstance().register(this);
+        registerInfo();
     }
 
     public Station(int id, double xAxis, double yAxis) {
-        this(id);
-        this.mLocation = new Pair<>(xAxis, yAxis);
+        super(id,xAxis,yAxis);
+        registerInfo();
     }
 
-    public Pair<Double,Double> getAxis(){
-        return this.mLocation;
+    private void registerInfo(){
+        StationUtil.stationList.add(this);
+        Medium.getInstance().register(this);
     }
 
     public int getWaitingRequestNum() {
@@ -160,7 +156,6 @@ public class Station extends AbstractRole{
         return true;
     }
 
-    @Override
     public DataFrame getDataFrameToSend() {
         return mCurrentSendingFrame;
     }

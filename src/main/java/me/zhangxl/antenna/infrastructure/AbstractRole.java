@@ -3,6 +3,7 @@ package me.zhangxl.antenna.infrastructure;
 import me.zhangxl.antenna.infrastructure.base.BaseRole;
 import me.zhangxl.antenna.infrastructure.base.Stateful;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
+import me.zhangxl.antenna.util.Pair;
 
 /**
  * 对于全向天线来说,所有的Statin的状态都是同步的.
@@ -23,6 +24,7 @@ abstract class AbstractRole implements BaseRole {
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
     private Stateful.Status currentStatus = Stateful.Status.SLOTING;
+    private Pair<Double, Double> mLocation; //定向天线时需要保证
     /**
      * 节点的当前通信对象
      */
@@ -30,6 +32,16 @@ abstract class AbstractRole implements BaseRole {
 
     AbstractRole(int id){
         this.id = id;
+    }
+
+    AbstractRole(int id, double xAxis, double yAxis){
+        this.id = id;
+        this.mLocation = new Pair<>(xAxis, yAxis);
+    }
+
+    @Override
+    public Pair<Double,Double> getAxis(){
+        return this.mLocation;
     }
 
     @Override

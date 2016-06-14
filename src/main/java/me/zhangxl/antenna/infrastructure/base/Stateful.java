@@ -59,5 +59,5 @@ public interface Stateful {
 
     void setCurrentStatus(Status status);
 
-    Stateful.Status getCurrentStatus();
+    Status getCurrentStatus();
 }
