@@ -1,10 +1,10 @@
 package me.zhangxl.antenna.infrastructure.station.cool;
 
-import me.zhangxl.antenna.infrastructure.base.ChannelManager;
-import me.zhangxl.antenna.infrastructure.clock.TimeController;
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.BaseRole;
+import me.zhangxl.antenna.infrastructure.base.ChannelManager;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
-import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.PrecisionUtil;
 
 /**

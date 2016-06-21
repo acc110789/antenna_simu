@@ -1,8 +1,8 @@
 package me.zhangxl.antenna.infrastructure.timeout;
 
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
-import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;

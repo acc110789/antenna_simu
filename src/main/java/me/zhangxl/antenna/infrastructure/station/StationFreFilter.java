@@ -8,6 +8,7 @@ import me.zhangxl.antenna.infrastructure.base.FreFilter;
  */
 public class StationFreFilter implements FreFilter {
 
+    //初始时刻只接收Pcp节点所在的信号频率
     private int fre = ChannelManager.getInstance().getPcpChannel();
 
     public void setFre(int fre){

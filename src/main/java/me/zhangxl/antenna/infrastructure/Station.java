@@ -1,17 +1,20 @@
 package me.zhangxl.antenna.infrastructure;
 
-import me.zhangxl.antenna.frame.AckFrame;
-import me.zhangxl.antenna.frame.CtsFrame;
-import me.zhangxl.antenna.frame.DataFrame;
-import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.clock.Statistic;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
-import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.infrastructure.cool.EifsCool;
-import me.zhangxl.antenna.infrastructure.frame_process.ProcessorHelper;
+import me.zhangxl.antenna.infrastructure.frame_process.SendRtsProcessor;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
+import me.zhangxl.antenna.infrastructure.station.SlotManager;
+import me.zhangxl.antenna.infrastructure.station.StationFreFilter;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveAckFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveDataFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveNextRoundFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceivePairFrame;
+import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.StationUtil;
+import me.zhangxl.antenna.util.TimeLogger;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -34,6 +37,10 @@ public class Station extends AbstractRole{
     private List<DataFrame> mDataFrameSent = new ArrayList<>();
     //当前正在接受的frames
     private List<Frame> receivingFrames = new ArrayList<>();
+    //频率过滤器
+    private StationFreFilter mFreFilter = new StationFreFilter();
+    private final SlotManager mSlotManager = new SlotManager(this);
+    private double lastCoolingTime = -1;
 
     public Station(int id) {
         super(id);
@@ -42,6 +49,11 @@ public class Station extends AbstractRole{
 
     public Station(int id, double xAxis, double yAxis) {
         super(id,xAxis,yAxis);
+        registerInfo();
+    }
+
+    public Station(int id, Pair<Double,Double> location){
+        super(id,location);
         registerInfo();
     }
 
@@ -55,7 +67,7 @@ public class Station extends AbstractRole{
     }
 
     public void putDataFrame(int targetId) {
-        mDataFramesToSend.add(new DataFrame(getId(), targetId));
+        mDataFramesToSend.add(new DataFrame(getId(), targetId,-1));
     }
 
     /**
@@ -106,53 +118,28 @@ public class Station extends AbstractRole{
      * @return accepted by this station
      */
     public boolean beginReceiveFrame(final Frame frame){
-        //当station处于写数据模式  或者 处于NAV中时,不接受数据
-        if(getCurrentStatus() == Status.NAV || !getCurrentStatus().isReadMode()){
-            return false;
+        //如果频率不是这个station care的频率,就跟这个频率好像不存在是一样的
+        if(getCurrentStatus() == Status.NAV || !mFreFilter.canReceive(frame.getFre())){
+            return true;
         }
-        for(Frame frame1 : receivingFrames){
-            if(StationUtil.hasIntersection(frame1,frame)){
-                frame.setDirty();
-                frame1.setDirty();
-            }
+        if(getCurrentStatus().isWriteMode()){
+            throw new IllegalStateException("不可能是WriteMode");
+        }
+        if(receivingFrames.size() > 0){
+            //在同时接受的frame应该是只有一个
+            throw new IllegalStateException("应该不会有正在接受的frame");
         }
         receivingFrames.add(frame);
-        if(getCurrentStatus() == Status.COOLING || getCurrentStatus() == Status.SLOTING){
-            setCurrentStatus(Status.RECEIVING_RTS);
-        } else if(getCurrentStatus() == Status.WAITING_CTS){
-            setCurrentStatus(Status.RECEIVING_CTS);
-        } else if(getCurrentStatus() == Status.WAITING_DATA){
-            setCurrentStatus(Status.RECEIVING_DATA);
-        } else if(getCurrentStatus() == Status.WAITING_ACK){
-            setCurrentStatus(Status.RECEIVING_ACK);
-        } else if(getCurrentStatus() != Status.RECEIVING_RTS &&
-                getCurrentStatus() != Status.RECEIVING_CTS &&
-                getCurrentStatus() != Status.RECEIVING_DATA &&
-                getCurrentStatus() != Status.RECEIVING_ACK){
-            throw new IllegalStateException();
-        }
-        int priority = TimeTask.COMMON_PRIORITY;
-        if(frame instanceof CtsFrame){
-            priority = TimeTask.POST_SEND_CTS;
+
+        if(frame instanceof NextRoundFrame){
+            new OnReceiveNextRoundFrame(this,frame).doLogic();
+        } else if(frame instanceof PairFrame){
+            new OnReceivePairFrame(this,frame).doLogic();
         } else if(frame instanceof DataFrame){
-            priority = TimeTask.POST_SEND_DATA;
-        } else if(frame instanceof AckFrame){
-            priority = TimeTask.POST_SEND_ACK;
+            new OnReceiveDataFrame(this,frame).doLogic();
+        } else if(frame instanceof  AckFrame){
+            new OnReceiveAckFrame(this,frame).doLogic();
         }
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                receivingFrames.remove(frame);
-                if(!frame.isDirty()) {
-                    //接收成功一个干净的桢
-                    ProcessorHelper.process(Station.this,frame);
-                } else if(receivingFrames.isEmpty()) {
-                    //如果是脏的桢且是最后一个脏的桢,则在成功接受之后进入eifs信道冷却
-                    logger.info("%d begin eifs",getId());
-                    new EifsCool(Station.this).cool();
-                }
-            }
-        },frame.getEndDuration(),priority);
         return true;
     }
 
@@ -169,4 +156,52 @@ public class Station extends AbstractRole{
     }
 
 
+    public List<Frame> getReceivingFrames() {
+        return receivingFrames;
+    }
+
+    public void setAcceptFre(int channel) {
+        mFreFilter.setFre(channel);
+    }
+
+    public void onNextRound(int slots) {
+        setCurrentStatus(Status.SLOTING);
+        mSlotManager.setAvailableSlotCount(slots);
+        if(mCurrentSendingFrame == null){
+            //说明上次的发送成功,mCurrentSendingFrame被放在了已发送list里面了
+            getDataFrameToSend();
+        } else if(mCurrentSendingFrame.canBeSent()){
+            //说明上次曾经尝试发送,但是PCP节点没有给机会,这样相当于碰撞,应该将窗口加倍
+            onFail();
+        }
+        if (!sendDataIfNeed()) {
+            mSlotManager.scheduleSLOT();
+        }
+    }
+
+    /**
+     * @return 当确实开始发送一个RTSFrame时返回true,
+     * 如果slot还没有减少到0,则代表没有开始发送一个RtsFrame
+     * 这种情况下返回false.
+     */
+    public boolean sendDataIfNeed() {
+        if (mCurrentSendingFrame != null && mCurrentSendingFrame.canBeSent()) {
+            //开始进入流程
+            if (TimeLogger.DEBUG_STATION) {
+                logger.debug("%d start transmit data frame sendDataIfNeed", this.getId());
+            }
+            mCurrentSendingFrame.setStartTimeNow();
+            new SendRtsProcessor(this).process(FrameHelper.generateRtsFrame(mCurrentSendingFrame));
+            return true;
+        }
+        return false;
+    }
+
+    public void setCoolTimeNow(){
+        this.lastCoolingTime = TimeController.getInstance().getCurrentTime();
+    }
+
+    public double getLastCoolingTime(){
+        return this.lastCoolingTime;
+    }
 }

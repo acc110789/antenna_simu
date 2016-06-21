@@ -1,6 +1,7 @@
 package me.zhangxl.antenna.infrastructure.station.receive_logic.onpair;
 
-import me.zhangxl.antenna.infrastructure.station.Station;
+
+import me.zhangxl.antenna.infrastructure.Station;
 
 /**
  * Created by zhangxiaolong on 16/5/15.

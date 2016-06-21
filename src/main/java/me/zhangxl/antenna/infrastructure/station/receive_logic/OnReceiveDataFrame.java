@@ -2,8 +2,9 @@ package me.zhangxl.antenna.infrastructure.station.receive_logic;
 
 import me.zhangxl.antenna.frame.DataFrame;
 import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
-import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.frame_process.DataProcessor;
 
 /**
  * Created by zhangxiaolong on 16/5/13.
@@ -30,6 +31,6 @@ public class OnReceiveDataFrame extends OnReceiveFrameLogic {
     @Override
     void onPost() {
         assert station.getCurrentStatus() == Status.RECEIVING_DATA;
-        station.getReceiver().onPostRecvData((DataFrame) frame);
+        new DataProcessor(station).process(frame);
     }
 }

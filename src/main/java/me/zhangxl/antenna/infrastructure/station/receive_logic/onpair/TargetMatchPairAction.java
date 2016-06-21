@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.station.receive_logic.onpair;
 
 import me.zhangxl.antenna.frame.PairFrame;
-import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.timeout.WaitDataTimeOut;
 
 /**

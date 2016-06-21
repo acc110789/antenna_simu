@@ -9,8 +9,8 @@ import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
  * sender收到Ack之后的处理逻辑
  * Created by zhangxiaolong on 16/6/1.
  */
-class AckProcessor extends AbstractProcessor {
-    AckProcessor(Station station) {
+public class AckProcessor extends AbstractProcessor {
+    public AckProcessor(Station station) {
         super(station);
     }
 

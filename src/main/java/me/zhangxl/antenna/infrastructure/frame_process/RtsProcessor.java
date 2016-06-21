@@ -2,6 +2,7 @@ package me.zhangxl.antenna.infrastructure.frame_process;
 
 import me.zhangxl.antenna.frame.CtsFrame;
 import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.frame.FrameHelper;
 import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
@@ -50,7 +51,7 @@ class RtsProcessor extends AbstractProcessor {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                onPreSendCTS(frame.generateCtsFrame());
+                onPreSendCTS(FrameHelper.generateCtsFrame(frame));
             }
         }, Config.getInstance().getSifs(), TimeTask.SEND);
     }

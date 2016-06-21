@@ -29,12 +29,12 @@ public class DataFrame extends Frame {
     private int backOff;
     private int id;
 
-    public DataFrame(int srcId, int targetId) {
-        this(srcId, targetId, nextSerialNum());
+    public DataFrame(int srcId, int targetId,int fre) {
+        this(srcId, targetId, nextSerialNum(),fre);
     }
 
-    private DataFrame(int srcId, int targetId, int id) {
-        super(srcId, targetId, frameLength);
+    private DataFrame(int srcId, int targetId, int id,int fre) {
+        super(srcId, targetId, frameLength,fre);
         this.id = id;
     }
 

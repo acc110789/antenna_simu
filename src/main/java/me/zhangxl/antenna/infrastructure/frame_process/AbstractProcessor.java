@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
  * 原来的原则是直接ignore。
  * Created by zhangxiaolong on 16/6/1.
  */
-abstract class AbstractProcessor implements Processor {
+public abstract class AbstractProcessor implements Processor {
     final static Logger  logger = SimuLoggerManager.getLogger("process");
     final Station station;
     AbstractProcessor(Station station){
@@ -64,6 +64,10 @@ abstract class AbstractProcessor implements Processor {
         }
     }
 
+    /**
+     * @param frame 目标frame
+     * @return 检查frame是不是来自通信目标,是不是通信目标发给自己的
+     */
     boolean needNavById(Frame frame){
         if (station.getCommunicationTarget() != frame.getSrcId()) {
             logger.debug("%d this frame is not from its' communication target :%d",

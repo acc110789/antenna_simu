@@ -1,5 +1,6 @@
 package me.zhangxl.antenna.infrastructure;
 
+import me.zhangxl.antenna.frame.FrameHelper;
 import me.zhangxl.antenna.infrastructure.base.Stateful;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.frame_process.SendRtsProcessor;
@@ -68,7 +69,8 @@ public class PostDifsLogic {
                 logger.debug("%d start transmit data frame sendDataIfNeed", station.getId());
             }
             station.getDataFrameToSend().setStartTimeNow();
-            new SendRtsProcessor(station).process(station.getDataFrameToSend().generateRtsFrame());
+
+            new SendRtsProcessor(station).process(FrameHelper.generateRtsFrame(station.getDataFrameToSend()));
             return true;
         }
         return false;

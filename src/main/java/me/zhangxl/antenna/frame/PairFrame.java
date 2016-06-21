@@ -1,7 +1,6 @@
 package me.zhangxl.antenna.frame;
 
-import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.PrecisionUtil;
+import me.zhangxl.antenna.util.Constant;
 
 /**
  * 这个桢由PCP节点在2.4GHz或者5GHz频率下发出,
@@ -20,30 +19,12 @@ import me.zhangxl.antenna.util.PrecisionUtil;
  * Created by zhangxiaolong on 16/5/12.
  */
 public class PairFrame extends Frame {
-
-    private static final long frameLength = Config.getInstance().getPhyHeader() +//物理层的header
-            Config.getInstance().getMacHeader() +//mac层的header
-            2 * Config.getInstance().getAddrSize() +//两个地址
-            2 * 8;//2个字节,表明信道的编号
-
-    private static final double frameTimeLength = PrecisionUtil.div(frameLength,Config.getInstance().getBandWidth());
     private final int channel;
-
     public PairFrame(int srcId, int targetId, int fre, int channel) {
-        super(srcId, targetId, frameLength, fre);
+        super(srcId, targetId, Constant.getPairFrameLength(), fre);
         this.channel = channel;
     }
-
     public int getChannel(){
         return this.channel;
-    }
-
-    public static double getFrameTimeLength(){
-        return frameTimeLength;
-    }
-
-    @Override
-    public double getNavDuration() {
-        return 0;
     }
 }

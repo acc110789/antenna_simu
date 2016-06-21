@@ -9,7 +9,7 @@ public class CtsFrame extends Frame {
 
     private static final int ctsLength = Config.getInstance().getCtsLength();
 
-    CtsFrame(int srcId, int targetId) {
-        super(srcId, targetId, ctsLength);
+    CtsFrame(int srcId, int targetId,int fre) {
+        super(srcId, targetId, ctsLength,fre);
     }
 }

@@ -14,8 +14,8 @@ import me.zhangxl.antenna.util.Config;
  * 收到DataFrame之后的处理逻辑
  * Created by zhangxiaolong on 16/6/1.
  */
-class DataProcessor extends AbstractProcessor {
-    DataProcessor(Station station) {
+public class DataProcessor extends AbstractProcessor {
+    public DataProcessor(Station station) {
         super(station);
     }
 

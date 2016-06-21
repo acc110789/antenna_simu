@@ -1,7 +1,8 @@
 package me.zhangxl.antenna.infrastructure.station.receive_logic.onpair;
 
 import me.zhangxl.antenna.frame.PairFrame;
-import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.frame_process.PairProcessor;
 
 /**
  * station 接收到一个PairFrame,
@@ -11,7 +12,7 @@ import me.zhangxl.antenna.infrastructure.station.Station;
 public class SrcMatchPairAction extends AbstractPairAction {
 
     private final PairFrame frame;
-    public SrcMatchPairAction(Station station,PairFrame frame) {
+    public SrcMatchPairAction(Station station, PairFrame frame) {
         super(station);
         this.frame = frame;
     }
@@ -20,6 +21,6 @@ public class SrcMatchPairAction extends AbstractPairAction {
     public void action() {
         station.setAcceptFre(frame.getChannel());
         station.setCommunicationTarget(frame.getTargetId());
-        station.getSender().onPreSendSIFSAndDATA();
+        new PairProcessor(station).process(frame);
     }
 }

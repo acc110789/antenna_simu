@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.station.receive_logic.onpair;
 
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.nav.TargetBusyNav;
-import me.zhangxl.antenna.infrastructure.station.Station;
 
 /**
  * PairFrame的srcId或者targetId和本station即将要发送的
@@ -16,6 +16,6 @@ public class TargetRelatedPairAction extends AbstractPairAction {
 
     @Override
     public void action() {
-        new TargetBusyNav(station).nav();
+        new TargetBusyNav(station).startNav();
     }
 }

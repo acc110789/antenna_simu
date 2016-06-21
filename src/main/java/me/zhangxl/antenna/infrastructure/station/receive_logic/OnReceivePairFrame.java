@@ -2,8 +2,8 @@ package me.zhangxl.antenna.infrastructure.station.receive_logic;
 
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.PairFrame;
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
-import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.receive_logic.onpair.SrcMatchPairAction;
 import me.zhangxl.antenna.infrastructure.station.receive_logic.onpair.TargetMatchPairAction;
 import me.zhangxl.antenna.infrastructure.station.receive_logic.onpair.TargetRelatedPairAction;
@@ -49,7 +49,7 @@ public class OnReceivePairFrame extends OnReceiveFrameLogic {
              * 如果没有关系,就还是回到 {@link Status.WAITING_NEXT_ROUND}
              */
             station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
-            int sendTarget = station.getDataToSend().getTargetId();
+            int sendTarget = station.getDataFrameToSend().getTargetId();
             if(sendTarget == srcId || sendTarget == targetId){
                 new TargetRelatedPairAction(station).action();
             }

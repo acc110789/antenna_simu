@@ -2,9 +2,9 @@ package me.zhangxl.antenna.infrastructure.station.receive_logic;
 
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.NextRoundFrame;
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
-import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.util.Constant;
 
 import static me.zhangxl.antenna.infrastructure.base.Stateful.Status;

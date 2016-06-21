@@ -39,6 +39,11 @@ abstract class AbstractRole implements BaseRole {
         this.mLocation = new Pair<>(xAxis, yAxis);
     }
 
+    AbstractRole(int id, Pair<Double, Double> location) {
+        this.id = id;
+        this.mLocation = location;
+    }
+
     @Override
     public Pair<Double,Double> getAxis(){
         return this.mLocation;

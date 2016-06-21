@@ -1,6 +1,6 @@
 package me.zhangxl.antenna.infrastructure.station.cool;
 
-import me.zhangxl.antenna.infrastructure.station.Station;
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.util.Config;
 
 /**

@@ -9,7 +9,7 @@ public class AckFrame extends Frame {
 
     private static final int ackLength = Config.getInstance().getAckLength();
 
-    AckFrame(int srcId, int targetId) {
-        super(srcId, targetId, ackLength);
+    AckFrame(int srcId, int targetId, int fre) {
+        super(srcId, targetId, ackLength, fre);
     }
 }

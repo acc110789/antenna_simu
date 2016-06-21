@@ -1,6 +1,5 @@
 package me.zhangxl.antenna.frame;
 
-import me.zhangxl.antenna.infrastructure.base.ChannelManager;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
 import me.zhangxl.antenna.util.PrecisionUtil;
@@ -79,10 +78,6 @@ public abstract class Frame implements Cloneable{
 
     public void setFre(int fre){
         this.fre = fre;
-    }
-
-    public RtsFrame generateRtsFrame(){
-        return new RtsFrame(this.srcId,this.targetId, ChannelManager.getInstance().getRandomRtsChannel());
     }
 
     /**
