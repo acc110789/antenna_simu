@@ -169,9 +169,10 @@ public class Station extends AbstractRole{
         mSlotManager.setAvailableSlotCount(slots);
         if(mCurrentSendingFrame == null){
             //说明上次的发送成功,mCurrentSendingFrame被放在了已发送list里面了
-            getDataFrameToSend();
+            setNextDataFrameToSend();
         } else if(mCurrentSendingFrame.canBeSent()){
             //说明上次曾经尝试发送,但是PCP节点没有给机会,这样相当于碰撞,应该将窗口加倍
+            // TODO: 16/6/21 是这样吗?有待商榷
             onFail();
         }
         if (!sendDataIfNeed()) {

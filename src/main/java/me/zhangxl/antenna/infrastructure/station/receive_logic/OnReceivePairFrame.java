@@ -49,9 +49,11 @@ public class OnReceivePairFrame extends OnReceiveFrameLogic {
              * 如果没有关系,就还是回到 {@link Status.WAITING_NEXT_ROUND}
              */
             station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
-            int sendTarget = station.getDataFrameToSend().getTargetId();
-            if(sendTarget == srcId || sendTarget == targetId){
-                new TargetRelatedPairAction(station).action();
+            if(station.getDataFrameToSend() != null){
+                int sendTarget = station.getDataFrameToSend().getTargetId();
+                if(sendTarget == srcId || sendTarget == targetId){
+                    new TargetRelatedPairAction(station).action();
+                }
             }
         }
     }

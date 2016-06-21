@@ -1,6 +1,5 @@
 package me.zhangxl.antenna.infrastructure.frame_process;
 
-import me.zhangxl.antenna.infrastructure.cool.DifsCool;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
@@ -22,14 +21,14 @@ public class AckProcessor extends AbstractProcessor {
             logger.info("this ack is from a unknown peer,nav is 0,will switch to cooling");
             station.onFail();
             //开始difs冷却
-            new DifsCool(station).cool();
+            station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
         } else {
             //桢是来自正确的节点
             assert station.getCurrentStatus() == Status.RECEIVING_ACK;
             assert frame.getTargetId() == station.getId();
             //说明本节点发送数据成功
             station.onSuccess();
-            new DifsCool(station).cool();
+            station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
         }
     }
 

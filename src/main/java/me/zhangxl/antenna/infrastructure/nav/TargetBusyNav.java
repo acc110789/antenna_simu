@@ -16,7 +16,6 @@ public class TargetBusyNav extends AbstractNav {
 
     @Override
     double getNavDuration() {
-        // TODO: 16/6/21 查一查这个类的功能和DataNav是否是一致的
-        return Constant.getDataNav();
+        return Constant.getCtsNav();
     }
 }

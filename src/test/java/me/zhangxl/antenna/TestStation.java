@@ -1,17 +1,10 @@
 package me.zhangxl.antenna;
 
-import me.zhangxl.antenna.frame.CtsFrame;
-import me.zhangxl.antenna.frame.NextRoundFrame;
-import me.zhangxl.antenna.frame.RtsFrame;
+import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.infrastructure.pcp.PcpStation;
-import me.zhangxl.antenna.infrastructure.station.Station;
-import me.zhangxl.antenna.infrastructure.station.StationUtil;
-import me.zhangxl.antenna.util.Config;
-import me.zhangxl.antenna.util.PrecisionUtil;
-import me.zhangxl.antenna.util.SimuLoggerManager;
-import me.zhangxl.antenna.util.TimeLogger;
+import me.zhangxl.antenna.util.*;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -75,12 +68,11 @@ public class TestStation {
         logger.info("***************config*****************");
         logger.ln();
         logger.info("%-13s%#.14f", "slot length", Config.getInstance().getSlotLength());
-        logger.info("%-13s%#.14f", "rts  length", RtsFrame.getFrameTimeLength());
+        logger.info("%-13s%#.14f", "rts  length", Constant.getRtsTimeLength());
         logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
-        logger.info("%-13s%#.14f", "cts  timeout", CtsFrame.getCtsTimeOut());
-        logger.info("%-13s%#.14f", "rts  timeout", RtsFrame.getRtsTimeOut());
+        logger.info("%-13s%#.14f", "cts  timeout", Constant.getCtsTimeOut());
         logger.info("%-13s%#.14f", "eifs length", Config.getInstance().getEifs());
-        logger.info("%-13s%#.14f", "next length", NextRoundFrame.getFrameTimeLength());
+        logger.info("%-13s%#.14f", "next length", Constant.getNextRoundTimeLength());
         logger.ln();
         logger.info("**************************************");
         logger.info("**************************************");

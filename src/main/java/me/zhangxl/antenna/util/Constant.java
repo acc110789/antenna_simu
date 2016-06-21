@@ -24,11 +24,16 @@ public class Constant {
         return ctsTimeout;
     }
 
+    private static long dataFrameLength = Config.getInstance().getPayLoad()
+            + Config.getInstance().getPhyHeader()
+            + Config.getInstance().getMacHeader();
+
+    public static long getDataFrameLength(){
+        return dataFrameLength;
+    }
 
     private static final double dataTimeLength = PrecisionUtil.div(
-            Config.getInstance().getPayLoad() +
-                    Config.getInstance().getPhyHeader() +
-                    Config.getInstance().getMacHeader(),
+            getDataFrameLength(),
             Config.getInstance().getBandWidth());
     /**
      * @return dataFrame那一小段对应的时间片

@@ -2,6 +2,7 @@ package me.zhangxl.antenna.frame;
 
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Config;
+import me.zhangxl.antenna.util.Constant;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.TimeLogger;
 import org.apache.logging.log4j.Logger;
@@ -17,9 +18,6 @@ public class DataFrame extends Frame {
 
     private static Logger logger = SimuLoggerManager.getLogger(DataFrame.class.getSimpleName());
     //整个桢的长度,包括物理层的header,mac层的header,包括数据的长度
-    private static final long frameLength = Config.getInstance().getPayLoad()
-            + Config.getInstance().getPhyHeader()
-            + Config.getInstance().getMacHeader();
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
     //仅仅数据部分的长度
@@ -34,7 +32,7 @@ public class DataFrame extends Frame {
     }
 
     private DataFrame(int srcId, int targetId, int id,int fre) {
-        super(srcId, targetId, frameLength,fre);
+        super(srcId, targetId, Constant.getDataFrameLength(),fre);
         this.id = id;
     }
 

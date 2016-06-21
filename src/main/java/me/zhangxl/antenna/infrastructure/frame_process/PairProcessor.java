@@ -37,7 +37,7 @@ public class PairProcessor extends AbstractProcessor {
 
     private void onPreSendSIFSAndDATA() {
         logger.debug("%d onPreSendSIFSAndDATA()", station.getId());
-        assert station.getCurrentStatus() == Status.RECEIVING_CTS;
+        assert station.getCurrentStatus() == getRightStatus();
         station.setCurrentStatus(Status.SENDING_DATA);
         TimeController.getInstance().post(new Runnable() {
             @Override

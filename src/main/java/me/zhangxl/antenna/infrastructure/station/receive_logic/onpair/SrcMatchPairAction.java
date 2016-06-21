@@ -20,6 +20,7 @@ public class SrcMatchPairAction extends AbstractPairAction {
     @Override
     public void action() {
         station.setAcceptFre(frame.getChannel());
+        station.getDataFrameToSend().setFre(frame.getChannel());
         station.setCommunicationTarget(frame.getTargetId());
         new PairProcessor(station).process(frame);
     }

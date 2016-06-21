@@ -1,6 +1,5 @@
 package me.zhangxl.antenna.infrastructure.frame_process;
 
-import me.zhangxl.antenna.infrastructure.cool.DifsCool;
 import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
@@ -62,6 +61,6 @@ public class DataProcessor extends AbstractProcessor {
     private void onPostSendACK() {
         logger.debug("%d onPostSendACK()", station.getId());
         assert station.getCurrentStatus() == Status.SENDING_ACK;
-        new DifsCool(station).cool();
+        station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
     }
 }

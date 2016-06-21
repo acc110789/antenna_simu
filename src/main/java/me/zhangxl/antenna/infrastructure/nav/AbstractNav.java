@@ -1,6 +1,5 @@
 package me.zhangxl.antenna.infrastructure.nav;
 
-import me.zhangxl.antenna.infrastructure.cool.DifsCool;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
@@ -26,7 +25,8 @@ abstract class AbstractNav implements Navable{
             @Override
             public void run() {
                 logger.info("%d NAV finish",station.getId());
-                new DifsCool(station).cool();
+                station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+//                new DifsCool(station).cool();
             }
         },getNavDuration(), TimeTask.RECEIVE);
     }
