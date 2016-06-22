@@ -17,11 +17,11 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         checkConfig();
         //新建站点
-        Generator<Pair<Double,Double>> generator = CoordinateGenerator.getInstance();
+        Generator<Pair<Double, Double>> generator = CoordinateGenerator.getInstance();
         List<Station> stationList = new ArrayList<>();
         PcpStation.getInstance();
-        for(int i=1;i<11;i++){
-            stationList.add(new Station(i,generator.next()));
+        for (int i = 1; i <= Config.getInstance().getStationNum(); i++) {
+            stationList.add(new Station(i, generator.next()));
         }
         //激活所有的站点
         for (Station station : stationList) {

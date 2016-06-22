@@ -63,6 +63,10 @@ public class DataFrame extends Frame {
 
     private void updateBackOff() {
         int failWindow = (1 << this.failTimes) * Config.getInstance().getDefaultCW();
+        if(failWindow <= 0){
+            //有可能失败次数太多,导致failwindow太大,导致数组越界,导致failWindow小于0
+            failWindow = Config.getInstance().getMaxCW();
+        }
         int contentionWindow = Math.min(failWindow, Config.getInstance().getMaxCW());
         backOff = random.nextInt(contentionWindow);
         if (TimeLogger.DEBUG_FRAME) {

@@ -228,9 +228,14 @@ public class PcpStation implements Locatable {
         int peerNum = Medium.getInstance().getPeerNum();
         int freeNum = peerNum - busyNum;
         int window = Config.getInstance().getDefaultCW();
-        window = 1 << window;
-        int value = window / freeNum;
-        value = value == 0 ? value + 1 : value;
+        int value;
+        if(freeNum == 0){
+            // TODO: 16/6/22 当所有的节点都出于busy的状态的时候,value应该是多少还需要再进行思考
+            value = 4;
+        } else {
+            value = window / freeNum;
+        }
+        value = value == 0 ? 1 : value;
         mSlots = value * (Config.getInstance().getRtsFreCount() - 1);
         mSlots = Math.max(window / 2, mSlots);
     }

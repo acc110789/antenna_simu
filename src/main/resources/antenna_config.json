@@ -2,13 +2,13 @@
   "RTS_FRE_COUNT": 3,
   "DATA_FRE_COUNT": 3,
   "PCP_MODE": true,
-  "STATION_NUM": 10,
+  "STATION_NUM": 4,
   "MAX_CW": 256,
   "CURRENT_VERSION": "802.11CUSTOM",
   "802.11CUSTOM": {
     "SLOT_LENGTH": 50e-6,
     "SIFS": 28e-6,
-    "DEFAULT_CW": 32,
+    "DEFAULT_CW": 8,
     "DIFS": 130e-6
   },
   "802.11B": {
@@ -39,6 +39,6 @@
   "PAYLOAD": 8000,
   "ANTENNA_MODE": 2,
   "PART": 8,
-  "WARM_UP": 40,
-  "SIMULATION_DURATION": 160
+  "WARM_UP": 0.01,
+  "SIMULATION_DURATION": 0.05
 }
