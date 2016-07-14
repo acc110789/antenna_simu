@@ -31,7 +31,7 @@ public class OnReceiveNextRoundFrame extends OnReceiveFrameLogic {
             @Override
             public void run() {
                 assert station.getCurrentStatus() == Status.RECEIVING_NEXT_ROUND_FRAME;
-                station.onNextRound(((NextRoundFrame) frame).getSlots());
+                station.onNextRound((NextRoundFrame) frame);
             }
         }, Constant.getNormalCoolingDuration());//收到NextRoundFrame之后仍然需要等待difs之后
     }

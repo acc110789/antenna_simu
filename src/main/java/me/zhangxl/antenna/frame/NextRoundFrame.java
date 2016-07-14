@@ -13,12 +13,26 @@ import me.zhangxl.antenna.util.Constant;
  */
 public class NextRoundFrame extends Frame {
     private int slots = -1;
+    private boolean needRefresh = false;
+
     public NextRoundFrame(int srcId, int targetId, int fre, int slots) {
         super(srcId, targetId, Constant.getNextRoundFrameLength(), fre);
         this.slots = slots;
     }
 
+    public boolean needRefresh(){
+        return this.needRefresh;
+    }
+
+    public void setNeedRefresh(){
+        this.needRefresh = true;
+    }
+
     public int getSlots(){
         return this.slots;
+    }
+
+    public void setSlots(int slots){
+        this.slots = slots;
     }
 }

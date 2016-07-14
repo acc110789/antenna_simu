@@ -79,6 +79,12 @@ public class Constant {
         return rtsTimeLength;
     }
 
+    private static final double navFrameTimeLength = rtsTimeLength;
+
+    public static double getNavFrameTimeLength(){
+        return navFrameTimeLength;
+    }
+
     /**
      * 一个字节的长度是8位
      */

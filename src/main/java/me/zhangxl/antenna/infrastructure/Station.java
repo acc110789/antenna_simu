@@ -7,10 +7,7 @@ import me.zhangxl.antenna.infrastructure.frame_process.SendRtsProcessor;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.infrastructure.station.SlotManager;
 import me.zhangxl.antenna.infrastructure.station.StationFreFilter;
-import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveAckFrame;
-import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveDataFrame;
-import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveNextRoundFrame;
-import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceivePairFrame;
+import me.zhangxl.antenna.infrastructure.station.receive_logic.*;
 import me.zhangxl.antenna.util.Pair;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import me.zhangxl.antenna.util.StationUtil;
@@ -103,7 +100,6 @@ public class Station extends AbstractRole{
      */
     public void onFail() {
         Statistic.addCollitionTimes();
-        mCurrentSendingFrame.addCollitionTimes();
     }
 
     @Override
@@ -139,6 +135,8 @@ public class Station extends AbstractRole{
             new OnReceiveDataFrame(this,frame).doLogic();
         } else if(frame instanceof  AckFrame){
             new OnReceiveAckFrame(this,frame).doLogic();
+        } else if(frame instanceof NavFrame){
+            new OnReceiveNavFrameLogic(this,frame).doLogic();
         }
         return true;
     }
@@ -164,9 +162,9 @@ public class Station extends AbstractRole{
         mFreFilter.setFre(channel);
     }
 
-    public void onNextRound(int slots) {
+    public void onNextRound(NextRoundFrame frame) {
         setCurrentStatus(Status.SLOTING);
-        mSlotManager.setAvailableSlotCount(slots);
+        mSlotManager.setAvailableSlotCount(frame.getSlots());
         if(mCurrentSendingFrame == null){
             //说明上次的发送成功,mCurrentSendingFrame被放在了已发送list里面了
             setNextDataFrameToSend();
@@ -174,6 +172,9 @@ public class Station extends AbstractRole{
             //说明上次曾经尝试发送,但是PCP节点没有给机会,这样相当于碰撞,应该将窗口加倍
             // TODO: 16/6/21 是这样吗?有待商榷
             onFail();
+            if(frame.needRefresh()){
+                mCurrentSendingFrame.addCollitionTimes();
+            }
         }
         if (!sendDataIfNeed()) {
             mSlotManager.scheduleSLOT();

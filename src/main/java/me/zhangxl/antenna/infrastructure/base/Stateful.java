@@ -13,6 +13,7 @@ public interface Stateful {
         //这几个状态是普通节点的几个状态啊
         WAITING_NEXT_ROUND(false),
         RECEIVING_PAIR_FRAME(false),
+        RECEIVING_NAV_FRAME(false),
         RECEIVING_NEXT_ROUND_FRAME(false),
         SLOTING(false),
         //note: 没有WAITING_RTS这个状态

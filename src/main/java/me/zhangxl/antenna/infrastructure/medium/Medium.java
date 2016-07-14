@@ -43,7 +43,7 @@ public class Medium {
                 logger.info("定向天线模式,分析所有Station的位置信息......");
                 directMedium.analysisStationLocation();
                 //作为程序开始的起点,让Pcp节点率先发出一个NextRoundFrame
-                PcpStation.getInstance().sendNextRoundFrame();
+                PcpStation.getInstance().sendNextRoundFrame(-1, false);
             }
         });
     }
