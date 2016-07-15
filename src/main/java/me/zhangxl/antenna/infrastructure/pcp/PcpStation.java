@@ -108,8 +108,9 @@ public class PcpStation implements Locatable {
      * {@link me.zhangxl.antenna.frame.PairFrame}
      * 完毕之后最后再次发送
      * {@link me.zhangxl.antenna.frame.NextRoundFrame}
-     * @param slots NextRoundFrame允许的退避槽(slot)数量,如果大于或者等于0,则使用这个slots,
-     *              如果slots的值小于0,则使用 {@link #prepareSlot()}重置的slots值
+     *
+     * @param slots        NextRoundFrame允许的退避槽(slot)数量,如果大于或者等于0,则使用这个slots,
+     *                     如果slots的值小于0,则使用 {@link #prepareSlot()}重置的slots值
      * @param doubleWindow 将上一轮发送Rts但是没有被xiangxin
      */
     public void sendNextRoundFrame(int slots, boolean doubleWindow) {
@@ -117,16 +118,17 @@ public class PcpStation implements Locatable {
         receivedRtss.clear();
         logger.debug("%d onPreSendNextRoundFrame", getId());
         assert getCurrentStatus() == Status.WAITING_RTS || getCurrentStatus() == Status.SENDING_PAIR;
-        if(slots < 0) {
+        if (slots < 0) {
             prepareSlot();
         } else {
             mSlots = slots;
         }
         logger.info("%d slots permitted", mSlots);
         final NextRoundFrame frame = new NextRoundFrame(getId(), -1, ChannelManager.getInstance().getPcpChannel(), mSlots);
-        if(doubleWindow) {
+        if (doubleWindow) {
             frame.setNeedRefresh();
         }
+        logger.info("need double window : %s", doubleWindow ? "yes" : "no");
         Medium.getInstance().putFrame(this, frame);
         setCurrentStatus(Status.SENDING_NEXT_ROUND);
 
@@ -152,6 +154,7 @@ public class PcpStation implements Locatable {
             @Override
             public void run() {
                 if (currentStatus == Status.WAITING_RTS) {
+                    logger.info("timeout receive none rts frame");
                     //意味着在这期间没有周围没有任何节点发送RTS请求
                     sendNextRoundFrame(-1, false);
                 }
@@ -166,13 +169,14 @@ public class PcpStation implements Locatable {
                 assert receivingRtss.size() == 0;
                 if (receivedRtss.size() > 0) {
                     //如果收到了rts,则进入下一个流程,否则,等待直到rts超时,然后进入超时的处理流程
+                    logger.info("begin deal received rtss");
                     setCurrentStatus(Status.SENDING_PAIR);
                     //分析是否发生了碰撞以及碰撞是否严重
                     collisionRecord.analyze(receivedRtss);
                     //去掉碰撞的rts
                     Iterator<RtsFrame> iter = receivedRtss.iterator();
-                    while (iter.hasNext()){
-                        if(iter.next().isDirty()){
+                    while (iter.hasNext()) {
+                        if (iter.next().isDirty()) {
                             iter.remove();
                         }
                     }
@@ -190,7 +194,7 @@ public class PcpStation implements Locatable {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                logger.debug("%d onSendPairFrame", getId());
+                logger.debug("%d onSendPcpControlFrame", getId());
                 sendPairFrameInner();
             }
         }, Config.getInstance().getSifs());
@@ -200,12 +204,12 @@ public class PcpStation implements Locatable {
         if (!hasFreeDataChannel()) {
             //没有可用的dataChannel,则把所有的rts都清空,让所有的节点设置nav,直到至少有一个dataChannel可用
             receivedRtss.clear();
-            NavFrame frame = new NavFrame(0,-1,ChannelManager.getInstance().getPcpChannel());
+            NavFrame frame = new NavFrame(0, -1, ChannelManager.getInstance().getPcpChannel());
             double navDuration = PrecisionUtil.sub(channelUsage.getShortestWaitTime(),
                     Constant.getNavFrameTimeLength());
-            navDuration = Math.max(navDuration,0);
+            navDuration = Math.max(navDuration, 0);
             frame.setNavDuration(navDuration);
-            Medium.getInstance().putFrame(this,frame);
+            Medium.getInstance().putFrame(this, frame);
             final double finalNavDuration = navDuration;
             TimeController.getInstance().post(new Runnable() {
                 @Override
@@ -217,8 +221,8 @@ public class PcpStation implements Locatable {
                         }
                     }, finalNavDuration);
                 }
-            },Constant.getNavFrameTimeLength());
-            Medium.getInstance().putFrame(this,frame);
+            }, Constant.getNavFrameTimeLength());
+            Medium.getInstance().putFrame(this, frame);
             return;
         }
         //receivedRtss里面全都是没有被碰撞的桢,只要是size大于0,就是没有碰撞的桢
@@ -239,40 +243,44 @@ public class PcpStation implements Locatable {
                     public void run() {
                         //发送完毕之后紧接着发送下一个
                         logger.debug("%d onPostSendPairFrame", getId());
-                        channelUsage.put(frame.getSrcId(), frame.getTargetId(), channel);
+                        channelUsage.putCommunicatePair(frame.getSrcId(), frame.getTargetId(), channel);
                         //准备发送下一个可能PairFrame
                         onSendPairFrame();
                     }
                 }, pairFrame.getTransmitDuration(), TimeTask.SEND);
             } else {
                 RtsFrame rtsFrame = receivedRtss.remove(0);
-                if(channelUsage.isReceiver(rtsFrame.getSrcId())){
+                if (channelUsage.isReceiver(rtsFrame.getSrcId())) {
                     //说明在本轮早就已经成为另一对连接的接收者了
                     sendPairFrameInner();
                 } else {
                     //向这个Frame的发送者回复NavFrame
-                    NavFrame navFrame = new NavFrame(0,rtsFrame.getSrcId(),ChannelManager.getInstance().getPcpChannel());
+                    NavFrame navFrame = new NavFrame(0, rtsFrame.getSrcId(), ChannelManager.getInstance().getPcpChannel());
                     double navDuration = channelUsage.getWaitingTimeNeeded(rtsFrame.getTargetId());
-                    navDuration = PrecisionUtil.sub(navDuration,Constant.getNavFrameTimeLength());
-                    navDuration = Math.max(navDuration,0);
+                    channelUsage.putNavItem(rtsFrame.getSrcId(), navDuration);
+
+                    navDuration = PrecisionUtil.sub(navDuration, Constant.getNavFrameTimeLength());
+                    navDuration = Math.max(navDuration, 0);
                     navFrame.setNavDuration(navDuration);
-                    Medium.getInstance().putFrame(this,navFrame);
+                    Medium.getInstance().putFrame(this, navFrame);
+                    logger.debug("%d onPreSendNavFrame()", getId());
                     TimeController.getInstance().post(new Runnable() {
                         @Override
                         public void run() {
+                            logger.debug("%d onPostSendNavFrame()", getId());
                             onSendPairFrame();
                         }
-                    },Constant.getNavFrameTimeLength());
+                    }, Constant.getNavFrameTimeLength());
                 }
             }
         } else {
-            if(collisionRecord.collision()){
+            if (collisionRecord.collision()) {
                 //发生了碰撞了
-                if(collisionRecord.severeCollision()){
+                if (collisionRecord.severeCollision()) {
                     //是严重的碰撞,窗口值加倍
-                    sendNextRoundFrame(-1,true);
+                    sendNextRoundFrame(-1, true);
                 } else {
-                    sendNextRoundFrame(0,false);
+                    sendNextRoundFrame(0, false);
                     //是一般的碰撞,窗口值不变
                 }
             } else {
@@ -282,20 +290,24 @@ public class PcpStation implements Locatable {
     }
 
     private void prepareSlot() {
-        int busyNum = channelUsage.getItemSize() * 2;
+        int busyNum = channelUsage.getItemSize();
         int peerNum = Medium.getInstance().getPeerNum();
         int freeNum = peerNum - busyNum;
         int window = Config.getInstance().getDefaultCW();
-        int value;
-        if(freeNum == 0){
-            // TODO: 16/6/22 当所有的节点都出于busy的状态的时候,value应该是多少还需要再进行思考
-            value = 4;
+        int value;//一个free节点占有的window数量
+        if (freeNum == 0) {
+            // 当所有的节点都出于busy的状态的时候,直接将slot设置为window的一半
+            mSlots = window / 2;
         } else {
             value = window / freeNum;
+            value = Math.max(1, value);
+            mSlots = value * (Config.getInstance().getRtsFreCount() - 1);
+            //窗口值不能超过默认窗口的一半
+            mSlots = Math.min(window / 2, mSlots);
         }
-        value = value == 0 ? 1 : value;
-        mSlots = value * (Config.getInstance().getRtsFreCount() - 1);
-        mSlots = Math.max(window / 2, mSlots);
+        if (mSlots < 0) {
+            throw new IllegalStateException("mSlots is less than 0");
+        }
     }
 
     /**

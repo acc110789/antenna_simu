@@ -11,9 +11,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * 测试java一些函数的功能
@@ -194,6 +192,14 @@ public class TestJavaFunction {
         System.out.println("80 degree :" + PrecisionUtil.round(Math.tan(angle)));
 
         System.out.println("negative degree: " + PrecisionUtil.round(Math.atan(-1)));
+    }
+
+    @Test
+    public void testListAdd(){
+        Collection<Integer> list = new HashSet<>();
+        list.add(1);
+        list.add(1);
+        assert  list.size() == 1;
     }
 
 

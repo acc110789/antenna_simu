@@ -6,7 +6,6 @@ import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
-import me.zhangxl.antenna.infrastructure.nav.CtsNav;
 import me.zhangxl.antenna.infrastructure.timeout.WaitAckTimeOut;
 import me.zhangxl.antenna.util.Config;
 
@@ -22,12 +21,9 @@ public class PairProcessor extends AbstractProcessor {
 
     @Override
     public void processInner(Frame frame) {
-        logger.debug("%d onPostRecvCTS()", station.getId());
-        if(needNavById(frame)){
-            new CtsNav(station).startNav();
-        } else {
-            onPreSendSIFSAndDATA();
-        }
+        logger.debug("%d onPostRecvPair()", station.getId());
+        assert station.getId() == frame.getSrcId() && station.getCommunicationTarget() == frame.getTargetId();
+        onPreSendSIFSAndDATA();
     }
 
     @Override

@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
  * 原来的原则是直接ignore。
  * Created by zhangxiaolong on 16/6/1.
  */
-public abstract class AbstractProcessor implements Processor {
+abstract class AbstractProcessor implements Processor {
     final static Logger  logger = SimuLoggerManager.getLogger("process");
     final Station station;
     AbstractProcessor(Station station){
@@ -39,6 +39,7 @@ public abstract class AbstractProcessor implements Processor {
             //比如如果接受rtsFrame,则station此刻的状态必须是recievingRts
             //即接收的桢类型必须和station的状态相符合,如果不符,则设置nav
             //并直接返回
+            logger.error("error wrong status");
             setNav(frame);
         } else {
             processInner(frame);

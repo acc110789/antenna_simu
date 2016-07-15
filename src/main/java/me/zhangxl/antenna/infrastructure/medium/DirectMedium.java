@@ -52,6 +52,7 @@ public class DirectMedium extends Medium {
     }
 
     void analysisStationLocation() {
+        logger.info("有 %d 个Locatable",stationList.size());
         for (Locatable station : stationList) {
             sMap.put(station, new Info());
         }

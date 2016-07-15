@@ -2,6 +2,7 @@ package me.zhangxl.antenna.infrastructure.frame_process;
 
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.base.ChannelManager;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 
 /**
@@ -18,9 +19,10 @@ public class AckProcessor extends AbstractProcessor {
         logger.debug("%d onPostRecvACK()", station.getId());
         if(needNavById(frame)){
             //这里ack的nav值应该是0,所以直接进入difs
-            logger.info("this ack is from a unknown peer,nav is 0,will switch to cooling");
+            logger.error("this ack is from a unknown peer,nav is 0,will switch to cooling");
             station.onFail();
             //开始difs冷却
+            station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
             station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
         } else {
             //桢是来自正确的节点
@@ -28,6 +30,7 @@ public class AckProcessor extends AbstractProcessor {
             assert frame.getTargetId() == station.getId();
             //说明本节点发送数据成功
             station.onSuccess();
+            station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
             station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
         }
     }

@@ -13,36 +13,8 @@ import java.util.List;
  * 保存着信道的使用情况
  */
 class ChannelUsage {
-    /**
-     * 一对正在通信的节点保存的信息
-     */
-    private static class CommunicateItem {
-        final int srcId;
-        final int targetId;
-        //item被摧毁的时间点
-        final double endTimePoint;
-        final int channelId;
 
-        CommunicateItem(int srcId, int targetId, int channelId,double endTimePoint) {
-            this.srcId = srcId;
-            this.targetId = targetId;
-            this.channelId = channelId;
-            this.endTimePoint = endTimePoint;
-        }
-
-        boolean hasId(int id) {
-            return srcId == id || targetId == id;
-        }
-
-        /**
-         * @return 还需要等待的时间
-         */
-        double getWaitingTime(){
-            return PrecisionUtil.sub(this.endTimePoint,TimeController.getInstance().getCurrentTime());
-        }
-    }
-
-    private final List<CommunicateItem> items = new ArrayList<>();
+    private final List<SaveItem> items = new ArrayList<>();
 
     /**
      * @param id 代表一个Station,是Station的编号
@@ -50,7 +22,7 @@ class ChannelUsage {
      * 以及target都没有id代表的station
      */
     boolean isIdFree(int id) {
-        for (CommunicateItem item : items) {
+        for (SaveItem item : items) {
             if (item.hasId(id)) {
                 return false;
             }
@@ -62,8 +34,12 @@ class ChannelUsage {
         for (int channel : ChannelManager.getInstance().getDataChannels()) {
             //简单当前的channel是不是free,如果是free就将这个channel返回
             boolean isTaken = false;
-            for (CommunicateItem item : items) {
-                if (item.channelId == channel) {
+            for (SaveItem item : items) {
+                if (item instanceof NavItem) {
+                    continue;
+                }
+                CommunicatePairItem pairItem = (CommunicatePairItem) item;
+                if (pairItem.channelId == channel) {
                     isTaken = true;
                     break;
                 }
@@ -76,12 +52,16 @@ class ChannelUsage {
     }
 
     int getItemSize() {
-        return items.size();
+        int result = 0;
+        for(SaveItem item : items){
+            result += item.getPeerSize();
+        }
+        return result;
     }
 
-    void put(int srcId, int targetId, int channelId) {
-        final CommunicateItem item = new CommunicateItem(srcId, targetId, channelId,
-                PrecisionUtil.add(TimeController.getInstance().getCurrentTime(),Constant.getDataChannelDeadLine()));
+    void putCommunicatePair(int srcId, int targetId, int channelId) {
+        final CommunicatePairItem item = new CommunicatePairItem(srcId, targetId, channelId,
+                PrecisionUtil.add(TimeController.getInstance().getCurrentTime(), Constant.getDataChannelDeadLine()));
         items.add(item);
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -91,12 +71,32 @@ class ChannelUsage {
         }, Constant.getDataChannelDeadLine(), TimeTask.AFTER_RECEIVE);
     }
 
-    double getShortestWaitTime(){
+    void putNavItem(int id, double duration) {
+        final NavItem item = new NavItem(id, PrecisionUtil.add(TimeController.getInstance().getCurrentTime(), duration));
+        items.add(item);
+        TimeController.getInstance().post(new Runnable() {
+            @Override
+            public void run() {
+                items.remove(item);
+            }
+        }, duration);
+    }
+
+    /**
+     * @return 等待一个最快被释放的dataChannel所需要的时间
+     */
+    double getShortestWaitTime() {
         double time = Double.MAX_VALUE;
-        for(CommunicateItem item : items){
-            if(PrecisionUtil.largeThan(time,item.getWaitingTime())){
+        for (SaveItem item : items) {
+            if (item instanceof NavItem) {
+                continue;
+            }
+            if (PrecisionUtil.largeThan(time, item.getWaitingTime())) {
                 time = item.getWaitingTime();
             }
+        }
+        if (time == Double.MAX_VALUE) {
+            throw new IllegalStateException("wrong");
         }
         return time;
     }
@@ -105,14 +105,14 @@ class ChannelUsage {
      * @param targetId
      * @return 返回targetId代表的Station空闲还需要等待的时间
      */
-    double getWaitingTimeNeeded(int targetId){
-        CommunicateItem target = null;
-        for(CommunicateItem item : items){
-            if(item.hasId(targetId)){
+    double getWaitingTimeNeeded(int targetId) {
+        SaveItem target = null;
+        for (SaveItem item : items) {
+            if (item.hasId(targetId)) {
                 target = item;
             }
         }
-        if(target == null){
+        if (target == null) {
             throw new IllegalStateException("targetId not found");
         }
         return target.getWaitingTime();
@@ -122,10 +122,14 @@ class ChannelUsage {
      * @param targetId station的id
      * @return 目标station是否已经成为某对连接的接受者了
      */
-    boolean isReceiver(int targetId){
-        for(CommunicateItem item:items){
-            if(item.targetId == targetId){
-                return true;
+    boolean isReceiver(int targetId) {
+        CommunicatePairItem pairItem;
+        for (SaveItem item : items) {
+            if (item instanceof CommunicatePairItem) {
+                pairItem = (CommunicatePairItem) item;
+                if (pairItem.targetId == targetId) {
+                    return true;
+                }
             }
         }
         return false;

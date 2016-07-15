@@ -39,7 +39,8 @@ public class PostDifsLogic {
         assert station.getCurrentStatus() == Stateful.Status.SLOTING;
         assert station.getDataFrameToSend() != null;
         station.getDataFrameToSend().countDownBackOff();
-        logger.info("%d current window: %d",station.getId(),station.getDataFrameToSend().getBackOff());
+        logger.info("%d current window: %d,     target:%d",station.getId(),
+                station.getDataFrameToSend().getBackOff(),station.getDataFrameToSend().getTargetId());
         if(!sendDataIfNeed()){
             scheduleSLOT();
         }

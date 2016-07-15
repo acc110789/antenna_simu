@@ -3,6 +3,7 @@ package me.zhangxl.antenna.infrastructure.frame_process;
 import me.zhangxl.antenna.frame.AckFrame;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.infrastructure.Station;
+import me.zhangxl.antenna.infrastructure.base.ChannelManager;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
@@ -61,6 +62,7 @@ public class DataProcessor extends AbstractProcessor {
     private void onPostSendACK() {
         logger.debug("%d onPostSendACK()", station.getId());
         assert station.getCurrentStatus() == Status.SENDING_ACK;
+        station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
         station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
     }
 }

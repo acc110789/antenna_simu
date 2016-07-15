@@ -49,7 +49,8 @@ public class SlotManager {
         logger.debug("%d onPostSLOT", station.getId());
         assert station.getDataFrameToSend() != null;
         station.getDataFrameToSend().countDownBackOff();
-        logger.info("%d current window: %d", station.getId(), station.getDataFrameToSend().getBackOff());
+        logger.info("%d current window: %d,     target:%d",station.getId(),
+                station.getDataFrameToSend().getBackOff(),station.getDataFrameToSend().getTargetId());
         if (!station.sendDataIfNeed()) {
             scheduleSLOT();
         }

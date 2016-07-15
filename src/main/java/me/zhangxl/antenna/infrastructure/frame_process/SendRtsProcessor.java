@@ -7,7 +7,6 @@ import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.infrastructure.timeout.WaitCtsTimeOut;
 
 import static me.zhangxl.antenna.infrastructure.frame_process.AbstractProcessor.logger;
 
@@ -25,7 +24,7 @@ public class SendRtsProcessor implements Processor {
     @Override
     public void process(Frame frame) {
         assert frame instanceof RtsFrame;
-        logger.debug("%d onPreSendRTS()", station.getId());
+        logger.debug("%d onPreSendRTS()  channel:%d", station.getId(),frame.getFre());
         assert station.getCurrentStatus() == Status.SLOTING;
         station.setCurrentStatus(Status.SENDING_RTS);
         TimeController.getInstance().post(new Runnable() {
@@ -41,7 +40,8 @@ public class SendRtsProcessor implements Processor {
     private void onPostSendRTS() {
         logger.debug("%d onPostSendRTS()",station.getId());
         assert station.getCurrentStatus() == Status.SENDING_RTS;
-        new WaitCtsTimeOut(station).await();
+        station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+        //new WaitCtsTimeOut(station).await();
     }
 
     private void sendFrame(Frame frame) {

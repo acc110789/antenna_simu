@@ -6,7 +6,6 @@ import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 import me.zhangxl.antenna.infrastructure.station.receive_logic.onpair.SrcMatchPairAction;
 import me.zhangxl.antenna.infrastructure.station.receive_logic.onpair.TargetMatchPairAction;
-import me.zhangxl.antenna.infrastructure.station.receive_logic.onpair.TargetRelatedPairAction;
 
 /**
  * 接受到正确的PairFrame之后的route
@@ -45,16 +44,17 @@ public class OnReceivePairFrame extends OnReceiveFrameLogic {
         } else if(station.getId() == targetId){
             new TargetMatchPairAction(station,frame).action();
         } else {
-            /**
-             * 如果没有关系,就还是回到 {@link Status.WAITING_NEXT_ROUND}
-             */
-            station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
-            if(station.getDataFrameToSend() != null){
-                int sendTarget = station.getDataFrameToSend().getTargetId();
-                if(sendTarget == srcId || sendTarget == targetId){
-                    new TargetRelatedPairAction(station).action();
-                }
-            }
+            //其它情况下就当没有收到这个桢,也不用设置任何的nav
+//            /**
+//             * 如果没有关系,就还是回到 {@link Status.WAITING_NEXT_ROUND}
+//             */
+//            station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+//            if(station.getDataFrameToSend() != null){
+//                int sendTarget = station.getDataFrameToSend().getTargetId();
+//                if(sendTarget == srcId || sendTarget == targetId){
+//                    new TargetRelatedPairAction(station).action();
+//                }
+//            }
         }
     }
 }

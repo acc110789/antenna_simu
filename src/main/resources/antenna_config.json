@@ -2,13 +2,13 @@
   "RTS_FRE_COUNT": 3,
   "DATA_FRE_COUNT": 3,
   "PCP_MODE": true,
-  "STATION_NUM": 4,
-  "MAX_CW": 256,
+  "STATION_NUM": 5,
+  "MAX_CW": 1024,
   "CURRENT_VERSION": "802.11CUSTOM",
   "802.11CUSTOM": {
     "SLOT_LENGTH": 50e-6,
     "SIFS": 28e-6,
-    "DEFAULT_CW": 8,
+    "DEFAULT_CW": 32,
     "DIFS": 130e-6
   },
   "802.11B": {

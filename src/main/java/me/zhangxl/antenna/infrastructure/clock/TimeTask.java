@@ -50,6 +50,9 @@ public class TimeTask implements Comparable<TimeTask> {
 
     TimeTask(double timeToRun , Runnable toRun , int priority){
         this.mTimeToRun = PrecisionUtil.round(timeToRun);
+        if(mTimeToRun < 0){
+            throw new IllegalStateException("time is less than 0");
+        }
         if(toRun == null) throw new NullPointerException();
         this.mToRun = toRun;
         this.mPriority = priority;

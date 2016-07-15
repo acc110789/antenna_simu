@@ -136,7 +136,7 @@ public class Station extends AbstractRole{
         } else if(frame instanceof  AckFrame){
             new OnReceiveAckFrame(this,frame).doLogic();
         } else if(frame instanceof NavFrame){
-            new OnReceiveNavFrameLogic(this,frame).doLogic();
+            new OnReceiveNavFrame(this,frame).doLogic();
         }
         return true;
     }

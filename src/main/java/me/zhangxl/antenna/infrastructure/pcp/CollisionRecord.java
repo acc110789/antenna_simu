@@ -6,7 +6,8 @@ import me.zhangxl.antenna.util.PrecisionUtil;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ class CollisionRecord {
 
     void analyze(List<RtsFrame> rtss){
         reset();
-        List<Integer> dirtyChannels = new ArrayList<>();
+        Collection<Integer> dirtyChannels = new HashSet<>();
         for (RtsFrame rts : rtss) {
             if (rts.isDirty()) {
                 if (!collisionInThisRound) {
