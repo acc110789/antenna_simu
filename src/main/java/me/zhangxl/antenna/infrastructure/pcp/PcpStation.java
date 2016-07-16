@@ -204,12 +204,12 @@ public class PcpStation implements Locatable {
         if (!hasFreeDataChannel()) {
             //没有可用的dataChannel,则把所有的rts都清空,让所有的节点设置nav,直到至少有一个dataChannel可用
             receivedRtss.clear();
+            logger.info("没有可用的data channel,向所有的节点发送nav");
             NavFrame frame = new NavFrame(0, -1, ChannelManager.getInstance().getPcpChannel());
             double navDuration = PrecisionUtil.sub(channelUsage.getShortestWaitTime(),
                     Constant.getNavFrameTimeLength());
             navDuration = Math.max(navDuration, 0);
             frame.setNavDuration(navDuration);
-            Medium.getInstance().putFrame(this, frame);
             final double finalNavDuration = navDuration;
             TimeController.getInstance().post(new Runnable() {
                 @Override
