@@ -48,9 +48,9 @@ class BaseRoleFilter implements BaseRole {
         mBaseRole.setCommunicationTarget(id);
     }
 
-    void sendFrame(Frame frame) {
+    void sendFrame(Frame frame, int sector) {
         try {
-            Medium.getInstance().putFrame((Station) mBaseRole, (Frame) frame.clone());
+            Medium.getInstance().putFrame((Station) mBaseRole, (Frame) frame.clone(),sector);
         } catch (CloneNotSupportedException e) {
             throw new IllegalStateException(e);
         }

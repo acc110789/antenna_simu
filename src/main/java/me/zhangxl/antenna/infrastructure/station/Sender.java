@@ -45,8 +45,9 @@ public class Sender extends BaseRoleFilter implements SenderRole {
                     }
                 }, frame.getTransmitDuration(), TimeTask.SEND);
         mStation.setSender();
+        //这里也不能将扇区对准目标,仍然继续对准pcp节点,待会儿需要接收pts
         setCommunicationTarget(frame.getTargetId());
-        sendFrame(frame);
+        sendFrame(frame, mStation.getFoucusSector());
     }
 
     /**
@@ -84,7 +85,7 @@ public class Sender extends BaseRoleFilter implements SenderRole {
                         onPostSendDATA();
                     }
                 }, dataFrame.getTransmitDuration(), TimeTask.SEND);
-        sendFrame(dataFrame);
+        sendFrame(dataFrame, mStation.getFoucusSector());
     }
 
     @Override

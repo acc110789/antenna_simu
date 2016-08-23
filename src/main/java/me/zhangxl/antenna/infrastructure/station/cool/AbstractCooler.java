@@ -24,6 +24,7 @@ public abstract class AbstractCooler implements Cooler {
         station.setLastCoolingTimeToNow();
         station.setCurrentStatus(Stateful.Status.COOLING);
         station.setCommunicationTarget(Station.defaultCommunicationTarget);
+        station.setDefaultSector();
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {

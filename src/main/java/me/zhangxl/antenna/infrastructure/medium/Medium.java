@@ -42,6 +42,11 @@ public class Medium {
                 directMedium.analysisStationLocation();
                 for(Locatable locatable : stationList){
                     if(locatable instanceof Station){
+                        ((Station) locatable).setDefaultSector();
+                    }
+                }
+                for(Locatable locatable : stationList){
+                    if(locatable instanceof Station){
                         ((Station) locatable).onPostDIFS();
                     }
                 }
@@ -105,9 +110,9 @@ public class Medium {
     /**
      * @param frame 对于一般的frame,判断哪些节点需要接受到这个frame
      */
-    public void putFrame(final Locatable source, final Frame frame) {
-        putFrame(source,frame,-1);
-    }
+//    public void putFrame(final Locatable source, final Frame frame) {
+//        putFrame(source,frame,-1);
+//    }
 
     private void putUnacceptedFrames(final Locatable station, final Frame frame) {
         List<Frame> frames = stationToFrames.get(station);

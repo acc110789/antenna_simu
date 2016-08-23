@@ -22,6 +22,7 @@ public class TargetMatchAction extends AbstractPairAction {
     public void action() {
         logger.info("%d target received PtsFrame",station.getId());
         station.setCommunicationTarget(frame.getSrcId());
+        station.setFocusSector(frame.getSrcId());
         station.setCurrentStatus(Stateful.Status.WAITING_DATA);
         new ReceiverDataTimeOutWaiter(station).await();
     }

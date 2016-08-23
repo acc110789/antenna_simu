@@ -33,6 +33,7 @@ public class Receiver extends BaseRoleFilter implements ReceiverRole {
     public void onPostRecvRTS(RtsFrame frame) {
         logger.debug("%d onPostRecvRTS()", getId());
         //如果目标节点是自己,则停止slot,马上进入等待pts的阶段
+        //这里不能暂时不能将扇区对准目标,不然待会儿可能收不到pts
         setCommunicationTarget(frame.getSrcId());
         new ReceiverPtsTimeOutWaiter(mStation).await();
     }
@@ -56,7 +57,7 @@ public class Receiver extends BaseRoleFilter implements ReceiverRole {
                         onPostSendACK();
                     }
                 }, frame.getTransmitDuration(), TimeTask.SEND);
-        sendFrame(frame);
+        sendFrame(frame, mStation.getFoucusSector());
     }
 
     @Override

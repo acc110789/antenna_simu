@@ -1,7 +1,6 @@
 package me.zhangxl.antenna.infrastructure.medium;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.util.Config;
@@ -21,7 +20,25 @@ public class DirectMedium extends Medium {
     /**
      * 保存着每一个节点的扇区信息
      */
-    private static final Map<Locatable, Info> sMap = new HashMap<>();
+    static final Map<Locatable, Info> sMap = new HashMap<>();
+
+    /**
+     * 查看target在source的哪一个扇区
+     * @param source
+     * @param targetId
+     * @return
+     */
+    public static int getSectorIndex(Locatable source,int targetId){
+        Locatable target = null;
+        for(Locatable station : stationList){
+            if(station.getId() == targetId){
+                target = station;
+                break;
+            }
+        }
+        assert target != null;
+        return sMap.get(source).getIndex(target);
+    }
 
     public static Info getPcpInfo(){
         Locatable target = null;
@@ -66,38 +83,28 @@ public class DirectMedium extends Medium {
         return infob.getIndex(a) == infob.getIndex(c);
     }
 
+    /**
+     * 原来是全向接受,只需要过滤一次,找到source扇区里面的所有节点即可
+     * 但是现在改成了定向接受,需要过滤两次,第一次过滤先找到source扇区里面的所有的节点
+     * 从第一次过滤的节点找到那些source节点暴露的节点
+     * @param source
+     * @param frame
+     * @param sector
+     * @return
+     */
     List<Locatable> getStationToReceive(Locatable source ,Frame frame,int sector){
-        if(sector < 0){
-            return getStationToReceive(source,frame);
-        } else {
-            assert sector < Config.getInstance().getPart();
-            return sMap.get(source).getStations(sector);
-        }
+        //第一步,先找到source的sector扇区里面的所有Locatable
+        return new TargetFilters(source,
+                (sector < 0) ? getStationToReceive(source,frame) : new SourceFilterBySector(source,sector).filt()
+        ).filt();
     }
 
     //先计算出frame具体在source的哪一个扇区,然后将那一个扇区所有的lists全部返回
     @Override
     List<Locatable> getStationToReceive(Locatable source, Frame frame) {
         //根据frame中提供的station的id找到具体的station(target)
-        Locatable target = null;
-        if(frame instanceof RtsFrame){
-            target = PcpStation.getInstance();
-        } else {
-            int targetId = frame.getTargetId();
-            for (Locatable station : stationList) {
-                if (station.getId() == targetId) {
-                    target = station;
-                }
-            }
-        }
-        //找到target所在的扇区的index
-        assert target != null;
-        double angle = getAngle(target.getAxis(), source.getAxis());
-        double unit = PrecisionUtil.div(360, Config.getInstance().getPart());
-        double d_index = PrecisionUtil.div(angle, unit);
-        int index = ((int) Math.floor(d_index));
-        //返回该index扇区内的所有节点
-        return sMap.get(source).getStations(index);
+        return new SourceFilterByFrame(source,frame).filt();
+
     }
 
     public static Map<Locatable, Info> getMap() {
@@ -128,7 +135,7 @@ public class DirectMedium extends Medium {
      * @param origin 参照点
      * @return 返回目标点相对于参照点的夹角
      */
-    private double getAngle(Pair<Double, Double> target, Pair<Double, Double> origin) {
+    static double getAngle(Pair<Double, Double> target, Pair<Double, Double> origin) {
         double relativeX = PrecisionUtil.sub(target.getFirst(), origin.getFirst());
         double relativeY = PrecisionUtil.sub(target.getSecond(), origin.getSecond());
         //保证两个节点的位置是不同的

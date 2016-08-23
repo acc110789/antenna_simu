@@ -20,6 +20,7 @@ public class SrcMatchAction extends AbstractPairAction {
     public void action() {
         logger.info("%d src received PtsFrame",station.getId());
         station.setCommunicationTarget(frame.getTargetId());
+        station.setFocusSector(frame.getTargetId());
         station.mSender.onPostRecvPTS(frame);
     }
 }

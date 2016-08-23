@@ -37,6 +37,7 @@ public abstract class AbstractWaiter implements Waiter {
                         station.setReceiver();
                     }
                     station.setCommunicationTarget(Station.defaultCommunicationTarget);
+                    station.setDefaultSector();
                     station.setCurrentStatus(Stateful.Status.SLOTING);
                     station.onPostDIFS();
                 }

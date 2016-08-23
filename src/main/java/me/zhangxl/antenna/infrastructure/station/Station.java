@@ -3,6 +3,8 @@ package me.zhangxl.antenna.infrastructure.station;
 import me.zhangxl.antenna.frame.*;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
+import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
+import me.zhangxl.antenna.infrastructure.medium.DirectMedium;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveAckFrame;
 import me.zhangxl.antenna.infrastructure.station.receive_logic.OnReceiveDataFrame;
@@ -30,6 +32,7 @@ public class Station extends AbstractRole implements Locatable {
     private double lastCoolingTime;
     private DataFrame mCurrentSendingFrame;
     private Role mRole = Role.RECEIVER;
+    private int mFocusSector = -1;
     //wait list
     private List<DataFrame> mDataFramesToSend = new ArrayList<>();
     /**
@@ -244,6 +247,25 @@ public class Station extends AbstractRole implements Locatable {
 
     public void setReceiver(){
         mRole = Role.RECEIVER;
+    }
+
+    /**
+     * 将聚焦扇区调整到target所在的扇区
+     * @param targetId 目标节点
+     */
+    public void setFocusSector(int targetId){
+        this.mFocusSector = DirectMedium.getSectorIndex(this,targetId);
+    }
+
+    /**
+     * 将扇区对准到pcp节点
+     */
+    public void setDefaultSector(){
+        setFocusSector(PcpStation.getInstance().getId());
+    }
+    
+    public int getFoucusSector(){
+        return this.mFocusSector;
     }
 }
 
