@@ -75,7 +75,7 @@ public class TestStation {
         TimeController.getInstance().loop();
     }
 
-    @Test
+    //@Test
     public void twoStation() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
         printConfig();
         for (int i = 0; i < 10; i++) {
@@ -93,7 +93,7 @@ public class TestStation {
      * @throws InterruptedException
      * @throws NoSuchFieldException
      */
-    @Test
+    //@Test
     public void threeDirectStation() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
         setDirectionMode(Medium.DIRECT_MODE);
@@ -114,7 +114,7 @@ public class TestStation {
         TimeController.getInstance().loop();
     }
 
-    @Test
+    //@Test
     public void twoStationLong() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
         for (int i = 0; i < 10; i++) {
@@ -145,7 +145,7 @@ public class TestStation {
         logger.logHeader();
     }
 
-    @Test
+    //@Test
     public void testThreeStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
         for (int i = 0; i < 1; i++) {
@@ -157,7 +157,7 @@ public class TestStation {
         }
     }
 
-    @Test
+    //@Test
     public void testFourStations() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
         for (int i = 0; i < 10; i++) {
@@ -169,7 +169,7 @@ public class TestStation {
         }
     }
 
-    @Test
+    //@Test
     public void testFourStationLong() throws IllegalAccessException, InterruptedException, NoSuchFieldException {
         printConfig();
         testStations(4, 0, 100);

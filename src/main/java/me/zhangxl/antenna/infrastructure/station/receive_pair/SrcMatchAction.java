@@ -21,6 +21,7 @@ public class SrcMatchAction extends AbstractPairAction {
         logger.info("%d src received PtsFrame",station.getId());
         station.setCommunicationTarget(frame.getTargetId());
         station.setFocusSector(frame.getTargetId());
+        logger.info("%d 将方向对准 %d",station.getId(),frame.getTargetId());
         station.mSender.onPostRecvPTS(frame);
     }
 }

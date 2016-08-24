@@ -1,6 +1,7 @@
 package me.zhangxl.antenna;
 
 import me.zhangxl.antenna.infrastructure.Locatable;
+import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.medium.DirectMedium;
@@ -36,6 +37,7 @@ public class TestDirect {
         new Station(2,0,1);
         new Station(3,-1,0);
 
+        PcpStation.getInstance();
         Medium.getInstance();
         TimeController.getInstance();
         Method method = TimeController.class.getDeclaredMethod("preLoop");

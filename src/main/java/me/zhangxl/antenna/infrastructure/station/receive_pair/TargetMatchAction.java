@@ -23,6 +23,7 @@ public class TargetMatchAction extends AbstractPairAction {
         logger.info("%d target received PtsFrame",station.getId());
         station.setCommunicationTarget(frame.getSrcId());
         station.setFocusSector(frame.getSrcId());
+        logger.info("%d 将方向对准 %d",station.getId(),frame.getSrcId());
         station.setCurrentStatus(Stateful.Status.WAITING_DATA);
         new ReceiverDataTimeOutWaiter(station).await();
     }

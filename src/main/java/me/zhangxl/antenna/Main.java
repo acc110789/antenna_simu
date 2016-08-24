@@ -1,5 +1,6 @@
 package me.zhangxl.antenna;
 
+import me.zhangxl.antenna.infrastructure.host_peer.PcpStation;
 import me.zhangxl.antenna.infrastructure.station.Station;
 import me.zhangxl.antenna.infrastructure.station.StationUtil;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
@@ -21,6 +22,7 @@ public class Main {
         stationList.add(new Station(1,1,0));
         stationList.add(new Station(2,0,1));
         stationList.add(new Station(3,-1,0));
+        PcpStation.getInstance();
 
         //激活所有的站点
         for (Station station : stationList) {

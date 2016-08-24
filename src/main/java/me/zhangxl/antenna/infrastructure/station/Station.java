@@ -265,6 +265,7 @@ public class Station extends AbstractRole implements Locatable {
      * 将扇区对准到pcp节点
      */
     public void setDefaultSector(){
+        logger.info("%d 将方向对准Pcp节点",getId());
         setFocusSector(PcpStation.getInstance().getId());
     }
     
