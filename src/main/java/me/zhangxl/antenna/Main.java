@@ -16,15 +16,15 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
         checkConfig();
-        //新建站点
+        //坐标生成器
         Generator<Pair<Double, Double>> generator = CoordinateGenerator.getInstance();
-        List<Station> stationList = new ArrayList<>();
+        List<Station> stations = new ArrayList<>();
         PcpStation.getInstance();
         for (int i = 1; i <= Config.getInstance().getStationNum(); i++) {
-            stationList.add(new Station(i, generator.next()));
+            stations.add(new Station(i, generator.next()));
         }
         //激活所有的站点
-        for (Station station : stationList) {
+        for (Station station : stations) {
             StationUtil.guaranteeEnoughFrame(station);
         }
         //时间片在主线程中开始流动

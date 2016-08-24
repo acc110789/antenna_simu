@@ -114,16 +114,19 @@ public class PcpStation implements Locatable {
      * @param doubleWindow 将上一轮发送Rts但是没有被xiangxin
      */
     public void sendNextRoundFrame(int slots, boolean doubleWindow) {
+        logger.debug("%d onPreSendNextRoundFrame", getId());
         receivingRtss.clear();
         receivedRtss.clear();
-        logger.debug("%d onPreSendNextRoundFrame", getId());
         assert getCurrentStatus() == Status.WAITING_RTS || getCurrentStatus() == Status.SENDING_PAIR;
+
+        //如果slots的数量小于0,则更新slots的值
         if (slots < 0) {
             prepareSlot();
         } else {
             mSlots = slots;
-        }
+        }//
         logger.info("%d slots permitted", mSlots);
+
         final NextRoundFrame frame = new NextRoundFrame(getId(), -1, ChannelManager.getInstance().getPcpChannel(), mSlots);
         if (doubleWindow) {
             frame.setNeedRefresh();
@@ -153,7 +156,7 @@ public class PcpStation implements Locatable {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                if (currentStatus == Status.WAITING_RTS) {
+                if (getCurrentStatus() == Status.WAITING_RTS) {
                     logger.info("timeout receive none rts frame");
                     //意味着在这期间没有周围没有任何节点发送RTS请求
                     sendNextRoundFrame(-1, false);
@@ -206,10 +209,14 @@ public class PcpStation implements Locatable {
             receivedRtss.clear();
             logger.info("没有可用的data channel,向所有的节点发送nav");
             NavFrame frame = new NavFrame(0, -1, ChannelManager.getInstance().getPcpChannel());
+
+            //nav的时间长度
             double navDuration = PrecisionUtil.sub(channelUsage.getShortestWaitTime(),
                     Constant.getNavFrameTimeLength());
             navDuration = Math.max(navDuration, 0);
             frame.setNavDuration(navDuration);
+            //
+
             final double finalNavDuration = navDuration;
             TimeController.getInstance().post(new Runnable() {
                 @Override
@@ -225,7 +232,8 @@ public class PcpStation implements Locatable {
             Medium.getInstance().putFrame(this, frame);
             return;
         }
-        //receivedRtss里面全都是没有被碰撞的桢,只要是size大于0,就是没有碰撞的桢
+
+        //receivedRtss里面全都是没有被碰撞的桢
         if (receivedRtss.size() > 0) {
             final RtsFrame frame = getFreeRts();
             if (frame != null) {

@@ -2,7 +2,6 @@ package me.zhangxl.antenna.infrastructure;
 
 import me.zhangxl.antenna.infrastructure.base.BaseRole;
 import me.zhangxl.antenna.infrastructure.base.Stateful;
-import me.zhangxl.antenna.infrastructure.medium.Medium;
 import me.zhangxl.antenna.util.Pair;
 
 /**
@@ -25,6 +24,7 @@ abstract class AbstractRole implements BaseRole {
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
     private Stateful.Status currentStatus = Stateful.Status.SLOTING;
     private Pair<Double, Double> mLocation; //定向天线时需要保证
+    private final FrameBuffer mBuffer = new FrameBuffer();
     /**
      * 节点的当前通信对象
      */
@@ -76,7 +76,7 @@ abstract class AbstractRole implements BaseRole {
         //Status previous = this.currentStatus;
         this.currentStatus = status;
         if(this.currentStatus.isReadMode()){
-            Medium.getInstance().notify((Station)this);
+            mBuffer.pullAllOut(this);
         }
         if(this.currentStatus.isWriteMode()){
             //保证在writeMode的时候没有正在接受的frame

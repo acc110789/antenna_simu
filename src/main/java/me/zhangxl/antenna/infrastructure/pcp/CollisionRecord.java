@@ -15,15 +15,23 @@ import java.util.List;
  */
 class CollisionRecord {
     private static Logger logger = SimuLoggerManager.getLogger("co_recorder");
+    //在本轮中是否有某一个收到的RtsFrame是脏的
     private boolean collisionInThisRound = false;
-    private boolean severe = false;
+
+    /**
+    * 当碰撞的信道数量占超过了
+    * {@link CollisionRecord#severeIndex}
+    * */
+    private boolean severeCollision = false;
+    //碰撞是否严重的指标
+    private static final double severeIndex = 0.7;
 
     boolean collision(){
         return this.collisionInThisRound;
     }
 
     boolean severeCollision(){
-        return collisionInThisRound && severe;
+        return collisionInThisRound && severeCollision;
     }
 
     void analyze(List<RtsFrame> rtss){
@@ -42,12 +50,12 @@ class CollisionRecord {
         }
         //如果有超过70%的信道数量
         if(PrecisionUtil.div(dirtyChannels.size(), Config.getInstance().getRtsFreCount()) > 0.7){
-            severe = true;
+            severeCollision = true;
         }
     }
 
     private void reset(){
         this.collisionInThisRound = false;
-        this.severe = false;
+        this.severeCollision = false;
     }
 }
