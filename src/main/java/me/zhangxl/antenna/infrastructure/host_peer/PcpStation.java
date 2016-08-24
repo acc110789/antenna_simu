@@ -3,6 +3,7 @@ package me.zhangxl.antenna.infrastructure.host_peer;
 import me.zhangxl.antenna.frame.Frame;
 import me.zhangxl.antenna.frame.PtsFrame;
 import me.zhangxl.antenna.frame.RtsFrame;
+import me.zhangxl.antenna.infrastructure.FrameBuffer;
 import me.zhangxl.antenna.infrastructure.Locatable;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.infrastructure.clock.TimeTask;
@@ -30,7 +31,8 @@ public class PcpStation implements Locatable {
     private static PcpStation sInstance = new PcpStation();
     private final Pair<Double, Double> mLocation = new Pair<>(0.0, 0.0);
     private final int id = 0;
-    private final List<RtsFrame> receivingRtss = new ArrayList<>();
+    private FrameBuffer<Frame> mBuffer = new FrameBuffer<>();
+    private final List<Frame> receivingFrames = new ArrayList<>();
     /**
      * Pcp节点仅仅涉及到3种状态,分别是
      * 1. NAV
@@ -69,35 +71,39 @@ public class PcpStation implements Locatable {
     @Override
     public boolean beginReceiveFrame(final Frame frame) {
         if(getCurrentStatus() == Status.NAVING || !getCurrentStatus().isReadMode()){
-            return false;
+            mBuffer.push(frame);
+            return true;
         }
         if (currentStatus == Status.WAITING_RTS) {
-            //保证当前接收的frame一定是RtsFrame
-            assert frame instanceof RtsFrame;
             //检查是否与已经存在的frame发生任何的碰撞
-            for (RtsFrame frame1 : receivingRtss) {
+            for (Frame frame1 : receivingFrames) {
                 if (StationUtil.hasIntersection(frame1, frame)) {
                     frame1.setDirty();
                     frame.setDirty();
                 }
             }
-            receivingRtss.add((RtsFrame) frame);
+            if(frame.getStartTime() != TimeController.getInstance().getCurrentTime()){
+                //说明接收的frame不是完整的frame
+                frame.setDirty();
+            }
+            receivingFrames.add(frame);
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    receivingRtss.remove(frame);
-                    if (!frame.isDirty()) {
+                    receivingFrames.remove(frame);
+                    if (!frame.isDirty() && frame instanceof RtsFrame) {
                         currentDealingRts = (RtsFrame) frame;
                         logger.info("received rts from: %d",currentDealingRts.getSrcId());
                         onPreSendSifsAndPts();
                     }
-                    //如果是dirty的话,直接ignore,仅仅处理clean的frame
+                    //如果是dirty或者不是RtsFrame,则直接ignore,仅仅处理clean的RtsFrame
                 }
             }, frame.getEndDuration(), TimeTask.RECEIVE);
             return true;
         } else {
             //包括两个sending data和nav
-            return false;
+            mBuffer.push(frame);
+            return true;
         }
     }
 
@@ -212,7 +218,7 @@ public class PcpStation implements Locatable {
         logger.debug("Pcp onPostSendRts");
         assert currentStatus == Status.SENDING_PTS;
         if (passByPcp) {
-            currentStatus = Status.NAVING;
+            setCurrentStatus(Status.NAVING);
             logger.debug("Pcp setNav");
             TimeController.getInstance().post(new Runnable() {
                 @Override
@@ -227,6 +233,10 @@ public class PcpStation implements Locatable {
 
     public void setCurrentStatus(Status status) {
         currentStatus = status;
+        if(status == Status.WAITING_RTS){
+            //clearBuffer
+            mBuffer.pullAllOut(this);
+        }
     }
 
     @Override

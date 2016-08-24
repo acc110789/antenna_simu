@@ -179,13 +179,17 @@ public class Station extends AbstractRole implements Locatable {
      */
     public boolean beginReceiveFrame(final Frame frame){
         if(getCurrentStatus() == Status.NAVING || !getCurrentStatus().isReadMode()){
-            return false;
+            mBuffer.push(frame);
+            return true;
         }
         for (Frame frame1 : receivingFrames) {
             if (StationUtil.hasIntersection(frame1,frame)) {
                 frame1.setDirty();
                 frame.setDirty();
             }
+        }
+        if(frame.getStartTime() != TimeController.getInstance().getCurrentTime()){
+            frame.setDirty();
         }
         receivingFrames.add(frame);
 

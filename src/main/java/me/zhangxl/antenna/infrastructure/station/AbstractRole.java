@@ -1,5 +1,7 @@
 package me.zhangxl.antenna.infrastructure.station;
 
+import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.infrastructure.FrameBuffer;
 import me.zhangxl.antenna.util.SimuLoggerManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,7 +26,8 @@ abstract class AbstractRole implements BaseRole {
     //需要注意的是一旦一个Station进入了写(发送)模式之后,
     //这个Station是不能进行读(接受)操作的,或者说即使Meduim
     //通知我有一个Frame,我不会对这个Frame做出任何的相应
-    private Stateful.Status currentStatus = Stateful.Status.SLOTING;
+    private Status currentStatus = Status.SLOTING;
+    protected FrameBuffer<Frame> mBuffer = new FrameBuffer<>();
 
     /**
      * 节点的当前通信对象
@@ -49,14 +52,17 @@ abstract class AbstractRole implements BaseRole {
     }
 
     @Override
-    public Stateful.Status getCurrentStatus() {
+    public Status getCurrentStatus() {
         return this.currentStatus;
     }
 
     @Override
-    public void setCurrentStatus(Stateful.Status status) {
+    public void setCurrentStatus(Status status) {
         //Status previous = this.currentStatus;
         this.currentStatus = status;
+        if(getCurrentStatus() == Status.NAVING || !getCurrentStatus().isReadMode()){
+            mBuffer.pullAllOut((Station)this);
+        }
     }
 
     @Override
