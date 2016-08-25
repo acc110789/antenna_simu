@@ -40,7 +40,7 @@ public class SendRtsProcessor implements Processor {
     private void onPostSendRTS() {
         logger.debug("%d onPostSendRTS()",station.getId());
         assert station.getCurrentStatus() == Status.SENDING_RTS;
-        station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+        station.setCurrentStatus(Status.WAITING_BACK_OFF);
         //new WaitCtsTimeOut(station).await();
     }
 

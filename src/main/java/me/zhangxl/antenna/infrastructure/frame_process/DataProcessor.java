@@ -63,6 +63,6 @@ public class DataProcessor extends AbstractProcessor {
         logger.debug("%d onPostSendACK()", station.getId());
         assert station.getCurrentStatus() == Status.SENDING_ACK;
         station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
-        station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+        station.setCurrentStatus(Status.WAITING_BACK_OFF);
     }
 }

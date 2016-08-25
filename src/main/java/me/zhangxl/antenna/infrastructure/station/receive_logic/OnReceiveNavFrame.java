@@ -21,7 +21,7 @@ public class OnReceiveNavFrame extends OnReceiveFrameLogic {
     @Override
     void onPre() {
         assert frame instanceof NavFrame;
-        assert station.getCurrentStatus() == Status.WAITING_NEXT_ROUND;
+        assert station.getCurrentStatus() == Status.WAITING_BACK_OFF;
         station.setCurrentStatus(Status.RECEIVING_NAV_FRAME);
     }
 

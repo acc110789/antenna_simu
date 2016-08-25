@@ -1,11 +1,13 @@
 package me.zhangxl.antenna.infrastructure.frame_process;
 
-import me.zhangxl.antenna.infrastructure.cool.DifsCool;
-import me.zhangxl.antenna.frame.*;
+import me.zhangxl.antenna.frame.AckFrame;
+import me.zhangxl.antenna.frame.DataFrame;
+import me.zhangxl.antenna.frame.Frame;
+import me.zhangxl.antenna.frame.RtsFrame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.base.Stateful.Status;
+import me.zhangxl.antenna.infrastructure.cool.DifsCool;
 import me.zhangxl.antenna.infrastructure.medium.Medium;
-import me.zhangxl.antenna.infrastructure.nav.CtsNav;
 import me.zhangxl.antenna.infrastructure.nav.DataNav;
 import me.zhangxl.antenna.infrastructure.nav.RtsNav;
 import me.zhangxl.antenna.util.SimuLoggerManager;
@@ -56,8 +58,6 @@ abstract class AbstractProcessor implements Processor {
         }
         if(frame instanceof RtsFrame){
             new RtsNav(station).startNav();
-        } else if(frame instanceof CtsFrame){
-            new CtsNav(station).startNav();
         } else if(frame instanceof DataFrame){
             new DataNav(station).startNav();
         } else if(frame instanceof AckFrame){

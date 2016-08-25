@@ -23,7 +23,7 @@ public class AckProcessor extends AbstractProcessor {
             station.onFail();
             //开始difs冷却
             station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
-            station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+            station.setCurrentStatus(Status.WAITING_BACK_OFF);
         } else {
             //桢是来自正确的节点
             assert station.getCurrentStatus() == Status.RECEIVING_ACK;
@@ -31,7 +31,7 @@ public class AckProcessor extends AbstractProcessor {
             //说明本节点发送数据成功
             station.onSuccess();
             station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
-            station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+            station.setCurrentStatus(Status.WAITING_BACK_OFF);
         }
     }
 

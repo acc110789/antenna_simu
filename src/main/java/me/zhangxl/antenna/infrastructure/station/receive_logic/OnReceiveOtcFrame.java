@@ -23,7 +23,7 @@ public class OnReceiveOtcFrame extends OnReceiveFrameLogic {
     @Override
     void onPre() {
         assert frame instanceof OtcFrame;
-        assert station.getCurrentStatus() == Status.WAITING_NEXT_ROUND;
+        assert station.getCurrentStatus() == Status.WAITING_BACK_OFF;
         station.setCurrentStatus(Status.RECEIVING_PAIR_FRAME);
     }
 
@@ -46,9 +46,9 @@ public class OnReceiveOtcFrame extends OnReceiveFrameLogic {
         } else {
             //其它情况下就当没有收到这个桢,也不用设置任何的nav
 //            /**
-//             * 如果没有关系,就还是回到 {@link Status.WAITING_NEXT_ROUND}
+//             * 如果没有关系,就还是回到 {@link Status.WAITING_BACK_OFF}
 //             */
-//            station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+//            station.setCurrentStatus(Status.WAITING_BACK_OFF);
 //            if(station.getDataFrameToSend() != null){
 //                int sendTarget = station.getDataFrameToSend().getTargetId();
 //                if(sendTarget == srcId || sendTarget == targetId){

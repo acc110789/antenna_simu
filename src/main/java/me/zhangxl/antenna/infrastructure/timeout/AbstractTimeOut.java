@@ -28,7 +28,7 @@ abstract class AbstractTimeOut implements Waiter {
                     if(!StringUtils.isEmpty(getInfoToLog())){
                         logger.info(getInfoToLog());
                     }
-                    station.setCurrentStatus(Status.WAITING_NEXT_ROUND);
+                    station.setCurrentStatus(Status.WAITING_BACK_OFF);
                 }
             }
         },getWaitDuration());

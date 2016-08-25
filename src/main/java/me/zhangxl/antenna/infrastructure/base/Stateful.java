@@ -11,7 +11,7 @@ public interface Stateful {
 
     enum Status {
         //这几个状态是普通节点的几个状态啊
-        WAITING_NEXT_ROUND(false),
+        WAITING_BACK_OFF(false),
         RECEIVING_PAIR_FRAME(false),
         RECEIVING_NAV_FRAME(false),
         RECEIVING_NEXT_ROUND_FRAME(false),
