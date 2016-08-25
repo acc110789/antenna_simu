@@ -93,34 +93,34 @@ public class Constant {
      * mac地址的长度,mac地址一共是6个字节,每个字节是8位,总共是64位
      */
     private static int addrSize = 6 * byteLength;
-    private static int pairFrameLength = Config.getInstance().getPhyHeader() +//物理层的header
+    private static int otcFrameLength = Config.getInstance().getPhyHeader() +//物理层的header
             Config.getInstance().getMacHeader() +//mac层的header
             2 * addrSize +//两个地址
             2 * byteLength; //用两个字节
     /**
-     * @return 获取PairFrame的帧长度
+     * @return 获取OtcFrame的帧长度
      */
-    public static int getPairFrameLength(){
-        return pairFrameLength;
+    public static int getOtcFrameLength(){
+        return otcFrameLength;
     }
     /**
-     * @return PairFrame那一小段时间片的长度
+     * @return OtcFrame那一小段时间片的长度
      */
-    public static double getPairTimeLength(){
-        return PrecisionUtil.div(getPairFrameLength(),Config.getInstance().getBandWidth());
+    public static double getOtcFrameTimeLength(){
+        return PrecisionUtil.div(getOtcFrameLength(),Config.getInstance().getBandWidth());
     }
 
-    private static final long nextRoundFrameLength = Config.getInstance().getPhyHeader() +
+    private static final long bofFrameLength = Config.getInstance().getPhyHeader() +
             Config.getInstance().getMacHeader() +
             2 * byteLength;//2个字节表明下一轮最有竞争节点可能的退避窗口
-    public static long getNextRoundFrameLength(){
-        return nextRoundFrameLength;
+    public static long getBofFrameLength(){
+        return bofFrameLength;
     }
 
-    private static final double nextRoundTimeLength = PrecisionUtil.div(getNextRoundFrameLength(),
+    private static final double bofFrameTimeLength = PrecisionUtil.div(getBofFrameLength(),
             Config.getInstance().getBandWidth());
-    public static double getNextRoundTimeLength(){
-        return nextRoundTimeLength;
+    public static double getBofFrameTimeLength(){
+        return bofFrameTimeLength;
     }
 
     //没有一个所谓的rtsTimeOut

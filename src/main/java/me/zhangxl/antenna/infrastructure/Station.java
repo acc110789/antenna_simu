@@ -127,10 +127,10 @@ public class Station extends AbstractRole{
         }
         receivingFrames.add(frame);
 
-        if(frame instanceof NextRoundFrame){
-            new OnReceiveNextRoundFrame(this,frame).doLogic();
-        } else if(frame instanceof PairFrame){
-            new OnReceivePairFrame(this,frame).doLogic();
+        if(frame instanceof BofFrame){
+            new OnReceiveBofFrame(this,frame).doLogic();
+        } else if(frame instanceof OtcFrame){
+            new OnReceiveOtcFrame(this,frame).doLogic();
         } else if(frame instanceof DataFrame){
             new OnReceiveDataFrame(this,frame).doLogic();
         } else if(frame instanceof  AckFrame){
@@ -162,7 +162,7 @@ public class Station extends AbstractRole{
         mFreFilter.setFre(channel);
     }
 
-    public void onNextRound(NextRoundFrame frame) {
+    public void onNextRound(BofFrame frame) {
         setCurrentStatus(Status.SLOTING);
         mSlotManager.setAvailableSlotCount(frame.getSlots());
         if(mCurrentSendingFrame == null){

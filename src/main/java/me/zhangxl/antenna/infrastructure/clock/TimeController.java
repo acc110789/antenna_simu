@@ -69,10 +69,10 @@ public class TimeController {
                 text = "DATA";
             }  else if(PrecisionUtil.sub(time,Constant.getCtsTimeOut()) == 0){
                 text = "CTS/ACK timeout";
-            } else if(PrecisionUtil.sub(time, Constant.getNextRoundTimeLength()) == 0){
-                text = "NextRound";
-            } else if(PrecisionUtil.sub(time, Constant.getPairTimeLength()) == 0){
-                text = "Pair";
+            } else if(PrecisionUtil.sub(time, Constant.getBofFrameTimeLength()) == 0){
+                text = "Bof";
+            } else if(PrecisionUtil.sub(time, Constant.getOtcFrameTimeLength()) == 0){
+                text = "Otc";
             } else {
                 text = String.format("%#.14f", time);
             }

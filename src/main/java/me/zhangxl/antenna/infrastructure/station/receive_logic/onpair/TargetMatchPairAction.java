@@ -1,18 +1,18 @@
 package me.zhangxl.antenna.infrastructure.station.receive_logic.onpair;
 
-import me.zhangxl.antenna.frame.PairFrame;
+import me.zhangxl.antenna.frame.OtcFrame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.timeout.WaitDataTimeOut;
 
 /**
- * PairFrame 中的targetId是station
+ * OtcFrame 中的targetId是station
  * Created by zhangxiaolong on 16/5/15.
  */
 public class TargetMatchPairAction extends AbstractPairAction {
 
-    private final PairFrame frame;
+    private final OtcFrame frame;
 
-    public TargetMatchPairAction(Station station, PairFrame frame) {
+    public TargetMatchPairAction(Station station, OtcFrame frame) {
         super(station);
         this.frame = frame;
     }

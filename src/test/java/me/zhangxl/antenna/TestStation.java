@@ -72,7 +72,7 @@ public class TestStation {
         logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
         logger.info("%-13s%#.14f", "cts  timeout", Constant.getCtsTimeOut());
         logger.info("%-13s%#.14f", "eifs length", Config.getInstance().getEifs());
-        logger.info("%-13s%#.14f", "next length", Constant.getNextRoundTimeLength());
+        logger.info("%-13s%#.14f", "next length", Constant.getBofFrameTimeLength());
         logger.ln();
         logger.info("**************************************");
         logger.info("**************************************");

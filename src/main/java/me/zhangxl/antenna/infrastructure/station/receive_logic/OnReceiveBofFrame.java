@@ -1,7 +1,7 @@
 package me.zhangxl.antenna.infrastructure.station.receive_logic;
 
 import me.zhangxl.antenna.frame.Frame;
-import me.zhangxl.antenna.frame.NextRoundFrame;
+import me.zhangxl.antenna.frame.BofFrame;
 import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.clock.TimeController;
 import me.zhangxl.antenna.util.Constant;
@@ -11,15 +11,15 @@ import static me.zhangxl.antenna.infrastructure.base.Stateful.Status;
 /**
  * Created by zhangxiaolong on 16/5/13.
  */
-public class OnReceiveNextRoundFrame extends OnReceiveFrameLogic {
+public class OnReceiveBofFrame extends OnReceiveFrameLogic {
 
-    public OnReceiveNextRoundFrame(Station station, Frame frame) {
+    public OnReceiveBofFrame(Station station, Frame frame) {
         super(station, frame);
     }
 
     @Override
     void onPre() {
-        assert frame instanceof NextRoundFrame;
+        assert frame instanceof BofFrame;
         assert station.getCurrentStatus() == Status.WAITING_NEXT_ROUND;
         station.setCurrentStatus(Status.RECEIVING_NEXT_ROUND_FRAME);
     }
@@ -31,8 +31,8 @@ public class OnReceiveNextRoundFrame extends OnReceiveFrameLogic {
             @Override
             public void run() {
                 assert station.getCurrentStatus() == Status.RECEIVING_NEXT_ROUND_FRAME;
-                station.onNextRound((NextRoundFrame) frame);
+                station.onNextRound((BofFrame) frame);
             }
-        }, Constant.getNormalCoolingDuration());//收到NextRoundFrame之后仍然需要等待difs之后
+        }, Constant.getNormalCoolingDuration());//收到BofFrame之后仍然需要等待difs之后
     }
 }

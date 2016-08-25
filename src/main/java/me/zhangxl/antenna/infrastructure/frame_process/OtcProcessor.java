@@ -10,12 +10,12 @@ import me.zhangxl.antenna.infrastructure.timeout.WaitAckTimeOut;
 import me.zhangxl.antenna.util.Config;
 
 /**
- * 发送方收到对应的Pcp节点回复的PairFrame(即得到允许可以开始发送DataFrame了)
+ * 发送方收到对应的Pcp节点回复的OtcFrame(即得到允许可以开始发送DataFrame了)
  * Created by zhangxiaolong on 16/6/21.
  */
-public class PairProcessor extends AbstractProcessor {
+public class OtcProcessor extends AbstractProcessor {
 
-    public PairProcessor(Station station) {
+    public OtcProcessor(Station station) {
         super(station);
     }
 

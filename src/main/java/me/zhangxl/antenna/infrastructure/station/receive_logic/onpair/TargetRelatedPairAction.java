@@ -4,7 +4,7 @@ import me.zhangxl.antenna.infrastructure.Station;
 import me.zhangxl.antenna.infrastructure.nav.TargetBusyNav;
 
 /**
- * PairFrame的srcId或者targetId和本station即将要发送的
+ * OtcFrame的srcId或者targetId和本station即将要发送的
  * DataFrame的targetId相同
  * Created by zhangxiaolong on 16/5/15.
  */

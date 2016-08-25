@@ -7,7 +7,7 @@ import me.zhangxl.antenna.util.Config;
  * 当一个节点A想要给另外一个节点B发送DataFrame的时候,它先向Pcp
  * 发送RTS,但是Pcp发现节点B此时正处于繁忙的状态,于是Pcp向节点A
  * 回复一个NavFrame,要求B设置Nav直到B节点通信结束,然后A再次等待
- * NextRoundFrame之后在此向节点B进行通信的请求过程
+ * BofFrame之后在此向节点B进行通信的请求过程
  *
  * NavFrame暂时设置为两个地址,且src和target的地址都是节点A的地址
  *
