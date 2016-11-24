@@ -22,7 +22,7 @@ public class AckProcessor extends AbstractProcessor {
             logger.error("this ack is from a unknown peer,nav is 0,will switch to cooling");
             station.onFail();
             //开始difs冷却
-            station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
+            station.setAcceptFre(ChannelManager.getPcpChannel());
             station.setCurrentStatus(Status.WAITING_BACK_OFF);
         } else {
             //桢是来自正确的节点
@@ -30,7 +30,7 @@ public class AckProcessor extends AbstractProcessor {
             assert frame.getTargetId() == station.getId();
             //说明本节点发送数据成功
             station.onSuccess();
-            station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
+            station.setAcceptFre(ChannelManager.getPcpChannel());
             station.setCurrentStatus(Status.WAITING_BACK_OFF);
         }
     }

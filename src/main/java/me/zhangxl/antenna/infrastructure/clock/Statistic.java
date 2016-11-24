@@ -52,7 +52,7 @@ public class Statistic {
      */
     private static boolean canCount(){
         double currentTime = TimeController.getInstance().getCurrentTime();
-        return PrecisionUtil.largeThan(currentTime, Config.getInstance().getWarmUp());
+        return PrecisionUtil.largeThan(currentTime, Config.getWarmUp());
     }
 
     public static void printResult(){
@@ -62,19 +62,19 @@ public class Statistic {
         logger.info("*************************************************");
         logger.info("*************************************************");
         logger.info("配置信息如下:");
-        logger.info("CWmin:%d",Config.getInstance().getDefaultCW());
-        logger.info("CWmax:%d",Config.getInstance().getMaxCW());
-        logger.info("stationNum:%d",Config.getInstance().getStationNum());
-        logger.info("DataPayLoad:%d",Config.getInstance().getPayLoad());
+        logger.info("CWmin:%d", Config.getDefaultCW());
+        logger.info("CWmax:%d", Config.getMaxCW());
+        logger.info("stationNum:%d", Config.getStationNum());
+        logger.info("DataPayLoad:%d", Config.getPayLoad());
         logger.info("*************************************************");
         logger.info("*************************************************");
         //以M(兆)为单位的数据单位
         double MDataAmount = PrecisionUtil.div(totalDataAmount,1024*1024);
-        logger.info("有效的仿真时间: %f",PrecisionUtil.sub(Config.getInstance().getSimulationDuration(),
-                Config.getInstance().getWarmUp()));
+        logger.info("有效的仿真时间: %f",PrecisionUtil.sub(Config.getSimulationDuration(),
+                Config.getWarmUp()));
         logger.info("成功的数据传输量(Mbit): %f", MDataAmount);
-        double idealFullDataAmount = PrecisionUtil.mul(Config.getInstance().getBandWidth(),
-                PrecisionUtil.sub(Config.getInstance().getSimulationDuration(),Config.getInstance().getWarmUp()));
+        double idealFullDataAmount = PrecisionUtil.mul(Config.getBandWidth(),
+                PrecisionUtil.sub(Config.getSimulationDuration(), Config.getWarmUp()));
         logger.info("数据的吞吐比例: %f",PrecisionUtil.div(totalDataAmount,idealFullDataAmount));
         logger.ln();
         long totalAmount = totalSuccessTimes + totalCollitionTimes;

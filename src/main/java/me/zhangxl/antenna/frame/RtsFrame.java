@@ -7,7 +7,7 @@ import me.zhangxl.antenna.util.Config;
  */
 public class RtsFrame extends Frame {
 
-    private static final int rtsLength = Config.getInstance().getRtsLength();
+    private static final int rtsLength = Config.getRtsLength();
 
     public RtsFrame(int srcId, int targetId, int fre) {
         super(srcId, targetId, rtsLength, fre);

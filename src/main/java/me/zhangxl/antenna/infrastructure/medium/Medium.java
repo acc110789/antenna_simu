@@ -80,10 +80,10 @@ public class Medium {
             @Override
             public void run() {
                 List<Locatable> targets;
-                if (ChannelManager.getInstance().isOmniChannel(frame.getFre())) {
+                if (ChannelManager.isOmniChannel(frame.getFre())) {
                     //全向频率
                     targets = omniMedium.getStationToReceive(source, frame);
-                } else if (ChannelManager.getInstance().isDirectChannel(frame.getFre())) {
+                } else if (ChannelManager.isDirectChannel(frame.getFre())) {
                     //定向频率
                     targets = directMedium.getStationToReceive(source, frame);
                 } else {

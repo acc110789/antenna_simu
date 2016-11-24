@@ -7,8 +7,6 @@ import me.zhangxl.antenna.infrastructure.pcp.PcpStation;
 import me.zhangxl.antenna.util.*;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-
 /**
  * 测试Station之间的交互
  * Created by zhangxiaolong on 16/3/31.
@@ -21,19 +19,19 @@ public class TestStation {
      * @param time 设置计时起点
      */
     private void setWarmUpTime(double time) throws NoSuchFieldException, IllegalAccessException {
-        Config.getInstance();
-        Class<Config> configClass = Config.class;
-        Field field2 = configClass.getDeclaredField("warmUp");
-        field2.setAccessible(true);
-        field2.setDouble(Config.getInstance(), time);
+//        Config.getInstance();
+//        Class<Config> configClass = Config.class;
+//        Field field2 = configClass.getDeclaredField("warmUp");
+//        field2.setAccessible(true);
+//        field2.setDouble(Config.getInstance(), time);
     }
 
     private void setSimulationDuration(double time) throws NoSuchFieldException, IllegalAccessException {
-        Config.getInstance();
-        Class<Config> configClass = Config.class;
-        Field field1 = configClass.getDeclaredField("simulationDuration");
-        field1.setAccessible(true);
-        field1.setDouble(Config.getInstance(), time);
+//        Config.getInstance();
+//        Class<Config> configClass = Config.class;
+//        Field field1 = configClass.getDeclaredField("simulationDuration");
+//        field1.setAccessible(true);
+//        field1.setDouble(Config.getInstance(), time);
     }
 
     /**
@@ -67,11 +65,11 @@ public class TestStation {
         logger.info("**************************************");
         logger.info("***************config*****************");
         logger.ln();
-        logger.info("%-13s%#.14f", "slot length", Config.getInstance().getSlotLength());
+        logger.info("%-13s%#.14f", "slot length", Config.getSlotLength());
         logger.info("%-13s%#.14f", "rts  length", Constant.getRtsTimeLength());
-        logger.info("%-13s%#.14f", "difs length", Config.getInstance().getDifs());
+        logger.info("%-13s%#.14f", "difs length", Config.getDifs());
         logger.info("%-13s%#.14f", "cts  timeout", Constant.getCtsTimeOut());
-        logger.info("%-13s%#.14f", "eifs length", Config.getInstance().getEifs());
+        logger.info("%-13s%#.14f", "eifs length", Config.getEifs());
         logger.info("%-13s%#.14f", "next length", Constant.getBofFrameTimeLength());
         logger.ln();
         logger.info("**************************************");

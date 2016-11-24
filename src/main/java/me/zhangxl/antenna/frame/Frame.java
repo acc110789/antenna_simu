@@ -46,7 +46,7 @@ public abstract class Frame implements Cloneable{
         if(length <= 0){
             throw new IllegalArgumentException("length is negative");
         }
-        return PrecisionUtil.div(length,Config.getInstance().getBandWidth());
+        return PrecisionUtil.div(length, Config.getBandWidth());
     }
 
     public int getTargetId(){

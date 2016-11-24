@@ -7,7 +7,7 @@ import me.zhangxl.antenna.util.Config;
  */
 public class AckFrame extends Frame {
 
-    private static final int ackLength = Config.getInstance().getAckLength();
+    private static final int ackLength = Config.getAckLength();
 
     AckFrame(int srcId, int targetId, int fre) {
         super(srcId, targetId, ackLength, fre);

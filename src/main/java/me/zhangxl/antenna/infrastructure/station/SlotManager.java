@@ -36,7 +36,7 @@ public class SlotManager {
                     assert station.getCurrentStatus() == Status.SLOTING;
                     onPostSLOT();
                 }
-            }, Config.getInstance().getSlotLength());
+            }, Config.getSlotLength());
         } else {
             station.setCurrentStatus(Status.WAITING_BACK_OFF);
         }

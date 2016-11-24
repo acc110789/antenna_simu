@@ -14,6 +14,6 @@ public class EifsCool extends AbstractCool {
 
     @Override
     double getCoolDuration() {
-        return Config.getInstance().getEifs();
+        return Config.getEifs();
     }
 }

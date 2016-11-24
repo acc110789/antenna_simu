@@ -44,7 +44,7 @@ public class DataProcessor extends AbstractProcessor {
             public void run() {
                 onPreSendAck(frame);
             }
-        }, Config.getInstance().getSifs(), TimeTask.SEND);
+        }, Config.getSifs(), TimeTask.SEND);
     }
 
     private void onPreSendAck(AckFrame frame) {
@@ -62,7 +62,7 @@ public class DataProcessor extends AbstractProcessor {
     private void onPostSendACK() {
         logger.debug("%d onPostSendACK()", station.getId());
         assert station.getCurrentStatus() == Status.SENDING_ACK;
-        station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
+        station.setAcceptFre(ChannelManager.getPcpChannel());
         station.setCurrentStatus(Status.WAITING_BACK_OFF);
     }
 }

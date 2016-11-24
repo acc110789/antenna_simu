@@ -41,7 +41,7 @@ public class DirectMedium extends Medium {
         assert target != null;
         double angle = getAngle(target.getAxis(), source.getAxis());
         //每隔unit设置一个跨度
-        double unit = PrecisionUtil.div(360, Config.getInstance().getPart());
+        double unit = PrecisionUtil.div(360, Config.getPart());
         double d_index = PrecisionUtil.div(angle, unit);
         int index = ((int) Math.floor(d_index));
         return sMap.get(source).getStations(index);
@@ -63,7 +63,7 @@ public class DirectMedium extends Medium {
             for (Locatable neighbor : neighbors) {
                 double angle = getAngle(neighbor.getAxis(), station.getAxis());
                 //每隔unit设置一个跨度
-                double unit = PrecisionUtil.div(360, Config.getInstance().getPart());
+                double unit = PrecisionUtil.div(360, Config.getPart());
                 double d_index = PrecisionUtil.div(angle, unit);
                 int index = ((int) Math.floor(d_index));
                 sMap.get(station).add(index, neighbor);
@@ -132,7 +132,7 @@ public class DirectMedium extends Medium {
     //区域的编号从0开始算
     public class Info {
         private ArrayList<Locatable>[] data = (ArrayList<Locatable>[]) Array.newInstance(
-                ArrayList.class,Config.getInstance().getPart());
+                ArrayList.class, Config.getPart());
 
         {
             for (int i = 0; i < data.length; i++) {

@@ -31,7 +31,7 @@ class ChannelUsage {
     }
 
     int getNextFreeChannel() {
-        for (int channel : ChannelManager.getInstance().getDataChannels()) {
+        for (int channel : ChannelManager.getDataChannels()) {
             //简单当前的channel是不是free,如果是free就将这个channel返回
             boolean isTaken = false;
             for (SaveItem item : items) {

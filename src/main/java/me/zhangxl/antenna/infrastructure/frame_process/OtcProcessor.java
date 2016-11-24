@@ -40,7 +40,7 @@ public class OtcProcessor extends AbstractProcessor {
             public void run() {
                 onPreSendData(station.getDataFrameToSend());
             }
-        }, Config.getInstance().getSifs(), TimeTask.SEND);
+        }, Config.getSifs(), TimeTask.SEND);
     }
 
     private void onPreSendData(DataFrame dataFrame) {

@@ -35,7 +35,7 @@ public interface Stateful {
 
         //下面的状态是PCP节点的时间状态
         WAITING_RTS(false),
-        SENDING_PAIR(false),
+        PCP_PROCESSING(false),
         SENDING_NEXT_ROUND(false);
 
         final Boolean sender;

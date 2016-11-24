@@ -110,24 +110,23 @@ public class PcpStation implements Locatable {
      * {@link me.zhangxl.antenna.frame.BofFrame}
      *
      * @param slots        BofFrame允许的退避槽(slot)数量,如果大于或者等于0,则使用这个slots,
-     *                     如果slots的值小于0,则使用 {@link #prepareSlot()}重置的slots值
+     *                     如果slots的值小于0,则使用 {@link #getDefaultSlot()}重置的slots值
      * @param doubleWindow 将上一轮发送Rts但是没有被xiangxin
      */
     public void sendBofFrame(int slots, boolean doubleWindow) {
         logger.debug("%d onPreSendBofFrame", getId());
         receivingRtss.clear();
         receivedRtss.clear();
-        assert getCurrentStatus() == Status.WAITING_RTS || getCurrentStatus() == Status.SENDING_PAIR;
+        assert getCurrentStatus() == Status.WAITING_RTS || getCurrentStatus() == Status.PCP_PROCESSING;
 
         //如果slots的数量小于0,则更新slots的值
         if (slots < 0) {
-            prepareSlot();
-        } else {
-            mSlots = slots;
-        }//
+            slots = getDefaultSlot();
+        }
+        mSlots = slots;
         logger.info("%d slots permitted", mSlots);
 
-        final BofFrame frame = new BofFrame(getId(), -1, ChannelManager.getInstance().getPcpChannel(), mSlots);
+        final BofFrame frame = new BofFrame(getId(), -1, ChannelManager.getPcpChannel(), mSlots);
         if (doubleWindow) {
             frame.setNeedRefresh();
         }
@@ -141,7 +140,7 @@ public class PcpStation implements Locatable {
                 assert getCurrentStatus() == Status.SENDING_NEXT_ROUND;
                 logger.debug("%d onPostSendBofFrame", getId());
                 setCurrentStatus(Status.WAITING_RTS);
-                registerDealer();
+                registerHandler();
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
     }
@@ -151,7 +150,7 @@ public class PcpStation implements Locatable {
      * 期间收到的RtsFrame进行处理的dealer
      * 处理器有两个,分别是截止时间的处理器和超时的处理器
      */
-    private void registerDealer() {
+    private void registerHandler() {
         //rts 已经超时之后都没有收到任何的rts应该如下处理
         TimeController.getInstance().post(new Runnable() {
             @Override
@@ -173,7 +172,7 @@ public class PcpStation implements Locatable {
                 if (receivedRtss.size() > 0) {
                     //如果收到了rts,则进入下一个流程,否则,等待直到rts超时,然后进入超时的处理流程
                     logger.info("begin deal received rtss");
-                    setCurrentStatus(Status.SENDING_PAIR);
+                    setCurrentStatus(Status.PCP_PROCESSING);
                     //分析是否发生了碰撞以及碰撞是否严重
                     collisionRecord.analyze(receivedRtss);
                     //去掉碰撞的rts
@@ -200,7 +199,7 @@ public class PcpStation implements Locatable {
                 logger.debug("%d onSendPcpControlFrame", getId());
                 sendOtcFrameInner();
             }
-        }, Config.getInstance().getSifs());
+        }, Config.getSifs());
     }
 
     private void sendOtcFrameInner() {
@@ -208,7 +207,7 @@ public class PcpStation implements Locatable {
             //没有可用的dataChannel,则把所有的rts都清空,让所有的节点设置nav,直到至少有一个dataChannel可用
             receivedRtss.clear();
             logger.info("没有可用的data channel,向所有的节点发送nav");
-            NavFrame frame = new NavFrame(0, -1, ChannelManager.getInstance().getPcpChannel());
+            NavFrame frame = new NavFrame(0, -1, ChannelManager.getPcpChannel());
 
             //nav的时间长度
             double navDuration = PrecisionUtil.sub(channelUsage.getShortestWaitTime(),
@@ -240,7 +239,7 @@ public class PcpStation implements Locatable {
                 receivedRtss.remove(frame);
                 final int channel = channelUsage.getNextFreeChannel();
                 OtcFrame OtcFrame = new OtcFrame(frame.getSrcId(), frame.getTargetId(),
-                        ChannelManager.getInstance().getPcpChannel(), channel);
+                        ChannelManager.getPcpChannel(), channel);
                 //发送OtcFrame
                 logger.debug("%d onPreSendOtcFrame", getId());
                 Medium.getInstance().putFrame(this, OtcFrame);
@@ -263,7 +262,7 @@ public class PcpStation implements Locatable {
                     sendOtcFrameInner();
                 } else {
                     //向这个Frame的发送者回复NavFrame
-                    NavFrame navFrame = new NavFrame(0, rtsFrame.getSrcId(), ChannelManager.getInstance().getPcpChannel());
+                    NavFrame navFrame = new NavFrame(0, rtsFrame.getSrcId(), ChannelManager.getPcpChannel());
                     double navDuration = channelUsage.getWaitingTimeNeeded(rtsFrame.getTargetId());
                     channelUsage.putNavItem(rtsFrame.getSrcId(), navDuration);
 
@@ -297,25 +296,27 @@ public class PcpStation implements Locatable {
         }
     }
 
-    private void prepareSlot() {
+    private int getDefaultSlot() {
         int busyNum = channelUsage.getItemSize();
         int peerNum = Medium.getInstance().getPeerNum();
         int freeNum = peerNum - busyNum;
-        int window = Config.getInstance().getDefaultCW();
+        int window = Config.getDefaultCW();
         int value;//一个free节点占有的window数量
+        int result;
         if (freeNum == 0) {
             // 当所有的节点都出于busy的状态的时候,直接将slot设置为window的一半
-            mSlots = window / 2;
+            result = window / 2;
         } else {
             value = window / freeNum;
             value = Math.max(1, value);
-            mSlots = value * (Config.getInstance().getRtsFreCount() - 1);
+            result = value * (Config.getRtsFreCount() - 1);
             //窗口值不能超过默认窗口的一半
-            mSlots = Math.min(window / 2, mSlots);
+            result = Math.min(window / 2, result);
         }
-        if (mSlots < 0) {
+        if (result < 0) {
             throw new IllegalStateException("mSlots is less than 0");
         }
+        return result;
     }
 
     /**

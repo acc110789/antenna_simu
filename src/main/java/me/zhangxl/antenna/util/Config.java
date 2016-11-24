@@ -16,9 +16,8 @@ public class Config {
 
     public static final int DEFAULT_DATA_FRAME_START_TIME = -1;
     public static final int DEFAULT_DATA_FRAME_COLLISION_TIME = -1;
-    private static final Config sInstance = new Config();
     //局域网中站点的数量
-    private int stationNum = -1;
+    private static int stationNum = -1;
     /**
      * 正常的流程如下
      * difs  -> ContentionWindow -> RTS -> sifs -> CTS -> sifs -> DATA -> sifs -> ACK -> difs -> ContentionWindow .........
@@ -32,31 +31,31 @@ public class Config {
      * RTS(2) + DIFS
      *
      */
-    private boolean pcpMode = false;
-    private double difs = -1;
-    private double sifs = -1;
-    private double slotLength = -1;
+    private static boolean pcpMode = false;
+    private static double difs = -1;
+    private static double sifs = -1;
+    private static double slotLength = -1;
     //contentionWindow,竞争窗口
-    private int defaultCW = -1;
-    private int maxCW = -1;
+    private static int defaultCW = -1;
+    private static int maxCW = -1;
     //bits 物理层的长度
-    private int phyHeader = -1;
+    private static int phyHeader = -1;
     //ACK,CTS
-    private int macHeader = -1;
-    private int rtsLength = -1;
-    private int ctsLength = -1;
-    private int ackLength = -1;
-    private double bandWidth = -1;
-    private double simulationDuration = -1;
-    private double warmUp = -1;
-    private long payLoad = -1;
-    private double eifs= -1;
-    private int antennaMode = -1;
-    private int part = -1;
-    private int rtsFreCount = -1;
-    private int dataFreCount = -1;
+    private static int macHeader = -1;
+    private static int rtsLength = -1;
+    private static int ctsLength = -1;
+    private static int ackLength = -1;
+    private static double bandWidth = -1;
+    private static double simulationDuration = -1;
+    private static double warmUp = -1;
+    private static long payLoad = -1;
+    private static double eifs= -1;
+    private static int antennaMode = -1;
+    private static int part = -1;
+    private static int rtsFreCount = -1;
+    private static int dataFreCount = -1;
 
-    private Config() {
+    static {
         try {
 //            loadConfigProperties();
             loadConfigJSON();
@@ -65,42 +64,38 @@ public class Config {
         }
     }
 
-    public static Config getInstance() {
-        return sInstance;
-    }
-
-    private void loadConfigJSON() throws IOException {
+    private static void loadConfigJSON() throws IOException {
         InputStream input = null;
         try {
             input = Config.class.getClassLoader().getResourceAsStream("antenna_config.json");
             JSONObject object = new JSONObject(new JSONTokener(input));
 
-            this.pcpMode = object.getBoolean("PCP_MODE");
-            this.stationNum = object.getInt("STATION_NUM");
-            this.maxCW = object.getInt("MAX_CW");
+            pcpMode = object.getBoolean("PCP_MODE");
+            stationNum = object.getInt("STATION_NUM");
+            maxCW = object.getInt("MAX_CW");
 
             String currentVersion = object.getString("CURRENT_VERSION");
             JSONObject subObj = object.getJSONObject(currentVersion);
 
-            this.slotLength = PrecisionUtil.round(subObj.getDouble("SLOT_LENGTH"));
-            this.sifs = PrecisionUtil.round(subObj.getDouble("SIFS"));
-            this.difs = PrecisionUtil.round(subObj.getDouble("DIFS"));
-            this.defaultCW = subObj.getInt("DEFAULT_CW");
+            slotLength = PrecisionUtil.round(subObj.getDouble("SLOT_LENGTH"));
+            sifs = PrecisionUtil.round(subObj.getDouble("SIFS"));
+            difs = PrecisionUtil.round(subObj.getDouble("DIFS"));
+            defaultCW = subObj.getInt("DEFAULT_CW");
 
-            this.bandWidth = PrecisionUtil.round(object.getDouble("BAND_WIDTH"));
-            this.phyHeader = object.getInt("PHY_HEADER");
-            this.macHeader = object.getInt("MAC_DATA_HEADER");
+            bandWidth = PrecisionUtil.round(object.getDouble("BAND_WIDTH"));
+            phyHeader = object.getInt("PHY_HEADER");
+            macHeader = object.getInt("MAC_DATA_HEADER");
 
-            this.simulationDuration = PrecisionUtil.round(object.getDouble("SIMULATION_DURATION"));
-            this.warmUp = PrecisionUtil.round(object.getDouble("WARM_UP"));
-            this.payLoad = object.getLong("PAYLOAD");
-            this.antennaMode = object.getInt("ANTENNA_MODE");
+            simulationDuration = PrecisionUtil.round(object.getDouble("SIMULATION_DURATION"));
+            warmUp = PrecisionUtil.round(object.getDouble("WARM_UP"));
+            payLoad = object.getLong("PAYLOAD");
+            antennaMode = object.getInt("ANTENNA_MODE");
             //part的含义:具体将一个圆周分成多少份
-            this.part = object.getInt("PART");
+            part = object.getInt("PART");
             //分配给RTS的频率的频率集的元素数量
-            this.rtsFreCount = object.getInt("RTS_FRE_COUNT");
+            rtsFreCount = object.getInt("RTS_FRE_COUNT");
             //分配给DATA的频率的频率集的元素数量
-            this.dataFreCount = object.getInt("DATA_FRE_COUNT");
+            dataFreCount = object.getInt("DATA_FRE_COUNT");
 
             rtsLength = phyHeader + object.getInt("MAC_RTS_HEADER");
             ctsLength = phyHeader + object.getInt("MAC_CTS_HEADER");
@@ -114,90 +109,90 @@ public class Config {
 
     }
 
-    public long getPayLoad() {
-        return this.payLoad;
+    public static long getPayLoad() {
+        return payLoad;
     }
 
-    public int getRtsFreCount(){
-        return this.rtsFreCount;
+    public static int getRtsFreCount(){
+        return rtsFreCount;
     }
 
-    public int getDataFreCount(){
-        return this.dataFreCount;
+    public static int getDataFreCount(){
+        return dataFreCount;
     }
 
-    public double getWarmUp() {
-        return this.warmUp;
+    public static double getWarmUp() {
+        return warmUp;
     }
 
-    public int getStationNum() {
+    public static int getStationNum() {
         return stationNum;
     }
 
-    public double getDifs() {
+    public static double getDifs() {
         return difs;
     }
 
-    public double getEifs(){
-        return this.eifs;
+    public static double getEifs(){
+        return eifs;
     }
 
-    public double getSifs() {
+    public static double getSifs() {
         return sifs;
     }
 
-    public double getSlotLength() {
+    public static double getSlotLength() {
         return slotLength;
     }
 
-    public int getDefaultCW() {
+    public static int getDefaultCW() {
         return defaultCW;
     }
 
-    public int getMaxCW() {
+    public static int getMaxCW() {
         return maxCW;
     }
 
-    public int getPhyHeader() {
+    public static int getPhyHeader() {
         return phyHeader;
     }
 
-    public int getMacHeader() {
+    public static int getMacHeader() {
         return macHeader;
     }
 
-    public int getRtsLength() {
+    public static int getRtsLength() {
         return rtsLength;
     }
 
-    public int getCtsLength() {
+    public static int getCtsLength() {
         return ctsLength;
     }
 
-    public int getAckLength() {
+    public static int getAckLength() {
         return ackLength;
     }
 
-    public double getBandWidth() {
+    public static double getBandWidth() {
         return bandWidth;
     }
 
-    public double getSimulationDuration() {
+    public static double getSimulationDuration() {
         return simulationDuration;
     }
 
-    public int getAntennaMode(){
-        return this.antennaMode;
+    public static int getAntennaMode(){
+        return antennaMode;
     }
 
     /**
      * @return 定向天线将一个圆周分成多少份
      */
-    public int getPart(){
-        return this.part;
+    public static int getPart(){
+        return part;
     }
 
-    public boolean isPcpMode(){
-        return this.pcpMode;
+    public static boolean isPcpMode(){
+        return pcpMode;
     }
 }

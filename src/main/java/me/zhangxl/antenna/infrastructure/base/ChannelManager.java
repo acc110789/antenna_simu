@@ -12,37 +12,32 @@ import java.util.Random;
  */
 public class ChannelManager {
 
-    private static ChannelManager sInstance = new ChannelManager();
-    private final List<Integer> rtsChannels = new ArrayList<>();
-    private Integer apChannel;
-    private final List<Integer> dataChannels = new ArrayList<>();
-    private final Random random = new Random(System.nanoTime()+566677776543L);
+    private static final List<Integer> rtsChannels = new ArrayList<>();
+    private static Integer apChannel;
+    private static final List<Integer> dataChannels = new ArrayList<>();
+    private static final Random random = new Random(System.nanoTime()+566677776543L);
 
-    public static ChannelManager getInstance() {
-        return sInstance;
-    }
-
-    private ChannelManager() {
+    static {
         checkDataValidity();
         allocateChannel();
     }
 
-    private void allocateChannel() {
+    private static void allocateChannel() {
         int num = 0;
-        for (int i = 0; i < Config.getInstance().getRtsFreCount(); i++) {
+        for (int i = 0; i < Config.getRtsFreCount(); i++) {
             rtsChannels.add(++num);
         }
         apChannel = ++num;
-        for (int i = 0; i < Config.getInstance().getDataFreCount(); i++) {
+        for (int i = 0; i < Config.getDataFreCount(); i++) {
             dataChannels.add(++num);
         }
     }
 
-    private void checkDataValidity() {
+    private static void checkDataValidity() {
         boolean valid = true;
-        if (Config.getInstance().getDataFreCount() < 1) {
+        if (Config.getDataFreCount() < 1) {
             valid = false;
-        } else if (Config.getInstance().getRtsFreCount() < 1) {
+        } else if (Config.getRtsFreCount() < 1) {
             valid = false;
         }
         if (!valid) {
@@ -50,36 +45,36 @@ public class ChannelManager {
         }
     }
 
-    public int getPcpChannel(){
-        return this.apChannel;
+    public static int getPcpChannel(){
+        return apChannel;
     }
 
-    public int getRandomRtsChannel(){
-        int randomIndex = random.nextInt(this.rtsChannels.size());
-        return this.rtsChannels.get(randomIndex);
+    public static int getRandomRtsChannel(){
+        int randomIndex = random.nextInt(rtsChannels.size());
+        return rtsChannels.get(randomIndex);
     }
 
-    public List<Integer> getDataChannels(){
+    public static List<Integer> getDataChannels(){
         return new ArrayList<>(dataChannels);
     }
 
-    public boolean isPcpChannel(Integer apChannel){
-        return apChannel.equals(this.apChannel);
+    public static boolean isPcpChannel(Integer apChannel){
+        return apChannel.equals(ChannelManager.apChannel);
     }
 
-    public boolean isDataChannel(Integer dataChannel){
+    public static boolean isDataChannel(Integer dataChannel){
         return dataChannels.contains(dataChannel);
     }
 
-    public boolean isRtsChannel(Integer rtsChannel){
+    public static boolean isRtsChannel(Integer rtsChannel){
         return rtsChannels.contains(rtsChannel);
     }
 
-    public boolean isOmniChannel(Integer channel){
+    public static boolean isOmniChannel(Integer channel){
         return isPcpChannel(channel);
     }
 
-    public boolean isDirectChannel(Integer channel){
+    public static boolean isDirectChannel(Integer channel){
         return isDataChannel(channel) || isRtsChannel(channel);
     }
 }

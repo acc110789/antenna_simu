@@ -17,10 +17,10 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         checkConfig();
         //坐标生成器
-        Generator<Pair<Double, Double>> generator = CoordinateGenerator.getInstance();
+        Generator<Pair<Double, Double>> generator = new CoordinateGenerator();
         List<Station> stations = new ArrayList<>();
         PcpStation.getInstance();
-        for (int i = 1; i <= Config.getInstance().getStationNum(); i++) {
+        for (int i = 1; i <= Config.getStationNum(); i++) {
             stations.add(new Station(i, generator.next()));
         }
         //激活所有的站点
@@ -34,60 +34,60 @@ public class Main {
     private static void checkConfig() {
         System.out.println("start check config");
         String errInfo = "";
-        if (Config.getInstance().getStationNum() <= 0) {
+        if (Config.getStationNum() <= 0) {
             errInfo += "    userNum is negative";
         }
-        if (Config.getInstance().getDifs() <= Config.getInstance().getSifs()) {
+        if (Config.getDifs() <= Config.getSifs()) {
             errInfo += "    difs is less than or equal sifs";
         }
-        if (Config.getInstance().getSifs() <= 0) {
+        if (Config.getSifs() <= 0) {
             errInfo += "    sifs is less than or equal 0";
         }
-        if (Config.getInstance().getSlotLength() <= 0) {
+        if (Config.getSlotLength() <= 0) {
             errInfo += "    slotlength is less than or equal 0";
         }
-        if (Config.getInstance().getMaxCW() <= Config.getInstance().getDefaultCW()) {
+        if (Config.getMaxCW() <= Config.getDefaultCW()) {
             errInfo += "    maxCW is less than or equal defaultCW";
         }
-        if (Config.getInstance().getDefaultCW() < 0) {
+        if (Config.getDefaultCW() < 0) {
             errInfo += "    defaultCW is less than 0";
         }
-        if (Config.getInstance().getPhyHeader() <= 0) {
+        if (Config.getPhyHeader() <= 0) {
             errInfo += "    phyHeader is less than or equal 0";
         }
-        if (Config.getInstance().getMacHeader() <= 0) {
+        if (Config.getMacHeader() <= 0) {
             errInfo += "    macHeader is less than or equal 0";
         }
-        if (Config.getInstance().getRtsLength() <= 0) {
+        if (Config.getRtsLength() <= 0) {
             errInfo += "    rtsLength is less than or equal 0";
         }
-        if (Config.getInstance().getCtsLength() <= 0) {
+        if (Config.getCtsLength() <= 0) {
             errInfo += "    ctsLength is less than or equal 0";
         }
-        if (Config.getInstance().getAckLength() <= 0) {
+        if (Config.getAckLength() <= 0) {
             errInfo += "    ackLength is less than or equal 0";
         }
-        if (Config.getInstance().getBandWidth() <= 0) {
+        if (Config.getBandWidth() <= 0) {
             errInfo += "    bandwidth is less than or equal 0";
         }
-        if (Config.getInstance().getSimulationDuration() <= 0) {
+        if (Config.getSimulationDuration() <= 0) {
             errInfo += "    simulationDuration less than or equal 0";
         }
-        if (Config.getInstance().getWarmUp() <= 0) {
+        if (Config.getWarmUp() <= 0) {
             errInfo += "    warm up time is less than 0";
         }
         //warp up的时间不能太长,即不能超过仿真时间的一半
-        if (Config.getInstance().getWarmUp() > Config.getInstance().getSimulationDuration()) {
+        if (Config.getWarmUp() > Config.getSimulationDuration()) {
             errInfo += "    warm up time is larger than simulation duration";
         }
-        if (Config.getInstance().getPayLoad() <= 0) {
+        if (Config.getPayLoad() <= 0) {
             errInfo += "    fix data length is less than 0";
         }
-        if (Config.getInstance().getAntennaMode() != Medium.DIRECT_MODE
-                && Config.getInstance().getAntennaMode() != Medium.OMNI_MODE) {
+        if (Config.getAntennaMode() != Medium.DIRECT_MODE
+                && Config.getAntennaMode() != Medium.OMNI_MODE) {
             throw new RuntimeException("incorrect mode");
         }
-        int part = Config.getInstance().getPart();
+        int part = Config.getPart();
         if (part <= 1 || part == 7 || part == 11 || part > 12) {
             throw new RuntimeException("incorrect part num");
         }

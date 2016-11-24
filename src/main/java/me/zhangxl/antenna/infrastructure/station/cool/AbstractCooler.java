@@ -29,7 +29,7 @@ abstract class AbstractCooler implements Cooler {
                         isCoolingNotInterrupted()) {
                     station.setCurrentStatus(Status.WAITING_BACK_OFF);
                     station.setCommunicationTarget(BaseRole.defaultCommunicationTarget);
-                    station.setAcceptFre(ChannelManager.getInstance().getPcpChannel());
+                    station.setAcceptFre(ChannelManager.getPcpChannel());
                 } else {
                     throw new IllegalStateException("impossible to be interrupted");
                 }

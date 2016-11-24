@@ -53,13 +53,13 @@ public class TimeController {
         if(time > 0){
             logger.unLogHeader();
             String text;
-            if(PrecisionUtil.sub(time,Config.getInstance().getDifs()) == 0){
+            if(PrecisionUtil.sub(time, Config.getDifs()) == 0){
                 text = "DIFS";
-            } else if(PrecisionUtil.sub(time,Config.getInstance().getSifs()) == 0){
+            } else if(PrecisionUtil.sub(time, Config.getSifs()) == 0){
                 text = "SIFS";
-            } else if(PrecisionUtil.sub(time,Config.getInstance().getSlotLength()) == 0){
+            } else if(PrecisionUtil.sub(time, Config.getSlotLength()) == 0){
                 text = "SLOT";
-            } else if(PrecisionUtil.sub(time,Config.getInstance().getEifs()) == 0){
+            } else if(PrecisionUtil.sub(time, Config.getEifs()) == 0){
                 text = "EIFS";
             } else if(PrecisionUtil.sub(time, Constant.getRtsTimeLength()) == 0){
                 text = "RTS";
@@ -83,7 +83,7 @@ public class TimeController {
 
     public synchronized void loop() throws InterruptedException {
         preLoop();
-        while (active.get() && this.currentTime < Config.getInstance().getSimulationDuration()) {
+        while (active.get() && this.currentTime < Config.getSimulationDuration()) {
             TimeTask task = tasks.take();
             //减去时间
             double time = task.getTaskTime();

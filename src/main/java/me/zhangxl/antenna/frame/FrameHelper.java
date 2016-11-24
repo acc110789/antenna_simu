@@ -9,6 +9,6 @@ public class FrameHelper {
 
     public static RtsFrame generateRtsFrame(Frame srcFrame){
         return new RtsFrame(srcFrame.getSrcId(),srcFrame.getTargetId(),
-                ChannelManager.getInstance().getRandomRtsChannel());
+                ChannelManager.getRandomRtsChannel());
     }
 }

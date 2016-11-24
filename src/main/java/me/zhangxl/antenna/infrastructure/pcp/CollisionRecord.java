@@ -49,7 +49,7 @@ class CollisionRecord {
             logger.info("collision happen in this round");
         }
         //如果有超过70%的信道数量
-        if(PrecisionUtil.div(dirtyChannels.size(), Config.getInstance().getRtsFreCount()) > 0.7){
+        if(PrecisionUtil.div(dirtyChannels.size(), Config.getRtsFreCount()) > 0.7){
             severeCollision = true;
         }
     }

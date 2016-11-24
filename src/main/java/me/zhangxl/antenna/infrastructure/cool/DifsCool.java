@@ -13,6 +13,6 @@ public class DifsCool extends AbstractCool {
 
     @Override
     double getCoolDuration() {
-        return Config.getInstance().getDifs();
+        return Config.getDifs();
     }
 }

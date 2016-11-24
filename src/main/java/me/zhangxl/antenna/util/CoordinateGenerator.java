@@ -9,12 +9,6 @@ import java.util.Random;
  */
 public class CoordinateGenerator implements Generator<Pair<Double,Double>> {
 
-    private static CoordinateGenerator sInstance = new CoordinateGenerator();
-
-    public static Generator<Pair<Double,Double>> getInstance(){
-        return sInstance;
-    }
-
     private final List<Pair<Double,Double>> existCoordinates = new ArrayList<>();
     {
         //坐标(0,0) 是PcpStation的坐标

@@ -11,6 +11,6 @@ class PcpFreFilter implements FreFilter {
 
     @Override
     public boolean canReceive(int pre) {
-        return ChannelManager.getInstance().isRtsChannel(pre);
+        return ChannelManager.isRtsChannel(pre);
     }
 }

@@ -14,6 +14,6 @@ public class DifsCooler extends AbstractCooler {
 
     @Override
     double getCoolDuration() {
-        return Config.getInstance().getDifs();
+        return Config.getDifs();
     }
 }

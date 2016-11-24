@@ -36,10 +36,10 @@ public class TestProperties {
 
     @Test
     public void testConfig(){
-        System.out.println("rtslength " + Config.getInstance().getRtsLength());
-        System.out.println("ctslength " + Config.getInstance().getCtsLength());
-        System.out.println("ackLength "+ Config.getInstance().getAckLength());
-        System.out.println("realDataLength " + Config.getInstance().getPayLoad());
+        System.out.println("rtslength " + Config.getRtsLength());
+        System.out.println("ctslength " + Config.getCtsLength());
+        System.out.println("ackLength "+ Config.getAckLength());
+        System.out.println("realDataLength " + Config.getPayLoad());
         System.out.println("dataLength "+ Constant.getDataFrameLength());
     }
 }

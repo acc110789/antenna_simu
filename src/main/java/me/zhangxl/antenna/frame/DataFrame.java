@@ -21,7 +21,7 @@ public class DataFrame extends Frame {
     private static Random random = new Random(System.currentTimeMillis());
     private static int serialNum = 0;
     //仅仅数据部分的长度
-    private static long dataLength = Config.getInstance().getPayLoad();
+    private static long dataLength = Config.getPayLoad();
     private double startTime = Config.DEFAULT_DATA_FRAME_START_TIME;
     private int failTimes = Config.DEFAULT_DATA_FRAME_COLLISION_TIME;
     private int backOff;
@@ -62,12 +62,12 @@ public class DataFrame extends Frame {
     }
 
     private void updateBackOff() {
-        int failWindow = (1 << this.failTimes) * Config.getInstance().getDefaultCW();
+        int failWindow = (1 << this.failTimes) * Config.getDefaultCW();
         if(failWindow <= 0){
             //有可能失败次数太多,导致failwindow太大,导致数组越界,导致failWindow小于0
-            failWindow = Config.getInstance().getMaxCW();
+            failWindow = Config.getMaxCW();
         }
-        int contentionWindow = Math.min(failWindow, Config.getInstance().getMaxCW());
+        int contentionWindow = Math.min(failWindow, Config.getMaxCW());
         backOff = random.nextInt(contentionWindow);
         if (TimeLogger.DEBUG_FRAME) {
             logger.info("source station :%d  destination :%d  new window:%d ", srcId, getTargetId(), backOff);

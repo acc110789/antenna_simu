@@ -57,7 +57,7 @@ public class PostDifsLogic {
                     onPostSLOT();
                 }
             }
-        }, Config.getInstance().getSlotLength());
+        }, Config.getSlotLength());
     }
 
     /**
