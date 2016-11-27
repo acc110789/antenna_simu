@@ -147,23 +147,11 @@ public class PcpStation implements Locatable {
 
     /**
      * 当BofFrame发送完毕的时候,需要注册对下一个Round
-     * 期间收到的RtsFrame进行处理的dealer
+     * 期间收到的RtsFrame进行处理的handler
      * 处理器有两个,分别是截止时间的处理器和超时的处理器
      */
     private void registerHandler() {
-        //rts 已经超时之后都没有收到任何的rts应该如下处理
-        TimeController.getInstance().post(new Runnable() {
-            @Override
-            public void run() {
-                if (getCurrentStatus() == Status.WAITING_RTS) {
-                    logger.info("timeout receive none rts frame");
-                    //意味着在这期间没有周围没有任何节点发送RTS请求
-                    sendBofFrame(-1, false);
-                }
-            }
-        }, Constant.getPcpRtsTimeOut(mSlots), TimeTask.AFTER_RECEIVE);
-
-        //在规定时间内收到的RtsFrame应该作如下处理
+        //收到的RtsFrame应该作如下处理
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -184,9 +172,13 @@ public class PcpStation implements Locatable {
                     }
                     //开始处理这些收到的rts
                     onSendOtcFrame();
+                } else {
+                    logger.info("timeout receive none rts frame");
+                    //意味着在这期间没有周围没有任何节点发送RTS请求
+                    sendBofFrame(-1, false);
                 }
             }
-        }, Constant.getPcpRtsDeadLine(mSlots), TimeTask.AFTER_RECEIVE);
+        }, Constant.getPcpRtsTimeOut(mSlots), TimeTask.AFTER_RECEIVE);
     }
 
     /**

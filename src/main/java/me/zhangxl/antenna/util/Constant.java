@@ -184,10 +184,7 @@ public class Constant {
         return Config.getDifs();
     }
 
-    private static double dataChannelDeadLine = PrecisionUtil.add(Config.getSifs(),
-            getDataTimeLength(),
-            Config.getSifs(),
-            getAckTimeLength());
+    private static double dataChannelDeadLine = PrecisionUtil.add(getDataTimeOut(), getAckTimeOut());
     public static double getDataChannelDeadLine() {
         return dataChannelDeadLine;
     }
