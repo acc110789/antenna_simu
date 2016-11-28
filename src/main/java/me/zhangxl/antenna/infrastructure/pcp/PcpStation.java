@@ -171,7 +171,7 @@ public class PcpStation implements Locatable {
                         }
                     }
                     //开始处理这些收到的rts
-                    onSendOtcFrame();
+                    onProcess();
                 } else {
                     logger.info("timeout receive none rts frame");
                     //意味着在这期间没有周围没有任何节点发送RTS请求
@@ -184,50 +184,50 @@ public class PcpStation implements Locatable {
     /**
      * 真正在发送之前还需要休息一个sifs
      */
-    private void onSendOtcFrame() {
+    private void onProcess() {
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
                 logger.debug("%d onSendPcpControlFrame", getId());
-                sendOtcFrameInner();
+                processInner();
             }
         }, Config.getSifs());
     }
 
-    private void sendOtcFrameInner() {
-        if (!hasFreeDataChannel()) {
-            //没有可用的dataChannel,则把所有的rts都清空,让所有的节点设置nav,直到至少有一个dataChannel可用
-            receivedRtss.clear();
-            logger.info("没有可用的data channel,向所有的节点发送nav");
-            NavFrame frame = new NavFrame(0, -1, ChannelManager.getPcpChannel());
-
-            //nav的时间长度
-            double navDuration = PrecisionUtil.sub(channelUsage.getShortestWaitTime(),
-                    Constant.getNavFrameTimeLength());
-            navDuration = Math.max(navDuration, 0);
-            frame.setNavDuration(navDuration);
-            //
-
-            final double finalNavDuration = navDuration;
-            TimeController.getInstance().post(new Runnable() {
-                @Override
-                public void run() {
-                    TimeController.getInstance().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            sendBofFrame(0, false);
-                        }
-                    }, finalNavDuration);
-                }
-            }, Constant.getNavFrameTimeLength());
-            Medium.getInstance().putFrame(this, frame);
-            return;
-        }
-
+    private void processInner() {
         //receivedRtss里面全都是没有被碰撞的桢
         if (receivedRtss.size() > 0) {
             final RtsFrame frame = getFreeRts();
             if (frame != null) {
+                //有源节点和目标节点都"闲"的rts，但是还要确保有可用的dataChannel
+                if (!hasFreeDataChannel()) {
+                    //没有可用的dataChannel,则把所有的rts都清空,让所有的节点设置nav,直到至少有一个dataChannel可用
+                    receivedRtss.clear();
+                    logger.info("没有可用的data channel,向所有的节点发送nav");
+                    NavFrame nav = new NavFrame(0, -1, ChannelManager.getPcpChannel());
+
+                    //nav的时间长度
+                    double navDuration = PrecisionUtil.sub(channelUsage.getShortestWaitTime(),
+                            Constant.getNavFrameTimeLength());
+                    navDuration = Math.max(navDuration, 0);
+                    nav.setNavDuration(navDuration);
+                    //
+
+                    final double finalNavDuration = navDuration;
+                    TimeController.getInstance().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            TimeController.getInstance().post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sendBofFrame(0, false);
+                                }
+                            }, finalNavDuration);
+                        }
+                    }, Constant.getNavFrameTimeLength());
+                    Medium.getInstance().putFrame(this, nav);
+                    return;
+                }
                 receivedRtss.remove(frame);
                 final int channel = channelUsage.getNextFreeChannel();
                 OtcFrame OtcFrame = new OtcFrame(frame.getSrcId(), frame.getTargetId(),
@@ -244,14 +244,14 @@ public class PcpStation implements Locatable {
                         logger.debug("%d onPostSendOtcFrame", getId());
                         channelUsage.putCommunicatePair(frame.getSrcId(), frame.getTargetId(), channel);
                         //准备发送下一个可能OtcFrame
-                        onSendOtcFrame();
+                        onProcess();
                     }
                 }, OtcFrame.getTransmitDuration(), TimeTask.SEND);
             } else {
                 RtsFrame rtsFrame = receivedRtss.remove(0);
                 if (channelUsage.isReceiver(rtsFrame.getSrcId())) {
                     //说明在本轮早就已经成为另一对连接的接收者了
-                    sendOtcFrameInner();
+                    processInner();
                 } else {
                     //向这个Frame的发送者回复NavFrame
                     NavFrame navFrame = new NavFrame(0, rtsFrame.getSrcId(), ChannelManager.getPcpChannel());
@@ -267,7 +267,7 @@ public class PcpStation implements Locatable {
                         @Override
                         public void run() {
                             logger.debug("%d onPostSendNavFrame()", getId());
-                            onSendOtcFrame();
+                            onProcess();
                         }
                     }, Constant.getNavFrameTimeLength());
                 }
