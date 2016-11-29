@@ -110,6 +110,7 @@ public class Station extends AbstractRole{
         if(getCurrentStatus() == Status.NAV || !getCurrentStatus().isReadMode()){
             return false;
         }
+        //标记可能的碰撞记号、添加到正在接收的receivingFrames
         for(Frame frame1 : receivingFrames){
             if(StationUtil.hasIntersection(frame1,frame)){
                 frame.setDirty();
@@ -117,6 +118,8 @@ public class Station extends AbstractRole{
             }
         }
         receivingFrames.add(frame);
+
+        //接收一个帧可能会引起节点状态的改变
         if(getCurrentStatus() == Status.COOLING || getCurrentStatus() == Status.SLOTING){
             setCurrentStatus(Status.RECEIVING_RTS);
         } else if(getCurrentStatus() == Status.WAITING_CTS){
@@ -131,6 +134,7 @@ public class Station extends AbstractRole{
                 getCurrentStatus() != Status.RECEIVING_ACK){
             throw new IllegalStateException();
         }
+
         int priority = TimeTask.COMMON_PRIORITY;
         if(frame instanceof CtsFrame){
             priority = TimeTask.POST_SEND_CTS;
@@ -139,6 +143,7 @@ public class Station extends AbstractRole{
         } else if(frame instanceof AckFrame){
             priority = TimeTask.POST_SEND_ACK;
         }
+
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
