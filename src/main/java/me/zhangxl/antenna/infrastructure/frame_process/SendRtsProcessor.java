@@ -26,7 +26,7 @@ public class SendRtsProcessor implements Processor {
         assert frame instanceof RtsFrame;
         logger.debug("%d onPreSendRTS()  channel:%d", station.getId(),frame.getFre());
         assert station.getCurrentStatus() == Status.SLOTING;
-        station.setCurrentStatus(Status.SENDING_RTS);
+        station.setCurrentStatus(Status.SENDING_DRTS);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -39,9 +39,8 @@ public class SendRtsProcessor implements Processor {
 
     private void onPostSendRTS() {
         logger.debug("%d onPostSendRTS()",station.getId());
-        assert station.getCurrentStatus() == Status.SENDING_RTS;
-        station.setCurrentStatus(Status.WAITING_BACK_OFF);
-        //new WaitCtsTimeOut(station).await();
+        assert station.getCurrentStatus() == Status.SENDING_DRTS;
+        station.setCurrentStatus(Status.WAITING_BOF);
     }
 
     private void sendFrame(Frame frame) {

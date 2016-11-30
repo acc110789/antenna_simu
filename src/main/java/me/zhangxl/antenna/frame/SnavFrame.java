@@ -14,14 +14,14 @@ import me.zhangxl.antenna.util.Config;
  * NavFrame设置两个地址吧。
  * Created by zhangxiaolong on 16/6/29.
  */
-public class NavFrame extends Frame {
+public class SnavFrame extends Frame {
 
     //暂时认为nav的长度和RtsFrame的长度一致
     private static final int navFrameLength = Config.getRtsLength();
 
     private double navDuration = -1;
     //需要注意的是如果srcId和targetId都是-1,则代表所有的节点都需要设置nav
-    public NavFrame(int srcId, int targetId,int fre) {
+    public SnavFrame(int srcId, int targetId, int fre) {
         super(srcId, targetId, navFrameLength, fre);
     }
 

@@ -15,7 +15,7 @@ public class WaitAckTimeOut extends AbstractWaiter {
 
     @Override
     Status getWaitStatus() {
-        return Status.WAITING_ACK;
+        return Status.WAITING_DACK;
     }
 
     @Override

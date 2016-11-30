@@ -28,7 +28,7 @@ public class PcpStation implements Locatable {
     private final Pair<Double, Double> mLocation = new Pair<>(0.0, 0.0);
     private final List<RtsFrame> receivedRtss = new ArrayList<>();
     private final List<RtsFrame> receivingRtss = new ArrayList<>();
-    private Status currentStatus = Status.WAITING_RTS;
+    private Status currentStatus = Status.WAITING_DRTS;
     private final PcpFreFilter mFreFilter = new PcpFreFilter();
     private final ChannelUsage channelUsage = new ChannelUsage();
     private CollisionRecord collisionRecord = new CollisionRecord();
@@ -78,7 +78,7 @@ public class PcpStation implements Locatable {
             //如果是rtsframe的频率,则进行对应的处理
             assert frame instanceof RtsFrame;
             //当前的状态一定是waiting rts
-            assert getCurrentStatus() == Status.WAITING_RTS;
+            assert getCurrentStatus() == Status.WAITING_DRTS;
             //检查是否与已经存在的同频率的frame发生的碰撞
             for (RtsFrame frame1 : receivingRtss) {
                 if (frame1.getFre() == frame.getFre()
@@ -91,7 +91,7 @@ public class PcpStation implements Locatable {
             TimeController.getInstance().post(new Runnable() {
                 @Override
                 public void run() {
-                    assert currentStatus == Status.WAITING_RTS;
+                    assert currentStatus == Status.WAITING_DRTS;
                     receivingRtss.remove(frame);
                     receivedRtss.add((RtsFrame) frame);
                 }
@@ -117,7 +117,7 @@ public class PcpStation implements Locatable {
         logger.debug("%d onPreSendBofFrame", getId());
         receivingRtss.clear();
         receivedRtss.clear();
-        assert getCurrentStatus() == Status.WAITING_RTS || getCurrentStatus() == Status.PCP_PROCESSING;
+        assert getCurrentStatus() == Status.WAITING_DRTS || getCurrentStatus() == Status.PCP_PROCESSING;
 
         //如果slots的数量小于0,则更新slots的值
         if (slots < 0) {
@@ -132,14 +132,14 @@ public class PcpStation implements Locatable {
         }
         logger.info("need double window : %s", doubleWindow ? "yes" : "no");
         Medium.getInstance().putFrame(this, frame);
-        setCurrentStatus(Status.SENDING_NEXT_ROUND);
+        setCurrentStatus(Status.SENDING_BOF);
 
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
-                assert getCurrentStatus() == Status.SENDING_NEXT_ROUND;
+                assert getCurrentStatus() == Status.SENDING_BOF;
                 logger.debug("%d onPostSendBofFrame", getId());
-                setCurrentStatus(Status.WAITING_RTS);
+                setCurrentStatus(Status.WAITING_DRTS);
                 registerHandler();
             }
         }, frame.getTransmitDuration(), TimeTask.SEND);
@@ -204,7 +204,7 @@ public class PcpStation implements Locatable {
                     //没有可用的dataChannel,则把所有的rts都清空,让所有的节点设置nav,直到至少有一个dataChannel可用
                     receivedRtss.clear();
                     logger.info("没有可用的data channel,向所有的节点发送nav");
-                    NavFrame nav = new NavFrame(0, -1, ChannelManager.getPcpChannel());
+                    SnavFrame nav = new SnavFrame(0, -1, ChannelManager.getPcpChannel());
 
                     //nav的时间长度
                     double navDuration = PrecisionUtil.sub(channelUsage.getShortestWaitTime(),
@@ -254,14 +254,14 @@ public class PcpStation implements Locatable {
                     processInner();
                 } else {
                     //向这个Frame的发送者回复NavFrame
-                    NavFrame navFrame = new NavFrame(0, rtsFrame.getSrcId(), ChannelManager.getPcpChannel());
+                    SnavFrame snavFrame = new SnavFrame(0, rtsFrame.getSrcId(), ChannelManager.getPcpChannel());
                     double navDuration = channelUsage.getWaitingTimeNeeded(rtsFrame.getTargetId());
                     channelUsage.putNavItem(rtsFrame.getSrcId(), navDuration);
 
                     navDuration = PrecisionUtil.sub(navDuration, Constant.getNavFrameTimeLength());
                     navDuration = Math.max(navDuration, 0);
-                    navFrame.setNavDuration(navDuration);
-                    Medium.getInstance().putFrame(this, navFrame);
+                    snavFrame.setNavDuration(navDuration);
+                    Medium.getInstance().putFrame(this, snavFrame);
                     logger.debug("%d onPreSendNavFrame()", getId());
                     TimeController.getInstance().post(new Runnable() {
                         @Override

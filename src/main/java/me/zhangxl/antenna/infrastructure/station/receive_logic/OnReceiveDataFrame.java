@@ -20,17 +20,17 @@ public class OnReceiveDataFrame extends OnReceiveFrameLogic {
     void onPre() {
         assert frame instanceof DataFrame;
         try {
-            assert station.getCurrentStatus() == Status.WAITING_DATA;
+            assert station.getCurrentStatus() == Status.WAITING_DDATA;
         } catch (Throwable throwable){
             System.err.println(station.getCurrentStatus());
             throw throwable;
         }
-        station.setCurrentStatus(Status.RECEIVING_DATA);
+        station.setCurrentStatus(Status.RECEIVING_DDATA);
     }
 
     @Override
     void onPost() {
-        assert station.getCurrentStatus() == Status.RECEIVING_DATA;
+        assert station.getCurrentStatus() == Status.RECEIVING_DDATA;
         new DataProcessor(station).process(frame);
     }
 }

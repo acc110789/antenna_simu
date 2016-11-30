@@ -25,20 +25,20 @@ public class DataProcessor extends AbstractProcessor {
         if(needNavById(frame)){
             new DataNav(station).startNav();
         } else {
-            station.setCurrentStatus(Status.RECEIVING_DATA);
+            station.setCurrentStatus(Status.RECEIVING_DDATA);
             onPreSendSIFSAndACK(frame.generateAckFrame());
         }
     }
 
     @Override
     Status getRightStatus() {
-        return Status.RECEIVING_DATA;
+        return Status.RECEIVING_DDATA;
     }
 
     private void onPreSendSIFSAndACK(final AckFrame frame) {
         logger.debug("%d onPreSendSIFSAndACK()", station.getId());
-        assert station.getCurrentStatus() == Status.RECEIVING_DATA;
-        station.setCurrentStatus(Status.SENDING_ACK);
+        assert station.getCurrentStatus() == Status.RECEIVING_DDATA;
+        station.setCurrentStatus(Status.SENDING_DACK);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -49,7 +49,7 @@ public class DataProcessor extends AbstractProcessor {
 
     private void onPreSendAck(AckFrame frame) {
         logger.debug("%d onPreSendAck()", station.getId());
-        assert station.getCurrentStatus() == Status.SENDING_ACK;
+        assert station.getCurrentStatus() == Status.SENDING_DACK;
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -61,8 +61,8 @@ public class DataProcessor extends AbstractProcessor {
 
     private void onPostSendACK() {
         logger.debug("%d onPostSendACK()", station.getId());
-        assert station.getCurrentStatus() == Status.SENDING_ACK;
+        assert station.getCurrentStatus() == Status.SENDING_DACK;
         station.setAcceptFre(ChannelManager.getPcpChannel());
-        station.setCurrentStatus(Status.WAITING_BACK_OFF);
+        station.setCurrentStatus(Status.WAITING_BOF);
     }
 }

@@ -18,13 +18,13 @@ public class OnReceiveAckFrame extends OnReceiveFrameLogic {
     @Override
     void onPre() {
         assert frame instanceof AckFrame;
-        assert station.getCurrentStatus() == Status.WAITING_ACK;
-        station.setCurrentStatus(Status.RECEIVING_ACK);
+        assert station.getCurrentStatus() == Status.WAITING_DACK;
+        station.setCurrentStatus(Status.RECEIVING_DACK);
     }
 
     @Override
     void onPost() {
-        assert station.getCurrentStatus() == Status.RECEIVING_ACK;
+        assert station.getCurrentStatus() == Status.RECEIVING_DACK;
         station.getReceivingFrames().remove(frame);
         new AckProcessor(station).process(frame);
     }

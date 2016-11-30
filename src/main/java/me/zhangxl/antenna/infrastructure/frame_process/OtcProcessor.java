@@ -28,13 +28,13 @@ public class OtcProcessor extends AbstractProcessor {
 
     @Override
     Status getRightStatus() {
-        return Status.RECEIVING_PAIR_FRAME;
+        return Status.RECEIVING_OTC;
     }
 
     private void onPreSendSIFSAndDATA() {
         logger.debug("%d onPreSendSIFSAndDATA()", station.getId());
         assert station.getCurrentStatus() == getRightStatus();
-        station.setCurrentStatus(Status.SENDING_DATA);
+        station.setCurrentStatus(Status.SENDING_DDATA);
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -45,7 +45,7 @@ public class OtcProcessor extends AbstractProcessor {
 
     private void onPreSendData(DataFrame dataFrame) {
         logger.debug("%d onPreSendData()", station.getId());
-        assert station.getCurrentStatus() == Status.SENDING_DATA;
+        assert station.getCurrentStatus() == Status.SENDING_DDATA;
         TimeController.getInstance().post(new Runnable() {
             @Override
             public void run() {
@@ -57,7 +57,7 @@ public class OtcProcessor extends AbstractProcessor {
 
     private void onPostSendDATA() {
         logger.debug("%d onPostSendDATA()", station.getId());
-        assert station.getCurrentStatus() == Status.SENDING_DATA;
+        assert station.getCurrentStatus() == Status.SENDING_DDATA;
         new WaitAckTimeOut(station).await();
     }
 }

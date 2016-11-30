@@ -23,20 +23,20 @@ public class AckProcessor extends AbstractProcessor {
             station.onFail();
             //开始difs冷却
             station.setAcceptFre(ChannelManager.getPcpChannel());
-            station.setCurrentStatus(Status.WAITING_BACK_OFF);
+            station.setCurrentStatus(Status.WAITING_BOF);
         } else {
             //桢是来自正确的节点
-            assert station.getCurrentStatus() == Status.RECEIVING_ACK;
+            assert station.getCurrentStatus() == Status.RECEIVING_DACK;
             assert frame.getTargetId() == station.getId();
             //说明本节点发送数据成功
             station.onSuccess();
             station.setAcceptFre(ChannelManager.getPcpChannel());
-            station.setCurrentStatus(Status.WAITING_BACK_OFF);
+            station.setCurrentStatus(Status.WAITING_BOF);
         }
     }
 
     @Override
     Status getRightStatus() {
-        return Status.RECEIVING_ACK;
+        return Status.RECEIVING_DACK;
     }
 }

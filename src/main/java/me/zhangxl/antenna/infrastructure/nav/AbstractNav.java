@@ -25,7 +25,7 @@ abstract class AbstractNav implements Navable{
             @Override
             public void run() {
                 logger.info("%d NAV finish",station.getId());
-                station.setCurrentStatus(Status.WAITING_BACK_OFF);
+                station.setCurrentStatus(Status.WAITING_BOF);
 //                new DifsCool(station).cool();
             }
         },getNavDuration(), TimeTask.RECEIVE);

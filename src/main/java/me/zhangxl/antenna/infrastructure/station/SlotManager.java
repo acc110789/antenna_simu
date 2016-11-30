@@ -38,7 +38,7 @@ public class SlotManager {
                 }
             }, Config.getSlotLength());
         } else {
-            station.setCurrentStatus(Status.WAITING_BACK_OFF);
+            station.setCurrentStatus(Status.WAITING_BOF);
         }
     }
 

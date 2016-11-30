@@ -27,7 +27,7 @@ abstract class AbstractCooler implements Cooler {
             public void run() {
                 if (station.getCurrentStatus() == Status.COOLING &&
                         isCoolingNotInterrupted()) {
-                    station.setCurrentStatus(Status.WAITING_BACK_OFF);
+                    station.setCurrentStatus(Status.WAITING_BOF);
                     station.setCommunicationTarget(BaseRole.defaultCommunicationTarget);
                     station.setAcceptFre(ChannelManager.getPcpChannel());
                 } else {

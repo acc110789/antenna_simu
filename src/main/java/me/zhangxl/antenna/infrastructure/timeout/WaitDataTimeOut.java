@@ -15,7 +15,7 @@ public class WaitDataTimeOut extends AbstractWaiter {
 
     @Override
     Status getWaitStatus() {
-        return Status.WAITING_DATA;
+        return Status.WAITING_DDATA;
     }
 
     @Override
